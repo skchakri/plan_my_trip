@@ -1,0 +1,12 @@
+<%= @inviter.display_name %> (<%= @inviter.email %>) added you to a trip on Plan My Trip.
+
+Trip: <%= @trip.title %>
+<% if @trip.destination.present? %>Destination: <%= @trip.destination %><% end %>
+<% if @trip.start_date && @trip.end_date %>Dates: <%= @trip.start_date.strftime("%b %-d") %> – <%= @trip.end_date.strftime("%b %-d, %Y") %><% end %>
+
+Open this link to create your account and add the trip to your list:
+<%= @url %>
+
+If you weren't expecting this, you can ignore the email — nothing will happen.
+
+— Plan My Trip

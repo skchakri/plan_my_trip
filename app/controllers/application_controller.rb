@@ -9,6 +9,18 @@ class ApplicationController < ActionController::Base
 
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
 
+  # When a user signs in (e.g. after clicking an invitation link), if they
+  # have a pending invitation token in the session, route them to the
+  # accept-invite page instead of the default landing.
+  def after_sign_in_path_for(resource)
+    if (token = session.delete(:invitation_token))
+      session.delete(:invitation_email)
+      invitation_path(token)
+    else
+      super
+    end
+  end
+
   protected
 
   def configure_permitted_parameters

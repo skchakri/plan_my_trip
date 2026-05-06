@@ -91,7 +91,10 @@
 
 <% if is_owner %>
   <hr class="my-8 border-slate-800">
-  <h2 class="text-lg font-semibold mb-3">People with access</h2>
+  <div class="flex items-center justify-between mb-3">
+    <h2 class="text-lg font-semibold">People with access</h2>
+    <%= link_to "Add", new_trip_share_path(@trip), class: "text-sm px-3 py-1 bg-amber-500 text-slate-900 rounded-md font-medium hover:bg-amber-400" %>
+  </div>
   <ul class="space-y-2">
     <% @trip.trip_memberships.includes(:user).each do |m| %>
       <li class="flex items-center justify-between bg-slate-900/60 border border-slate-800 rounded-md px-4 py-2">
@@ -103,6 +106,16 @@
         <% unless m.owner? %>
           <%= button_to "Remove", trip_share_path(@trip, m), method: :delete, form: { data: { turbo_confirm: "Remove access for #{m.user.display_name}?" } }, class: "text-sm text-rose-400 hover:text-rose-300" %>
         <% end %>
+      </li>
+    <% end %>
+
+    <% @trip.invitations.pending.each do |inv| %>
+      <li class="flex items-center justify-between bg-slate-900/40 border border-dashed border-slate-700 rounded-md px-4 py-2">
+        <div>
+          <span class="text-slate-300"><%= inv.email %></span>
+          <span class="ml-2 text-xs px-2 py-0.5 bg-sky-500/15 text-sky-300 rounded">Pending — invite sent</span>
+        </div>
+        <%= button_to "Revoke", trip_invitation_path(@trip, inv), method: :delete, form: { data: { turbo_confirm: "Revoke the invitation to #{inv.email}?" } }, class: "text-sm text-rose-400 hover:text-rose-300" %>
       </li>
     <% end %>
   </ul>

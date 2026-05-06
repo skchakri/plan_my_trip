@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_06_202333) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_06_220641) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -25,6 +25,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_06_202333) do
     t.datetime "updated_at", null: false
     t.index ["trip_id", "position"], name: "index_trails_on_trip_id_and_position"
     t.index ["trip_id"], name: "index_trails_on_trip_id"
+  end
+
+  create_table "trip_invitations", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "accepted_at"
+    t.datetime "created_at", null: false
+    t.datetime "declined_at"
+    t.datetime "discarded_at"
+    t.string "email", null: false
+    t.uuid "inviter_id", null: false
+    t.string "token", null: false
+    t.uuid "trip_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["discarded_at"], name: "index_trip_invitations_on_discarded_at"
+    t.index ["email"], name: "index_trip_invitations_on_email"
+    t.index ["inviter_id"], name: "index_trip_invitations_on_inviter_id"
+    t.index ["token"], name: "index_trip_invitations_on_token", unique: true
+    t.index ["trip_id"], name: "index_trip_invitations_on_trip_id"
   end
 
   create_table "trip_memberships", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -69,6 +86,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_06_202333) do
   end
 
   add_foreign_key "trails", "trips"
+  add_foreign_key "trip_invitations", "trips"
+  add_foreign_key "trip_invitations", "users", column: "inviter_id"
   add_foreign_key "trip_memberships", "trips"
   add_foreign_key "trip_memberships", "users"
   add_foreign_key "trips", "users", column: "owner_id"

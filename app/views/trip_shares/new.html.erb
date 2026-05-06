@@ -5,7 +5,7 @@
 </div>
 
 <h1 class="text-2xl font-semibold mb-2">Share "<%= @trip.title %>"</h1>
-<p class="text-slate-400 mb-6">Enter the email of someone who has signed up. They'll see this trip in their list next time they log in.</p>
+<p class="text-slate-400 mb-6">Enter any email. If they already have an account, the trip lands in their list right away. If not, we'll email them an invitation — they'll join the trip after they sign up.</p>
 
 <%= form_with url: trip_shares_path(@trip), method: :post, class: "flex gap-2" do |f| %>
   <%= f.email_field :email, required: true, placeholder: "friend@example.com", class: "flex-1 rounded-md bg-slate-800 border border-slate-700 px-3 py-2 focus:border-amber-500 focus:outline-none" %>

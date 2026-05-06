@@ -71,4 +71,7 @@ end
 group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
+
+  # Open ActionMailer emails in the browser instead of sending in development.
+  gem "letter_opener"
 end
