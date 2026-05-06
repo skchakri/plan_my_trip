@@ -1,0 +1,1991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Vegas Trip" />
+<meta name="theme-color" content="#0a0e1a" />
+<title>Vegas Trip · 4 Days</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #0a0e1a;
+  --bg-2: #0f1424;
+  --surface: #161b2e;
+  --surface-2: #1d243d;
+  --border: #262d49;
+  --text: #f4f1e8;
+  --text-dim: #9aa3bf;
+  --text-mute: #6b7390;
+  --gold: #e8a04f;
+  --gold-soft: #f0b870;
+  --teal: #5dc3b8;
+  --pink: #e87aa6;
+  --blue: #6ca3e8;
+  --red: #e85a5a;
+  --shadow: 0 8px 32px rgba(0,0,0,0.4);
+  --radius: 14px;
+  --accent: var(--gold);
+}
+
+[data-day="thu"] { --accent: var(--blue); }
+[data-day="fri"] { --accent: var(--gold); }
+[data-day="sat"] { --accent: var(--teal); }
+[data-day="sun"] { --accent: var(--pink); }
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  font-family: 'Manrope', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+body {
+  background:
+    radial-gradient(ellipse at top, rgba(232, 160, 79, 0.06), transparent 50%),
+    radial-gradient(ellipse at bottom, rgba(93, 195, 184, 0.04), transparent 50%),
+    var(--bg);
+  min-height: 100vh;
+  padding-bottom: 90px;
+}
+
+.app {
+  max-width: 480px;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* HEADER */
+.header {
+  padding: max(env(safe-area-inset-top), 24px) 22px 14px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: linear-gradient(to bottom, var(--bg) 80%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 600;
+  margin-bottom: 6px;
+  transition: color 0.3s ease;
+}
+
+.title {
+  font-family: 'Fraunces', serif;
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  margin-bottom: 14px;
+}
+
+.title em {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--accent);
+  transition: color 0.3s ease;
+}
+
+.meta-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  font-size: 11.5px;
+  color: var(--text-dim);
+  font-weight: 500;
+}
+
+.pill-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  transition: background 0.3s ease;
+}
+
+/* DAY PICKER - 4 date cards */
+.day-picker {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.day-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 10px 4px;
+  cursor: pointer;
+  text-align: center;
+  font-family: inherit;
+  color: var(--text-dim);
+  transition: all 0.2s ease;
+}
+
+.day-btn:active { transform: scale(0.96); }
+
+.day-btn.active {
+  background: var(--accent);
+  color: #1a0f00;
+  border-color: var(--accent);
+}
+
+[data-day="thu"] .day-btn.active { color: #001226; }
+[data-day="sat"] .day-btn.active { color: #002420; }
+[data-day="sun"] .day-btn.active { color: #2e0218; }
+
+.day-name {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  display: block;
+}
+
+.day-num {
+  font-family: 'Fraunces', serif;
+  font-size: 22px;
+  font-weight: 600;
+  display: block;
+  margin: 2px 0;
+  line-height: 1;
+}
+
+.day-theme {
+  font-size: 9px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.7;
+  font-weight: 600;
+}
+
+/* GROUP TABS (Friday only) */
+.group-tabs {
+  display: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 4px;
+  gap: 2px;
+}
+
+.group-tabs.show { display: flex; }
+
+.group-tab {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  padding: 9px 4px;
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.02em;
+}
+
+.group-tab.active {
+  background: var(--accent);
+  color: #1a0f00;
+  box-shadow: 0 2px 8px rgba(232, 160, 79, 0.3);
+}
+
+/* DAY CONTENT */
+.day-content {
+  padding: 16px 22px 30px;
+  display: none;
+  animation: fadeIn 0.4s ease;
+}
+
+.day-content.active { display: block; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.timeline { display: none; }
+.timeline.active { display: block; }
+
+.intro-card {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 8%, transparent), transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--border));
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 22px;
+}
+
+.intro-card h3 {
+  font-family: 'Fraunces', serif;
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--accent);
+  transition: color 0.3s ease;
+}
+
+.intro-card p {
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.55;
+}
+
+/* STOP CARD */
+.stop {
+  position: relative;
+  padding-left: 56px;
+  margin-bottom: 22px;
+}
+
+.stop::before {
+  content: '';
+  position: absolute;
+  left: 19px;
+  top: 38px;
+  bottom: -22px;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--border), transparent);
+}
+
+.stop:last-child::before { display: none; }
+
+.stop-time {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+  z-index: 2;
+  text-align: center;
+  line-height: 1;
+  transition: color 0.3s ease;
+}
+
+.stop-time.start {
+  background: var(--accent);
+  color: #1a0f00;
+  border-color: var(--accent);
+}
+
+[data-day="thu"] .stop-time.start { color: #001226; }
+[data-day="sat"] .stop-time.start { color: #002420; }
+[data-day="sun"] .stop-time.start { color: #2e0218; }
+
+.stop-time.meet {
+  background: var(--teal);
+  color: #002420;
+  border-color: var(--teal);
+}
+
+.stop-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.stop-image {
+  width: 100%;
+  height: 160px;
+  background: var(--surface-2);
+  position: relative;
+  overflow: hidden;
+}
+
+.stop-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.stop-image::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(22, 27, 46, 0.6), transparent 40%);
+}
+
+.stop-body { padding: 16px; }
+
+.stop-label {
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.stop-name {
+  font-family: 'Fraunces', serif;
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  margin-bottom: 4px;
+}
+
+.stop-addr {
+  font-size: 12px;
+  color: var(--text-mute);
+  margin-bottom: 10px;
+}
+
+.stop-desc {
+  font-size: 13.5px;
+  color: var(--text-dim);
+  line-height: 1.55;
+  margin-bottom: 12px;
+}
+
+.stop-tip {
+  background: rgba(93, 195, 184, 0.08);
+  border-left: 2px solid var(--teal);
+  padding: 8px 10px;
+  margin: 10px 0 12px;
+  border-radius: 0 8px 8px 0;
+  font-size: 12.5px;
+  color: var(--text);
+}
+
+.stop-tip strong {
+  color: var(--teal);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.stop-warn {
+  background: rgba(232, 90, 90, 0.08);
+  border-left: 2px solid var(--red);
+  padding: 8px 10px;
+  margin: 10px 0 12px;
+  border-radius: 0 8px 8px 0;
+  font-size: 12.5px;
+  color: var(--text);
+}
+
+.stop-warn strong {
+  color: var(--red);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 2px;
+}
+
+/* ACTION BUTTONS */
+.actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.action {
+  flex: 1;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 10px 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.action:active { transform: scale(0.97); }
+
+.action.primary {
+  background: var(--accent);
+  color: #1a0f00;
+  border-color: var(--accent);
+}
+
+[data-day="thu"] .action.primary { color: #001226; }
+[data-day="sat"] .action.primary { color: #002420; }
+[data-day="sun"] .action.primary { color: #2e0218; }
+
+.action svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+/* DRIVE BLOCK */
+.drive-block {
+  margin: 14px 0;
+  padding: 12px 14px;
+  background: var(--bg-2);
+  border-radius: 10px;
+  border: 1px dashed var(--border);
+}
+
+.drive-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.drive-head svg { width: 14px; height: 14px; }
+
+.drive-steps {
+  list-style: none;
+  counter-reset: step;
+}
+
+.drive-steps li {
+  counter-increment: step;
+  position: relative;
+  padding-left: 24px;
+  font-size: 12.5px;
+  color: var(--text-dim);
+  line-height: 1.55;
+  margin-bottom: 4px;
+}
+
+.drive-steps li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 1px;
+  width: 16px;
+  height: 16px;
+  background: var(--surface-2);
+  border-radius: 50%;
+  font-size: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.drive-meta {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text-mute);
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* INFO ROW */
+.info-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.info-item {
+  background: var(--bg-2);
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.info-item-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-mute);
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.info-item-value {
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 500;
+}
+
+/* SECTION DIVIDER */
+.section-divider {
+  margin: 28px 22px 16px;
+  font-family: 'Fraunces', serif;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-mute);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.section-divider::before,
+.section-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* CHECKLIST */
+.checklist {
+  margin: 0 22px 24px;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.checklist h4 {
+  font-family: 'Fraunces', serif;
+  font-size: 16px;
+  margin-bottom: 12px;
+  color: var(--text);
+}
+
+.checklist ul {
+  list-style: none;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.checklist li {
+  padding: 8px 0 8px 26px;
+  position: relative;
+  line-height: 1.5;
+  border-bottom: 1px solid var(--border);
+}
+
+.checklist li:last-child { border-bottom: none; }
+
+.checklist li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 11px;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid var(--text-mute);
+  border-radius: 4px;
+  background: transparent;
+}
+
+.checklist li.done {
+  color: var(--text-mute);
+  text-decoration: line-through;
+}
+
+.checklist li.done::before {
+  background: var(--gold);
+  border-color: var(--gold);
+}
+
+.checklist li.done::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 14px;
+  width: 8px;
+  height: 4px;
+  border-left: 2px solid #1a0f00;
+  border-bottom: 2px solid #1a0f00;
+  transform: rotate(-45deg);
+}
+
+/* CONTACTS */
+.contacts {
+  padding: 0 22px;
+  display: grid;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.contact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  text-decoration: none;
+  color: var(--text);
+}
+
+.contact-info { display: flex; flex-direction: column; gap: 2px; }
+.contact-name { font-size: 14px; font-weight: 600; }
+.contact-meta { font-size: 11px; color: var(--text-mute); }
+
+.contact-call {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1a0f00;
+  flex-shrink: 0;
+}
+
+.contact-call svg { width: 14px; height: 14px; }
+
+/* OVERVIEW */
+.overview-grid {
+  margin: 0 22px 24px;
+  display: grid;
+  gap: 8px;
+}
+
+.ov-day {
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.ov-day::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+}
+
+.ov-day[data-d="thu"]::before { background: var(--blue); }
+.ov-day[data-d="fri"]::before { background: var(--gold); }
+.ov-day[data-d="sat"]::before { background: var(--teal); }
+.ov-day[data-d="sun"]::before { background: var(--pink); }
+
+.ov-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.ov-day-name {
+  font-family: 'Fraunces', serif;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.ov-date {
+  font-size: 11px;
+  color: var(--text-mute);
+  letter-spacing: 0.05em;
+}
+
+.ov-detail {
+  font-size: 12.5px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+/* FLOATING NAV */
+.fab {
+  position: fixed;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  background: rgba(15, 20, 36, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 6px;
+  z-index: 100;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+
+.fab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 100px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.fab-btn:active { transform: scale(0.96); }
+.fab-btn svg { width: 14px; height: 14px; }
+
+.fab-btn.primary {
+  background: var(--gold);
+  color: #1a0f00;
+}
+
+.footer {
+  padding: 24px 22px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-mute);
+  letter-spacing: 0.08em;
+}
+
+.footer-line {
+  height: 1px;
+  background: var(--border);
+  margin: 0 22px 20px;
+}
+
+@media (min-width: 481px) {
+  .app { box-shadow: 0 0 40px rgba(0,0,0,0.6); }
+}
+</style>
+</head>
+<body data-day="thu">
+<div class="app">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="eyebrow">May 7–10 · 2026 · Vegas trip</div>
+    <h1 class="title">Four days <em id="dayWord">on the road</em></h1>
+    <div class="meta-row">
+      <span class="pill"><span class="pill-dot"></span><span id="dayMeta">Thursday · Drive in</span></span>
+      <span class="pill">6 people · 1 minivan</span>
+    </div>
+
+    <!-- 4-DAY PICKER -->
+    <div class="day-picker" role="tablist">
+      <button class="day-btn active" data-d="thu">
+        <span class="day-name">Thu</span>
+        <span class="day-num">7</span>
+        <span class="day-theme">Drive in</span>
+      </button>
+      <button class="day-btn" data-d="fri">
+        <span class="day-name">Fri</span>
+        <span class="day-num">8</span>
+        <span class="day-theme">Sphere</span>
+      </button>
+      <button class="day-btn" data-d="sat">
+        <span class="day-name">Sat</span>
+        <span class="day-num">9</span>
+        <span class="day-theme">Skywalk</span>
+      </button>
+      <button class="day-btn" data-d="sun">
+        <span class="day-name">Sun</span>
+        <span class="day-num">10</span>
+        <span class="day-theme">Drive home</span>
+      </button>
+    </div>
+
+    <!-- FRIDAY GROUP TABS -->
+    <div class="group-tabs" id="groupTabs" role="tablist">
+      <button class="group-tab active" data-g="kids">Wife &amp; Kids</button>
+      <button class="group-tab" data-g="parents">You &amp; Parents</button>
+      <button class="group-tab" data-g="together">Together</button>
+    </div>
+  </header>
+
+  <!-- ===== THURSDAY ===== -->
+  <div class="day-content active" id="day-thu">
+    <div class="intro-card">
+      <h3>Thursday · Roll out</h3>
+      <p>420 miles, 6 hours of I-15 South. One real lunch stop in Beaver, UT (the natural midpoint), one quick gas stop in St. George if needed, and you're at the rental by 7:30 PM. 75°F clear — easy driving weather.</p>
+    </div>
+
+    <div class="stop">
+      <div class="stop-time start">12:30<br/>PM</div>
+      <div class="stop-card"><div class="stop-body">
+        <div class="stop-label">Departure · 6 people, all bags loaded</div>
+        <div class="stop-name">Depart North Salt Lake</div>
+        <div class="stop-desc">Last bathroom stop before highway. Top off gas at Costco/Sam's so you don't need to fill up until Beaver. Snacks + water in the front cooler bag.</div>
+        <div class="stop-warn">
+          <strong>Pre-flight check</strong>
+          Phone chargers plugged in · sunscreen accessible · meds for parents in front · kids' tablets charged · paper towels in the car (you will spill something)
+        </div>
+      </div></div>
+    </div>
+
+    <div class="stop">
+      <div class="stop-time">12:45<br/>PM</div>
+      <div class="stop-card"><div class="stop-body">
+        <div class="stop-label">Drive segment · 3 hours · 200 mi</div>
+        <div class="stop-name">Onto I-15 South</div>
+        <div class="drive-block">
+          <div class="drive-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            North SLC → Beaver UT
+          </div>
+          <ol class="drive-steps">
+            <li>I-215 W to <strong>I-15 S</strong> merge</li>
+            <li>Through Salt Lake → Provo (~45 min)</li>
+            <li>Past Nephi, Fillmore, Cove Fort</li>
+            <li>Speed limit <strong>80 mph</strong> in most stretches</li>
+            <li>Exit 109 / 112 for Beaver</li>
+          </ol>
+          <div class="drive-meta">
+            <span>~200 mi · 3 hr</span>
+            <span>Scenic: Wasatch Range</span>
+          </div>
+        </div>
+        <div class="actions">
+          <a class="action primary" href="https://www.google.com/maps/dir/?api=1&origin=North+Salt+Lake,+UT&destination=Arshels+Cafe,+711+N+Main+St,+Beaver+UT&travelmode=driving">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 20l-5-5 5-5M4 15h16"/></svg>
+            Open in Maps
+          </a>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="stop">
+      <div class="stop-time">3:30<br/>PM</div>
+      <div class="stop-card"><div class="stop-body">
+        <div class="stop-label">Lunch + gas · 45 min</div>
+        <div class="stop-name">Arshel's Cafe · Beaver UT</div>
+        <div class="stop-addr">711 N Main St, Beaver, UT · 4.5 ★ (415)</div>
+        <div class="stop-desc">Local burger joint, hand-cut fries, real diner vibe. Open Wed–Sat 11–7. Better than fast food, only marginally slower. Good coffee for the next leg.</div>
+        <div class="stop-tip">
+          <strong>Backup plan</strong>
+          If Arshel's is closed or crowded, Timberline Restaurant (next door) and Maverik for clean restrooms + gas are reliable.
+        </div>
+        <div class="info-row">
+          <div class="info-item">
+            <div class="info-item-label">Distance done</div>
+            <div class="info-item-value">200 mi · 47%</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-label">Gas</div>
+            <div class="info-item-value">Refuel here</div>
+          </div>
+        </div>
+        <div class="actions">
+          <a class="action primary" href="https://www.google.com/maps/search/?api=1&query=Arshels+Cafe+Beaver+Utah&query_place_id=ChIJw5mOeb4stYARUmOIHEs8P_4">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Map
+          </a>
+          <a class="action" href="tel:+14354382977">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+            Call
+          </a>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="stop">
+      <div class="stop-time">4:30<br/>PM</div>
+      <div class="stop-card"><div class="stop-body">
+        <div class="stop-label">Drive segment · 3 hours · 220 mi</div>
+        <div class="stop-name">Beaver → Las Vegas</div>
+        <div class="drive-block">
+          <div class="drive-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            Continue I-15 S
+          </div>
+          <ol class="drive-steps">
+            <li>Past Cedar City (5:00 PM)</li>
+            <li>Through <strong>Virgin River Gorge</strong> — most scenic 30 min of the drive (5:45 PM)</li>
+            <li>Cross into Arizona briefly, then Nevada at <strong>Mesquite</strong> (6:30 PM)</li>
+            <li>I-15 S into Las Vegas</li>
+            <li>Exit Flamingo Rd → Maryland Pkwy → rental</li>
+          </ol>
+          <div class="drive-meta">
+            <span>~220 mi · 3 hr</span>
+            <span>Time zone: stays MT</span>
+          </div>
+        </div>
+        <div class="stop-tip">
+          <strong>Stretch break</strong>
+          St. George has clean rest stops if anyone needs to stretch. Don't stop in Mesquite — it's a tourist trap.
+        </div>
+        <div class="actions">
+          <a class="action primary" href="https://www.google.com/maps/dir/?api=1&origin=Beaver,+UT&destination=3906+Maryland+Pkwy,+Las+Vegas,+NV+89119&travelmode=driving">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 20l-5-5 5-5M4 15h16"/></svg>
+            Open in Maps
+          </a>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="stop">
+      <div class="stop-time">7:30<br/>PM</div>
+      <div class="stop-card"><div class="stop-body">
+        <div class="stop-label">Arrival · home base for 3 nights</div>
+        <div class="stop-name">3906 Maryland Pkwy</div>
+        <div class="stop-addr">Las Vegas, NV 89119</div>
+        <div class="stop-desc">Unload, find the kitchen, claim beds. Check the AC — set to 72°F minimum or it won't keep up with 100°F days. Confirm Wi-Fi password works.</div>
+        <div class="actions">
+          <a class="action primary" href="https://www.google.com/maps/search/?api=1&query=3906+Maryland+Pkwy+Las+Vegas+NV+89119">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Open Map
+          </a>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="stop">
+      <div class="stop-time">8:00<br/>PM</div>
+      <div class="stop-card"><div class="stop-body">
+        <div class="stop-label">Grocery run · 30 min</div>
+        <div class="stop-name">Smith's Supermarket</div>
+        <div class="stop-addr">2540 S Maryland Pkwy · 5 min drive</div>
+        <div class="stop-desc">Stock the rental kitchen. With 6 people for 3 days you'll save $200+ vs eating out every meal.</div>
+        <div class="stop-tip">
+          <strong>Shopping list for the trip</strong>
+          Eggs · milk · cereal · bread · sandwich fixings · fruit · yogurt · pasta · sauce · veggies · chai/coffee · large water bottles · ice for coolers · breakfast bars for car · sunscreen · advil
+        </div>
+        <div class="actions">
+          <a class="action primary" href="https://www.google.com/maps/dir/?api=1&origin=3906+Maryland+Pkwy,+Las+Vegas,+NV&destination=Smiths,+2540+S+Maryland+Pkwy,+Las+Vegas,+NV&travelmode=driving">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 20l-5-5 5-5M4 15h16"/></svg>
+            Drive
+          </a>
+          <a class="action" href="tel:+17027358928">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+            Call
+          </a>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="stop">
+      <div class="stop-time">9:00<br/>PM</div>
+      <div class="stop-card"><div class="stop-body">
+        <div class="stop-label">Wind down</div>
+        <div class="stop-name">Light dinner · early to bed</div>
+        <div class="stop-desc">Pasta + salad from groceries. Lay out kids' clothes for Spy Ninjas tomorrow. Check Sphere ticket QR codes work and screenshot them for offline access. Set alarm for 8:30 AM Friday.</div>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- ===== FRIDAY ===== -->
+  <div class="day-content" id="day-fri">
+
+    <!-- KIDS TIMELINE -->
+    <section class="timeline active" data-g="kids">
+      <div class="intro-card">
+        <h3>Group A · Spy Ninjas mission</h3>
+        <p>Take the minivan — way cheaper than UberXL with car seats. ~22 min to Spy Ninjas, free parking on site. Wife is the driver. Leave Spy Ninjas by 12:30 PM sharp to make Sphere by 1:30 PM.</p>
+      </div>
+
+      <div class="stop">
+        <div class="stop-time start">9:00<br/>AM</div>
+        <div class="stop-card"><div class="stop-body">
+          <div class="stop-label">Home base</div>
+          <div class="stop-name">Breakfast at rental</div>
+          <div class="stop-addr">3906 Maryland Pkwy</div>
+          <div class="stop-desc">Quick breakfast — cereal, fruit, eggs from the kitchen. Pack water bottles &amp; light snacks. Apply sunscreen now, even though kids will be indoors.</div>
+          <div class="stop-tip">
+            <strong>Pack list</strong>
+            Grip socks for kids (Spy Ninjas requires them — buy on-site $4 or BYO), water bottles, snacks for car, hand sanitizer.
+          </div>
+        </div></div>
+      </div>
+
+      <div class="stop">
+        <div class="stop-time">9:35<br/>AM</div>
+        <div class="stop-card"><div class="stop-body">
+          <div class="stop-label">Drive · 22 min · 13 mi</div>
+          <div class="stop-name">Rental → Spy Ninjas</div>
+          <div class="drive-block">
+            <div class="drive-head">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+              Driving directions
+            </div>
+            <ol class="drive-steps">
+              <li>North on <strong>Maryland Pkwy</strong></li>
+              <li>Right on <strong>E Flamingo Rd</strong> (1.2 mi)</li>
+              <li>Merge <strong>I-15 N</strong> via Flamingo ramp (5 mi)</li>
+              <li>Exit 41B for <strong>US-95 N / Summerlin Pkwy</strong></li>
+              <li>Exit at <strong>N Buffalo Dr</strong>, turn left/south (3 mi)</li>
+              <li>Right on <strong>W Sahara Ave</strong> — destination on left</li>
+            </ol>
+            <div class="drive-meta">
+              <span>Free parking</span>
+              <span>Light traffic 9–10 AM</span>
+            </div>
+          </div>
+          <div class="actions">
+            <a class="action primary" href="https://www.google.com/maps/dir/?api=1&origin=3906+Maryland+Pkwy,+Las+Vegas,+NV+89119&destination=7980+W+Sahara+Ave,+Las+Vegas,+NV+89117&travelmode=driving">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 20l-5-5 5-5M4 15h16"/></svg>
+              Open in Maps
+            </a>
+            <a class="action" href="https://m.uber.com/ul/?action=setPickup&pickup[formatted_address]=3906%20Maryland%20Pkwy%2C%20Las%20Vegas%2C%20NV&dropoff[formatted_address]=7980%20W%20Sahara%20Ave%2C%20Las%20Vegas%2C%20NV">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg>
+              Uber XL
+            </a>
+          </div>
+        </div></div>
+      </div>
+
+      <div class="stop">
+        <div class="stop-time">10:00<br/>AM</div>
+        <div class="stop-card">
+          <div class="stop-image">
+            <img src="https://lh3.googleusercontent.com/places/ANXAkqF6M0jfPoIg0lx-Ib928BVGIB03wDiTbM54NNPCulWDgvjx0CV5kvkhCXOqEb-KiKjIteWpaq8DraN1iLnhR8iZKM_o478tT5k=s4800-w800-h600" alt="Spy Ninjas HQ" loading="lazy" />
+          </div>
+          <div class="stop-body">
+            <div class="stop-label">Stop 1 · 2.5 hours</div>
+            <div class="stop-name">Spy Ninjas HQ</div>
+            <div class="stop-addr">7980 W Sahara Ave · 4.7 ★ (1,980)</div>
+            <div class="stop-desc">Obstacle courses, ziplines, axe throwing, escape rooms, mini-ninja section for younger kids, arcade. Mom can sit at the retro lounge bar in AC while kids run.</div>
+            <div class="info-row">
+              <div class="info-item"><div class="info-item-label">Pass</div><div class="info-item-value">Action × 6</div></div>
+              <div class="info-item"><div class="info-item-label">Cost</div><div class="info-item-value">~$40 each</div></div>
+            </div>
+            <div class="stop-tip">
+              <strong>Insider tip</strong>
+              Buy passes online before arriving — bypass front-desk queue. Mini-Ninja section is for ages 2–7.
+            </div>
+            <div class="actions">
+              <a class="action primary" href="https://www.google.com/maps/search/?api=1&query=Spy+Ninjas+HQ&query_place_id=ChIJwexL9ovByIARn_h140FCkVU">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                Map
+              </a>
+              <a class="action" href="tel:+17024444800">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+                Call
+              </a>
+              <a class="action" href="https://www.spyninjashq.com/" target="_blank" rel="noopener">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/></svg>
+                Site
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stop">
+        <div class="stop-time">12:30<br/>PM</div>
+        <div class="stop-card"><div class="stop-body">
+          <div class="stop-label">Lunch on the go · 15 min</div>
+          <div class="stop-name">In-N-Out drive-thru</div>
+          <div class="stop-addr">4888 Industrial Rd</div>
+          <div class="stop-desc">On the route from Spy Ninjas to Sphere. Eat in the minivan. Kids love it. Get extra napkins.</div>
+          <div class="stop-tip">
+            <strong>Order ahead</strong>
+            Use the In-N-Out app to skip the line. Order at 12:15 from Spy Ninjas, pick up at the window.
+          </div>
+          <div class="actions">
+            <a class="action primary" href="https://www.google.com/maps/dir/?api=1&origin=7980+W+Sahara+Ave,+Las+Vegas,+NV&destination=4888+Industrial+Rd,+Las+Vegas,+NV&travelmode=driving">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 20l-5-5 5-5M4 15h16"/></svg>
+              Open in Maps
+            </a>
+          </div>
+        </div></div>
+      </div>
+
+      <div class="stop">
+        <div class="stop-time meet">1:30<br/>PM</div>
+        <div class="stop-card">
+          <div class="stop-image">
+            <img src="https://lh3.googleusercontent.com/places/ANXAkqEiLBSc2hEzpO2ccX0XQbjQX2ezKiNXctRbKzw-jJMbT1CWhOXfpwfQlQRG3rkzUtJneyWRs9ipoi5vfuP_bnoSuHARppsLP4E=s4800-w800-h576" alt="Sphere" loading="lazy" />
+          </div>
+          <div class="stop-body">
+            <div class="stop-label">Meet point · regroup</div>
+            <div class="stop-name">Sphere — main entrance plaza</div>
+            <div class="stop-addr">255 Sands Ave</div>
+            <div class="stop-desc">Park at Sphere garage ($25 prepaid). Walk to security ~5 min. Meet at the giant LED orb on south side. Show begins 2 PM, doors close 1:50 PM.</div>
+            <div class="actions">
+              <a class="action primary" href="https://www.google.com/maps/dir/?api=1&origin=4888+Industrial+Rd,+Las+Vegas,+NV&destination=Sphere+Las+Vegas&travelmode=driving">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 20l-5-5 5-5M4 15h16"/></svg>
+                Drive to Sphere
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PARENTS TIMELINE -->
+    <section class="timeline" data-g="parents">
+      <div class="intro-card">
+        <h3>Group B · Slow Strip morning</h3>
+        <p>Take Uber for parents — saves the casino-garage walk and parking hassle. Three indoor, AC-cooled stops on the Strip. Bring cardigans for the parents (Sphere keeps venue at 68°F).</p>
+      </div>
+
+      <div class="stop">
+        <div class="stop-time start">9:30<br/>AM</div>
+        <div class="stop-card"><div class="stop-body">
+          <div class="stop-label">Home base · relaxed start</div>
+          <div class="stop-name">Breakfast with parents</div>
+          <div class="stop-addr">3906 Maryland Pkwy</div>
+          <div class="stop-desc">Slower start than the kids' group. Eat properly, pack a small bag with: meds, water bottles, light cardigans for Sphere AC, sunglasses.</div>
+        </div></div>
+      </div>
+
+      <div class="stop">
+        <div class="stop-time">10:15<br/>AM</div>
+        <div class="stop-card"><div class="stop-body">
+          <div class="stop-label">Ride · 10 min · 3 mi</div>
+          <div class="stop-name">Rental → Bellagio</div>
+          <div class="drive-block">
+            <div class="drive-head">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M2 12h20"/></svg>
+              Best option: Uber X
+            </div>
+            <ol class="drive-steps">
+              <li>Open Uber, set drop-off: <strong>Bellagio main entrance</strong></li>
+              <li>UberX (4 seats fits 3)</li>
+              <li>Driver drops at porte cochère — no garage walk</li>
+              <li>Estimated $12–15</li>
+            </ol>
+            <div class="drive-meta">
+              <span>Self-park: $0 first hour</span>
+              <span>Valet $30+</span>
+            </div>
+          </div>
+          <div class="actions">
+            <a class="action primary" href="https://m.uber.com/ul/?action=setPickup&pickup[formatted_address]=3906%20Maryland%20Pkwy%2C%20Las%20Vegas%2C%20NV&dropoff[formatted_address]=Bellagio%20Hotel%20%26%20Casino%2C%203600%20S%20Las%20Vegas%20Blvd">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg>
+              Open Uber
+            </a>
+            <a class="action" href="https://www.google.com/maps/dir/?api=1&origin=3906+Maryland+Pkwy,+Las+Vegas,+NV&destination=Bellagio+Hotel+Casino&travelmode=driving">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 20l-5-5 5-5M4 15h16"/></svg>
+              If driving
+            </a>
+          </div>
+        </div></div>
+      </div>
+
+      <div class="stop">
+        <div class="stop-time">10:30<br/>AM</div>
+        <div class="stop-card">
+          <div class="stop-image">
+            <img src="https://lh3.googleusercontent.com/place-photos/AJRVUZOwveW8o8R_z5N2Yqf9U2LB-GeaZ9HtGqL-nrYjm6AfQXH9KbCPYLoW8ncyQF1M8PK_JrzOJgrkxgKhm9P9V3fxJVmpACd1EMz0041p3m3djHIIRkrhWzb2QRgk4H-pnWi7X085HGm0-qWs-DpxSdzYhg=s4800-w800-h600" alt="Bellagio Conservatory" loading="lazy" />
+          </div>
+          <div class="stop-body">
+            <div class="stop-label">Stop 1 · ~1 hour · FREE</div>
+            <div class="stop-name">Bellagio Conservatory</div>
+            <div class="stop-addr">3600 S Las Vegas Blvd · 4.8 ★ (40,738)</div>
+            <div class="stop-desc">Massive indoor floral installations that change seasonally. Spring display likely still up. Fully accessible — no stairs, plenty of benches.</div>
+            <div class="stop-tip">
+              <strong>Why parents will love it</strong>
+              Open 24 hours, free, indoor AC, beautiful for photos, lots of seating, easy walking.
+            </div>
+            <div class="actions">
+              <a class="action primary" href="https://www.google.com/maps/search/?api=1&query=Bellagio+Conservatory&query_place_id=ChIJSYKEyTrEyIARJZPSoDxr_MY">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                Map
+              </a>
+              <a class="action" href="tel:+17026937111">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+                Call
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stop">
+        <div class="stop-time">11:45<br/>AM</div>
+        <div class="stop-card">
+          <div class="stop-image">
+            <img src="https://lh3.googleusercontent.com/place-photos/AJRVUZNARhqlEWIval2v__jwkdI0aW6-dSavdapnrEvGSnFOYvSXb0RKA3IPbRnbL8cdZPO8PUTVSov9QvEy_ij7o5qAg4aDks5QaHyyQkmFEPajH6-bRiNRctq-GM5aVXjgKu6QrtM1nGRa_ufLlw=s4800-w800-h600" alt="Forum Shops" loading="lazy" />
+          </div>
+          <div class="stop-body">
+            <div class="stop-label">Stop 2 · ~45 min · FREE</div>
+            <div class="stop-name">Forum Shops at Caesars</div>
+            <div class="stop-addr">3500 Las Vegas Blvd S · 4.6 ★ (24,456)</div>
+            <div class="stop-desc">Roman-themed mall — painted "sky" ceilings, marble columns, fountain plazas. Free <strong>Fall of Atlantis show</strong> with talking statues every hour. AC throughout.</div>
+            <div class="stop-tip">
+              <strong>If parents have knee issues</strong>
+              Skip the Bellagio→Caesars walk. Just Uber 5 min — $8–10.
+            </div>
+            <div class="actions">
+              <a class="action primary" href="https://m.uber.com/ul/?action=setPickup&pickup[formatted_address]=Bellagio%20Hotel%2C%203600%20S%20Las%20Vegas%20Blvd&dropoff[formatted_address]=Forum%20Shops%20at%20Caesars%2C%203500%20S%20Las%20Vegas%20Blvd">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg>
+                Uber 5 min
+              </a>
+              <a class="action" href="https://www.google.com/maps/dir/?api=1&origin=Bellagio+Hotel+Casino&destination=Forum+Shops+at+Caesars&travelmode=walking">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="2"/><path d="M14 11l-3 6 2 6M9 14l-1-3 4-2"/></svg>
+                Walk
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stop">
+        <div class="stop-time">12:30<br/>PM</div>
+        <div class="stop-card">
+          <div class="stop-image">
+            <img src="https://lh3.googleusercontent.com/places/ANXAkqFkwNcE1dpevbDXgNTCK2xsI6Onmn8_iqwPaIEsJ6_1zou5oHjbqcsPKKDo-1MLJVF7a6r4C0KHw7dQcGROT80voHQvUeMuRq8=s4800-w800-h600" alt="Eataly" loading="lazy" />
+          </div>
+          <div class="stop-body">
+            <div class="stop-label">Stop 3 · Lunch · ~1 hour</div>
+            <div class="stop-name">Eataly at Park MGM</div>
+            <div class="stop-addr">3770 S Las Vegas Blvd · 4.3 ★ (10,371)</div>
+            <div class="stop-desc">Italian food market — multiple counter restaurants under one roof. Vegetarian-friendly, sit-down options. ~$18–25/person.</div>
+            <div class="stop-tip">
+              <strong>Vegetarian alternative</strong>
+              Saravanaa Bhavan (4505 S Maryland Pkwy) — authentic South Indian veg, on the way back to your rental.
+            </div>
+            <div class="actions">
+              <a class="action primary" href="https://m.uber.com/ul/?action=setPickup&pickup[formatted_address]=Forum%20Shops%2C%203500%20S%20Las%20Vegas%20Blvd&dropoff[formatted_address]=Eataly%2C%203770%20S%20Las%20Vegas%20Blvd">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg>
+                Uber to Eataly
+              </a>
+              <a class="action" href="https://www.google.com/maps/search/?api=1&query=Saravanaa+Bhavan+Las+Vegas">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+                Veg alt
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stop">
+        <div class="stop-time meet">1:30<br/>PM</div>
+        <div class="stop-card"><div class="stop-body">
+          <div class="stop-label">Meet point · regroup</div>
+          <div class="stop-name">Sphere — main entrance</div>
+          <div class="stop-addr">255 Sands Ave</div>
+          <div class="stop-desc">Best from Eataly: Uber to Sphere ($12, 8 min). Driving = lose 15 min moving the car. Designated rideshare drop on east side.</div>
+          <div class="actions">
+            <a class="action primary" href="https://m.uber.com/ul/?action=setPickup&pickup[formatted_address]=Eataly%2C%20Park%20MGM&dropoff[formatted_address]=Sphere%2C%20255%20Sands%20Ave%2C%20Las%20Vegas">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg>
+              Uber to Sphere
+            </a>
+          </div>
+        </div></div>
+      </div>
+    </section>
+
+    <!-- TOGETHER TIMELINE -->
+    <section class="timeline" data-g="together">
+      <div class="intro-card">
+        <h3>Together · Sphere &amp; evening</h3>
+        <p>2 PM Wizard of Oz at Sphere. After: pool break at the rental, then optional evening on the Strip — Circus Circus, High Roller, Bellagio fountains.</p>
+      </div>
+
+      <div class="stop">
+        <div class="stop-time meet">2:00<br/>PM</div>
+        <div class="stop-card">
+          <div class="stop-image">
+            <img src="https://lh3.googleusercontent.com/places/ANXAkqEiLBSc2hEzpO2ccX0XQbjQX2ezKiNXctRbKzw-jJMbT1CWhOXfpwfQlQRG3rkzUtJneyWRs9ipoi5vfuP_bnoSuHARppsLP4E=s4800-w800-h576" alt="Sphere" loading="lazy" />
+          </div>
+          <div class="stop-body">
+            <div class="stop-label">~90 minutes</div>
+            <div class="stop-name">Sphere — Wizard of Oz</div>
+            <div class="stop-addr">255 Sands Ave · Booked ✓</div>
+            <div class="stop-desc">Immersive Oz experience on the giant 16K LED dome. Phones allowed but no filming during immersive segments. No re-entry once seated.</div>
+            <div class="info-row">
+              <div class="info-item"><div class="info-item-label">Doors close</div><div class="info-item-value">1:50 PM</div></div>
+              <div class="info-item"><div class="info-item-label">Indoor temp</div><div class="info-item-value">68°F</div></div>
+            </div>
+            <div class="stop-tip">
+              <strong>Before the show</strong>
+              Bathroom stop · drinks/snacks before going in · cardigans for parents.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stop">
+        <div class="stop-time">4:00<br/>PM</div>
+        <div class="stop-card"><div class="stop-body">
+          <div class="stop-label">Recovery · 2.5 hours</div>
+          <div class="stop-name">Pool &amp; rest at rental</div>
+          <div class="stop-desc">Drive back from Sphere ~10 min. Kids in pool, parents nap, you recharge. Light dinner from kitchen. Evening Strip is optional.</div>
+          <div class="actions">
+            <a class="action primary" href="https://www.google.com/maps/dir/?api=1&origin=Sphere+Las+Vegas&destination=3906+Maryland+Pkwy,+Las+Vegas,+NV+89119&travelmode=driving">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 20l-5-5 5-5M4 15h16"/></svg>
+              Drive home
+            </a>
+          </div>
+        </div></div>
+      </div>
+
+      <div class="stop">
+        <div class="stop-time">8:00<br/>PM</div>
+        <div class="stop-card"><div class="stop-body">
+          <div class="stop-label">Optional evening · kids</div>
+          <div class="stop-name">Circus Circus Midway</div>
+          <div class="stop-addr">2880 S Las Vegas Blvd</div>
+          <div class="stop-desc">Free circus acts every 30 min on the Midway. Kids will love it. Skip if grandparents are tired.</div>
+          <div class="actions">
+            <a class="action primary" href="https://www.google.com/maps/dir/?api=1&origin=3906+Maryland+Pkwy,+Las+Vegas,+NV&destination=Circus+Circus+Las+Vegas&travelmode=driving">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 20l-5-5 5-5M4 15h16"/></svg>
+              Drive
+            </a>
+          </div>
+        </div></div>
+      </div>
+
+      <div class="stop">
+        <div class="stop-time">9:00<br/>PM</div>
+        <div class="stop-card"><div class="stop-body">
+          <div class="stop-label">Optional · 30 min ride</div>
+          <div class="stop-name">High Roller Ferris wheel</div>
+          <div class="stop-addr">3545 S Las Vegas Blvd · The LINQ</div>
+          <div class="stop-desc">Best at night. Spacious pods with seating. Buy tickets online via Caesars or Vegas.com (~$35/person night).</div>
+          <div class="actions">
+            <a class="action primary" href="https://www.google.com/maps/dir/?api=1&origin=Circus+Circus+Las+Vegas&destination=High+Roller+at+the+LINQ&travelmode=driving">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 20l-5-5 5-5M4 15h16"/></svg>
+              Drive
+            </a>
+          </div>
+        </div></div>
+      </div>
+
+      <div class="stop">
+        <div class="stop-time">10:00<br/>PM</div>
+        <div class="stop-card"><div class="stop-body">
+          <div class="stop-label">Free · grand finale</div>
+          <div class="stop-name">Bellagio Fountains</div>
+          <div class="stop-addr">3600 S Las Vegas Blvd</div>
+          <div class="stop-desc">Every 15 min after 8 PM. Watch from the front of Bellagio on the Strip side. Perfect way to end Friday.</div>
+          <div class="actions">
+            <a class="action primary" href="https://www.google.com/maps/search/?api=1&query=Bellagio+Fountains">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Map
+            </a>
+          </div>
+        </div></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ===== SATURDAY ===== -->
+  <div class="day-content" id="day-sat">
+    <div class="intro-card">
+      <h3>Saturday · Bucket list day</h3>
+      <p>Long day — 250 miles round trip, but this is the unforgettable one. Glass bridge over the Grand Canyon, 4,000 ft straight down. Leave early to beat the heat AND the crowds. Plan for ~10 hours total. 100°F in Vegas, slightly cooler at the canyon.</p>
+    </div>
+
+    <div class="stop">
+      <div class="stop-time start">7:00<br/>AM</div>
+      <div class="stop-card"><div class="stop-body">
+        <div class="stop-label">Early start · light breakfast</div>
+        <div class="stop-name">Breakfast + load car</div>
+        <div class="stop-addr">3906 Maryland Pkwy</div>
+        <div class="stop-desc">Cereal, fruit, toast. Don't eat heavy — long car ride ahead. Pack a cooler bag with water, snacks, sandwiches for the road. Skywalk has food but it's pricey.</div>
+        <div class="stop-warn">
+          <strong>Critical packing</strong>
+          Sunscreen · hats · refillable water bottles (1 per person min) · camera (NOT for the bridge) · cash for tips · meds for parents · snacks for kids · phone chargers + car USB
+        </div>
+      </div></div>
+    </div>
+
+    <div class="stop">
+      <div class="stop-time">7:30<br/>AM</div>
+      <div class="stop-card"><div class="stop-body">
+        <div class="stop-label">Drive · 2 hours · 70 mi</div>
+        <div class="stop-name">Vegas → Pat Tillman Bridge</div>
+        <div class="drive-block">
+          <div class="drive-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            Out of Vegas, into the desert
+          </div>
+          <ol class="drive-steps">
+            <li>South on I-515 / US-93 S (Boulder Hwy)</li>
+            <li>Through Henderson and Boulder City</li>
+            <li>Cross <strong>Mike O'Callaghan–Pat Tillman Bridge</strong> over Hoover Dam</li>
+            <li>Pull into the parking area on the AZ side for photos</li>
+          </ol>
+          <div class="drive-meta"><span>Speed limit 65</span><span>Dawn light is gorgeous</span></div>
+        </div>
+        <div class="actions">
+          <a class="action primary" href="https://www.google.com/maps/dir/?api=1&origin=3906+Maryland+Pkwy,+Las+Vegas,+NV&destination=Mike+O'Callaghan-Pat+Tillman+Memorial+Bridge&travelmode=driving">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 20l-5-5 5-5M4 15h16"/></svg>
+            Open in Maps
+          </a>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="stop">
+      <div class="stop-time">8:30<br/>AM</div>
+      <div class="stop-card"><div class="stop-body">
+        <div class="stop-label">Photo stop · 15 min</div>
+        <div class="stop-name">Pat Tillman Bridge — Hoover Dam view</div>
+        <div class="stop-addr">Boulder City, NV · 4.8 ★ (1,701)</div>
+        <div class="stop-desc">Park, climb the short ramp/stairs to the pedestrian walkway. The bridge spans the Colorado River with the Hoover Dam directly below — most iconic Hoover Dam photo you can get. Restrooms in lot.</div>
+        <div class="stop-warn">
+          <strong>Hold onto hats</strong>
+          Wind on the bridge is no joke. Reviewers literally lose hats here. Phones in pockets, cameras with wrist straps.
+        </div>
+        <div class="actions">
+          <a class="action primary" href="https://www.google.com/maps/search/?api=1&query=Mike+O'Callaghan+Pat+Tillman+Memorial+Bridge&query_place_id=ChIJSU-uQBYtyYARZPHx53Lg5QM">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Map
+          </a>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="stop">
+      <div class="stop-time">9:00<br/>AM</div>
+      <div class="stop-card"><div class="stop-body">
+        <div class="stop-label">Drive · 1.5 hours · 55 mi</div>
+        <div class="stop-name">Bridge → Grand Canyon West</div>
+        <div class="drive-block">
+          <div class="drive-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            Into Hualapai tribal land
+          </div>
+          <ol class="drive-steps">
+            <li>Continue US-93 S into Arizona (~45 mi)</li>
+            <li>Dolan Springs — last gas station before the canyon</li>
+            <li>Left on <strong>Pierce Ferry Rd</strong></li>
+            <li>~7 miles, then right on <strong>Diamond Bar Rd</strong></li>
+            <li>Last 14 mi paved tribal road — slower, scenic</li>
+          </ol>
+          <div class="drive-meta">
+            <span>NO cell service last 30 mi</span>
+            <span>Top off gas in Dolan Springs</span>
+          </div>
+        </div>
+        <div class="stop-warn">
+          <strong>Download offline maps</strong>
+          Cell signal disappears past Dolan Springs. Pre-download Google Maps offline area for Arizona West Rim before leaving Vegas.
+        </div>
+        <div class="actions">
+          <a class="action primary" href="https://www.google.com/maps/dir/?api=1&origin=Mike+O'Callaghan+Pat+Tillman+Bridge&destination=Grand+Canyon+West+Skywalk&travelmode=driving">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 20l-5-5 5-5M4 15h16"/></svg>
+            Open in Maps
+          </a>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="stop">
+      <div class="stop-time">10:30<br/>AM</div>
+      <div class="stop-card">
+        <div class="stop-image">
+          <img src="https://lh3.googleusercontent.com/place-photos/AJRVUZP4JwDB9oZjMWjmVd4DwMIkT9NXvHp5csek4Vd92lGyHF1NxBkDYZUK8erG68V2o2ZSlxt6PVCHPph48lEkelzCLq15QLoHE9HqNx91HS6vRVfEsEjHUM5TmY_i7rEHRFlZiSluf7GLH3KJLg=s4800-w800-h600" alt="Grand Canyon Skywalk" loading="lazy" />
+        </div>
+        <div class="stop-body">
+          <div class="stop-label">Arrival · check in</div>
+          <div class="stop-name">Grand Canyon West Welcome Center</div>
+          <div class="stop-addr">808 Eagle Point Rd · 4.1 ★ (25,250)</div>
+          <div class="stop-desc">Park, get tickets at counter (or skip to will-call if pre-booked online — recommended). Personal vehicles can't drive to Skywalk; you'll take the included hop-on hop-off shuttle to viewpoints.</div>
+          <div class="info-row">
+            <div class="info-item"><div class="info-item-label">All Access × 6</div><div class="info-item-value">~$594</div></div>
+            <div class="info-item"><div class="info-item-label">Includes</div><div class="info-item-value">Skywalk + zip + meal</div></div>
+          </div>
+          <div class="stop-warn">
+            <strong>No phones on the bridge</strong>
+            Lockers provided (free). Pro photographers shoot you on the Skywalk; prints $17 / digital pack $69. Tell kids beforehand so it's not a meltdown.
+          </div>
+          <div class="actions">
+            <a class="action primary" href="https://www.google.com/maps/search/?api=1&query=Grand+Canyon+West+Skywalk&query_place_id=ChIJK0N3NakTzIAR5KnZMl6T5wA">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Map
+            </a>
+            <a class="action" href="tel:+18888689378">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+              Call
+            </a>
+            <a class="action" href="https://grandcanyonwest.com/" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/></svg>
+              Site
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stop">
+      <div class="stop-time">11:00<br/>AM</div>
+      <div class="stop-card"><div class="stop-body">
+        <div class="stop-label">Stop 1 · Eagle Point · 90 min</div>
+        <div class="stop-name">The Skywalk</div>
+        <div class="stop-desc">Shuttle to Eagle Point. Stow phones/bags in free lockers, put on foot booties (provided), step onto the glass. <strong>4,000 ft straight down to the Colorado River.</strong> The bridge holds 70 fully-loaded 747s — completely safe, just unforgettable.</div>
+        <div class="stop-tip">
+          <strong>Photo strategy</strong>
+          One person stays off the bridge with a phone/camera and shoots the rest of the family on it. Then swap. That way you get free photos and skip the $69 print package.
+        </div>
+        <div class="stop-tip">
+          <strong>Eagle Point bonus</strong>
+          The cliff itself looks like an eagle (you can see it from the Sky View Restaurant). At 11 AM Fri/Sat/Sun there are <strong>Hualapai Bird Singers</strong> performances — included with admission.
+        </div>
+      </div></div>
+    </div>
+
+    <div class="stop">
+      <div class="stop-time">12:30<br/>PM</div>
+      <div class="stop-card"><div class="stop-body">
+        <div class="stop-label">Lunch · included in pass</div>
+        <div class="stop-name">Sky View Restaurant</div>
+        <div class="stop-desc">At Eagle Point with canyon-edge windows. Buffet-style with Hualapai-influenced dishes. Vegetarian options usually available. Meal credit comes with the All Access pass — no extra cost for what you booked.</div>
+      </div></div>
+    </div>
+
+    <div class="stop">
+      <div class="stop-time">1:30<br/>PM</div>
+      <div class="stop-card"><div class="stop-body">
+        <div class="stop-label">Stop 2 · Guano Point · 60 min</div>
+        <div class="stop-name">Guano Point lookouts</div>
+        <div class="stop-desc">Shuttle ride from Eagle Point. Different angle of the canyon, panoramic views, old guano mining tram remnants. Light hiking — short trail, manageable for parents but skip if anyone is tired.</div>
+        <div class="stop-warn">
+          <strong>Heat check</strong>
+          Mid-day this is exposed and hot. Take water. If parents are flagging, head back to AC at the Welcome Center.
+        </div>
+      </div></div>
+    </div>
+
+    <div class="stop">
+      <div class="stop-time">3:00<br/>PM</div>
+      <div class="stop-card"><div class="stop-body">
+        <div class="stop-label">Drive · 2.5 hours · 125 mi</div>
+        <div class="stop-name">Skywalk → Vegas</div>
+        <div class="drive-block">
+          <div class="drive-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            Reverse the route
+          </div>
+          <ol class="drive-steps">
+            <li>Diamond Bar Rd → Pierce Ferry Rd</li>
+            <li>Right on US-93 N at Dolan Springs</li>
+            <li>Through Boulder City</li>
+            <li>I-515 N back into Vegas</li>
+            <li>Exit Flamingo Rd → Maryland Pkwy → home</li>
+          </ol>
+          <div class="drive-meta"><span>Heaviest traffic 4–6 PM</span><span>Plan for 2.5–3 hr</span></div>
+        </div>
+        <div class="actions">
+          <a class="action primary" href="https://www.google.com/maps/dir/?api=1&origin=Grand+Canyon+West+Skywalk&destination=3906+Maryland+Pkwy,+Las+Vegas,+NV&travelmode=driving">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 20l-5-5 5-5M4 15h16"/></svg>
+            Open in Maps
+          </a>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="stop">
+      <div class="stop-time">5:30<br/>PM</div>
+      <div class="stop-card"><div class="stop-body">
+        <div class="stop-label">Recovery · home</div>
+        <div class="stop-name">Pool · dinner · early night</div>
+        <div class="stop-addr">3906 Maryland Pkwy</div>
+        <div class="stop-desc">Everyone will be exhausted. Light dinner from groceries. Kids in pool to wash off the day. Early bed — Sunday is another driving day.</div>
+        <div class="stop-tip">
+          <strong>Optional add-on</strong>
+          If anyone has energy: drive to Fremont Street Experience (15 min from rental) for the canopy light show. Otherwise, no shame in calling it.
+        </div>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- ===== SUNDAY ===== -->
+  <div class="day-content" id="day-sun">
+    <div class="intro-card">
+      <h3>Sunday · Wrap up &amp; head north</h3>
+      <p>Reverse of Thursday. Eat the leftover groceries, pack methodically, depart by 11 AM. Lunch in St. George, gas in Beaver, home by 6 PM. Mostly downhill from Vegas to SLC (gravity helps).</p>
+    </div>
+
+    <div class="stop">
+      <div class="stop-time start">8:00<br/>AM</div>
+      <div class="stop-card"><div class="stop-body">
+        <div class="stop-label">Last morning</div>
+        <div class="stop-name">Breakfast at rental</div>
+        <div class="stop-desc">Eat up the leftover groceries — eggs, bread, milk, cereal. Anything left goes in a cooler bag for the car or in the trash. Don't bring perishables home.</div>
+      </div></div>
+    </div>
+
+    <div class="stop">
+      <div class="stop-time">9:00<br/>AM</div>
+      <div class="stop-card"><div class="stop-body">
+        <div class="stop-label">Pack up · 1 hour</div>
+        <div class="stop-name">Pack the car</div>
+        <div class="stop-desc">Strategy: put luggage in first, then activity bags on top, then snack/cooler bag last (most accessible). Charge all phones to 100%. Re-fold maps, dispose of trash, wipe surfaces.</div>
+        <div class="stop-tip">
+          <strong>Don't forget</strong>
+          Phone chargers in outlets · kids' tablets · sunscreen (you'll need it next trip) · meds for parents · grip socks · receipts for expense tracking
+        </div>
+      </div></div>
+    </div>
+
+    <div class="stop">
+      <div class="stop-time">10:00<br/>AM</div>
+      <div class="stop-card"><div class="stop-body">
+        <div class="stop-label">Last hurrah · 1 hour</div>
+        <div class="stop-name">Final pool dip</div>
+        <div class="stop-desc">Kids will want to swim once more. Let them — it tires them out for the long drive. Adults can use the time for final clean-up walkthrough.</div>
+      </div></div>
+    </div>
+
+    <div class="stop">
+      <div class="stop-time">11:00<br/>AM</div>
+      <div class="stop-card"><div class="stop-body">
+        <div class="stop-label">Departure · checkout</div>
+        <div class="stop-name">Leave Vegas</div>
+        <div class="stop-addr">Final walkthrough · check out</div>
+        <div class="stop-desc">Bathrooms before getting in the car (kids). Top off gas at Smith's gas station ($) on Maryland Pkwy. Onto I-15 North.</div>
+        <div class="actions">
+          <a class="action primary" href="https://www.google.com/maps/dir/?api=1&origin=3906+Maryland+Pkwy,+Las+Vegas,+NV&destination=North+Salt+Lake,+UT&travelmode=driving">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 20l-5-5 5-5M4 15h16"/></svg>
+            Full route home
+          </a>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="stop">
+      <div class="stop-time">11:30<br/>AM</div>
+      <div class="stop-card"><div class="stop-body">
+        <div class="stop-label">Drive segment · 2 hours · 120 mi</div>
+        <div class="stop-name">Vegas → St. George</div>
+        <div class="drive-block">
+          <div class="drive-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            I-15 North
+          </div>
+          <ol class="drive-steps">
+            <li>I-15 N out of Vegas</li>
+            <li>Mesquite at the NV/AZ line</li>
+            <li>Through the Virgin River Gorge — scenic</li>
+            <li>Cross into Utah, exit at St. George</li>
+          </ol>
+          <div class="drive-meta"><span>~120 mi · 2 hr</span><span>Time zone shift: NV → UT</span></div>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="stop">
+      <div class="stop-time">1:30<br/>PM</div>
+      <div class="stop-card"><div class="stop-body">
+        <div class="stop-label">Lunch · 45 min</div>
+        <div class="stop-name">Black Bear Diner · St. George</div>
+        <div class="stop-addr">1245 S Main St · 4.4 ★ (6,425)</div>
+        <div class="stop-desc">Family-friendly, big portions, decent prices, kid menu. Solid breakfast-for-lunch. Clean restrooms. Strong reviews from road-trippers.</div>
+        <div class="stop-tip">
+          <strong>Vegetarian alternative</strong>
+          India Palace at 50 N River Rd, St. George — authentic Indian buffet, ~$15/person, perfect midpoint stop if parents prefer veg.
+        </div>
+        <div class="actions">
+          <a class="action primary" href="https://www.google.com/maps/search/?api=1&query=Black+Bear+Diner+St+George&query_place_id=ChIJ03TcEzBFyoAR9eYhDVccGGY">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Map
+          </a>
+          <a class="action" href="tel:+14356562327">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+            Call
+          </a>
+          <a class="action" href="https://www.google.com/maps/search/?api=1&query=India+Palace+St+George+Utah">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+            Veg alt
+          </a>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="stop">
+      <div class="stop-time">2:30<br/>PM</div>
+      <div class="stop-card"><div class="stop-body">
+        <div class="stop-label">Drive segment · 1.5 hours · 110 mi</div>
+        <div class="stop-name">St. George → Beaver</div>
+        <div class="drive-block">
+          <div class="drive-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            Continue I-15 N
+          </div>
+          <ol class="drive-steps">
+            <li>Past Cedar City — scenic mountain views</li>
+            <li>Climb in elevation toward Cove Fort</li>
+            <li>Exit at Beaver UT for gas/bathroom</li>
+          </ol>
+          <div class="drive-meta"><span>~110 mi · 1.5 hr</span></div>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="stop">
+      <div class="stop-time">4:00<br/>PM</div>
+      <div class="stop-card"><div class="stop-body">
+        <div class="stop-label">Pit stop · 15 min</div>
+        <div class="stop-name">Beaver UT — gas + bathroom</div>
+        <div class="stop-desc">Quick stop only. Maverik or Holiday gas station. Kids run around for a few minutes. Don't get sucked into shopping or eating again.</div>
+      </div></div>
+    </div>
+
+    <div class="stop">
+      <div class="stop-time">4:15<br/>PM</div>
+      <div class="stop-card"><div class="stop-body">
+        <div class="stop-label">Final segment · 1.5 hours · 200 mi</div>
+        <div class="stop-name">Beaver → home</div>
+        <div class="stop-desc">Past Fillmore, Nephi, into Provo. Wasatch Range on your right. Salt Lake skyline at sunset. North Salt Lake home around 6 PM.</div>
+      </div></div>
+    </div>
+
+    <div class="stop">
+      <div class="stop-time meet">6:00<br/>PM</div>
+      <div class="stop-card"><div class="stop-body">
+        <div class="stop-label">Home · trip complete</div>
+        <div class="stop-name">North Salt Lake</div>
+        <div class="stop-desc">Unload only essentials tonight. Order pizza. Everyone showers. Trip photos can wait until tomorrow. Return rental car within 24 hours per agreement (drop off Monday morning).</div>
+        <div class="stop-warn">
+          <strong>Don't forget</strong>
+          Refuel rental to full before drop-off (cheapest at Costco) · take photos of car condition · check trunk one more time · keep the receipt
+        </div>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- ===== OVERVIEW & EXTRAS (always visible) ===== -->
+  <div class="section-divider">Trip at a glance</div>
+  <div class="overview-grid">
+    <div class="ov-day" data-d="thu">
+      <div class="ov-head">
+        <span class="ov-day-name">Thursday — Roll out</span>
+        <span class="ov-date">May 7</span>
+      </div>
+      <div class="ov-detail">12:30 PM depart · Beaver UT lunch · arrive Vegas 7:30 PM · Smith's grocery · settle in</div>
+    </div>
+    <div class="ov-day" data-d="fri">
+      <div class="ov-head">
+        <span class="ov-day-name">Friday — Sphere day</span>
+        <span class="ov-date">May 8</span>
+      </div>
+      <div class="ov-detail">Group A: Spy Ninjas · Group B: Bellagio + Forum + Eataly · regroup 1:30 PM · Sphere 2 PM · evening Strip optional</div>
+    </div>
+    <div class="ov-day" data-d="sat">
+      <div class="ov-head">
+        <span class="ov-day-name">Saturday — Bucket list</span>
+        <span class="ov-date">May 9</span>
+      </div>
+      <div class="ov-detail">7:30 AM depart · Hoover Dam bridge stop · Grand Canyon Skywalk 11 AM · lunch on the rim · home 5:30 PM · early bed</div>
+    </div>
+    <div class="ov-day" data-d="sun">
+      <div class="ov-head">
+        <span class="ov-day-name">Sunday — Head home</span>
+        <span class="ov-date">May 10</span>
+      </div>
+      <div class="ov-detail">Pack · 11 AM depart · St. George lunch · Beaver pit stop · home by 6 PM · pizza for dinner</div>
+    </div>
+  </div>
+
+  <!-- PRE-TRIP CHECKLIST -->
+  <div class="section-divider">Pre-trip checklist</div>
+  <div class="checklist">
+    <h4>Things to book / buy before Thursday</h4>
+    <ul>
+      <li class="done">Sphere tickets · Friday 2 PM ✓</li>
+      <li>Minivan · Costco Travel · pickup Thu 10 AM</li>
+      <li>Skywalk All Access × 6 · grandcanyonwest.com</li>
+      <li>Spy Ninjas Action Pass × 6 · spyninjashq.com</li>
+      <li>High Roller × 6 · Caesars or Vegas.com (or buy day-of)</li>
+      <li>Confirm credit card has primary CDW for rental</li>
+      <li>Download Google Maps offline area: AZ West Rim</li>
+      <li>Screenshot all ticket QR codes for offline access</li>
+      <li>Pack: grip socks · cardigans · hats · sunscreen · meds</li>
+      <li>Schedule mail/packages hold</li>
+      <li>Set thermostat for empty house · plants · pet sitter</li>
+    </ul>
+  </div>
+
+  <!-- BACKUP PLAN -->
+  <div class="section-divider">Backup plan</div>
+  <div class="checklist">
+    <h4>If something goes sideways</h4>
+    <ul style="list-style:none">
+      <li style="padding-left:18px">→ Both groups text "leaving now" when departing each stop</li>
+      <li style="padding-left:18px">→ Default meeting at Sphere: giant LED orb, south side main entrance plaza</li>
+      <li style="padding-left:18px">→ If Sphere doors close before Group A: late seating happens between segments</li>
+      <li style="padding-left:18px">→ Phone signal drops past Dolan Springs Saturday — pre-load offline maps</li>
+      <li style="padding-left:18px">→ If parents tire mid-Skywalk day: Sky View Restaurant has AC, send energetic crew to Guano Point alone</li>
+      <li style="padding-left:18px">→ Battery low? Charging stations at Forum Shops (near Apple), Park MGM lobby</li>
+      <li style="padding-left:18px">→ Medical emergency: nearest hospital is Sunrise Hospital, 3186 S Maryland Pkwy, 5 min from rental</li>
+    </ul>
+  </div>
+
+  <!-- CONTACTS -->
+  <div class="section-divider">Quick contacts</div>
+  <div class="contacts">
+    <a class="contact" href="tel:+17024444800">
+      <div class="contact-info">
+        <div class="contact-name">Spy Ninjas HQ</div>
+        <div class="contact-meta">Friday · +1 (702) 444-4800</div>
+      </div>
+      <div class="contact-call"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg></div>
+    </a>
+    <a class="contact" href="tel:+17252586724">
+      <div class="contact-info">
+        <div class="contact-name">Sphere</div>
+        <div class="contact-meta">Friday · +1 (725) 258-6724</div>
+      </div>
+      <div class="contact-call"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg></div>
+    </a>
+    <a class="contact" href="tel:+18888689378">
+      <div class="contact-info">
+        <div class="contact-name">Grand Canyon West</div>
+        <div class="contact-meta">Saturday · +1 (888) 868-9378</div>
+      </div>
+      <div class="contact-call"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg></div>
+    </a>
+    <a class="contact" href="tel:+14354382977">
+      <div class="contact-info">
+        <div class="contact-name">Arshel's Cafe · Beaver</div>
+        <div class="contact-meta">Thu lunch · +1 (435) 438-2977</div>
+      </div>
+      <div class="contact-call"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg></div>
+    </a>
+    <a class="contact" href="tel:+14356562327">
+      <div class="contact-info">
+        <div class="contact-name">Black Bear Diner · St. George</div>
+        <div class="contact-meta">Sun lunch · +1 (435) 656-2327</div>
+      </div>
+      <div class="contact-call"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg></div>
+    </a>
+    <a class="contact" href="tel:+17027358928">
+      <div class="contact-info">
+        <div class="contact-name">Smith's Grocery</div>
+        <div class="contact-meta">Vegas · +1 (702) 735-8928</div>
+      </div>
+      <div class="contact-call"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg></div>
+    </a>
+  </div>
+
+  <div class="footer-line"></div>
+  <div class="footer">Trip plan · 4 days · 6 people · 1 minivan</div>
+</div>
+
+<!-- FLOATING NAV -->
+<div class="fab">
+  <a class="fab-btn primary" id="fabPrimary" href="https://www.google.com/maps/dir/?api=1&origin=North+Salt+Lake,+UT&destination=3906+Maryland+Pkwy,+Las+Vegas,+NV&travelmode=driving">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+    <span id="fabLabel">Today's route</span>
+  </a>
+  <button class="fab-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 15l-6-6-6 6"/></svg>
+    Top
+  </button>
+</div>
+
+<script>
+  // Day & group switching
+  const dayBtns = document.querySelectorAll('.day-btn');
+  const dayContents = document.querySelectorAll('.day-content');
+  const groupTabs = document.getElementById('groupTabs');
+  const groupTabBtns = document.querySelectorAll('.group-tab');
+  const dayWord = document.getElementById('dayWord');
+  const dayMeta = document.getElementById('dayMeta');
+  const fabLabel = document.getElementById('fabLabel');
+  const fabPrimary = document.getElementById('fabPrimary');
+  const body = document.body;
+
+  const dayMap = {
+    thu: { word: 'on the road', meta: 'Thursday · Drive in', fab: "Today's route", fabUrl: 'https://www.google.com/maps/dir/?api=1&origin=North+Salt+Lake,+UT&destination=3906+Maryland+Pkwy,+Las+Vegas,+NV+89119&travelmode=driving', fabIcon: 'route' },
+    fri: { word: 'in Vegas', meta: 'Friday · Sphere day · 98°F', fab: 'To Sphere', fabUrl: 'https://www.google.com/maps/dir/?api=1&origin=3906+Maryland+Pkwy,+Las+Vegas,+NV&destination=Sphere+Las+Vegas&travelmode=driving', fabIcon: 'pin' },
+    sat: { word: 'at the canyon', meta: 'Saturday · Skywalk · 100°F', fab: 'To Skywalk', fabUrl: 'https://www.google.com/maps/dir/?api=1&origin=3906+Maryland+Pkwy,+Las+Vegas,+NV&destination=Grand+Canyon+West+Skywalk&travelmode=driving', fabIcon: 'pin' },
+    sun: { word: 'heading home', meta: 'Sunday · Drive home', fab: 'Route home', fabUrl: 'https://www.google.com/maps/dir/?api=1&origin=3906+Maryland+Pkwy,+Las+Vegas,+NV&destination=North+Salt+Lake,+UT&travelmode=driving', fabIcon: 'route' }
+  };
+
+  function switchDay(day) {
+    dayBtns.forEach(b => b.classList.toggle('active', b.dataset.d === day));
+    dayContents.forEach(c => c.classList.toggle('active', c.id === 'day-' + day));
+    body.dataset.day = day;
+    groupTabs.classList.toggle('show', day === 'fri');
+    const m = dayMap[day];
+    dayWord.textContent = m.word;
+    dayMeta.textContent = m.meta;
+    fabLabel.textContent = m.fab;
+    fabPrimary.href = m.fabUrl;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function switchGroup(group) {
+    groupTabBtns.forEach(b => b.classList.toggle('active', b.dataset.g === group));
+    document.querySelectorAll('#day-fri .timeline').forEach(t => {
+      t.classList.toggle('active', t.dataset.g === group);
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  dayBtns.forEach(b => b.addEventListener('click', () => switchDay(b.dataset.d)));
+  groupTabBtns.forEach(b => b.addEventListener('click', () => switchGroup(b.dataset.g)));
+
+  // Image fallback
+  document.querySelectorAll('img').forEach(img => {
+    img.addEventListener('error', () => {
+      img.style.display = 'none';
+      img.parentElement.style.background = 'linear-gradient(135deg, #1d243d, #161b2e)';
+    });
+  });
+
+  // Tap checklist items to mark done
+  document.querySelectorAll('.checklist li').forEach(li => {
+    li.style.cursor = 'pointer';
+    li.addEventListener('click', () => {
+      li.classList.toggle('done');
+      try {
+        const id = li.textContent.slice(0, 30);
+        const done = JSON.parse(localStorage.getItem('vegas-done') || '{}');
+        done[id] = li.classList.contains('done');
+        localStorage.setItem('vegas-done', JSON.stringify(done));
+      } catch(e) {}
+    });
+  });
+
+  // Restore checklist state
+  try {
+    const done = JSON.parse(localStorage.getItem('vegas-done') || '{}');
+    document.querySelectorAll('.checklist li').forEach(li => {
+      const id = li.textContent.slice(0, 30);
+      if (done[id]) li.classList.add('done');
+    });
+  } catch(e) {}
+</script>
+</body>
+</html>

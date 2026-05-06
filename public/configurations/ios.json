@@ -1,0 +1,57 @@
+{
+  "settings": {
+    "screenshots_enabled": true
+  },
+  "rules": [
+    {
+      "patterns": ["/users/sign_in$", "/users/sign_up$", "/users/password/.*"],
+      "properties": {
+        "context": "modal",
+        "presentation": "replace_root",
+        "title": "Plan My Trip"
+      }
+    },
+    {
+      "patterns": ["/trips/new$"],
+      "properties": {
+        "context": "modal",
+        "title": "New trip"
+      }
+    },
+    {
+      "patterns": ["/trips/[0-9a-f-]+/edit$"],
+      "properties": {
+        "context": "modal",
+        "title": "Edit trip"
+      }
+    },
+    {
+      "patterns": ["/trips/[0-9a-f-]+/shares/new$"],
+      "properties": {
+        "context": "modal",
+        "title": "Share trip"
+      }
+    },
+    {
+      "patterns": ["/users/edit$"],
+      "properties": {
+        "context": "modal",
+        "title": "Account"
+      }
+    },
+    {
+      "patterns": ["/$"],
+      "properties": {
+        "context": "default",
+        "presentation": "replace_root",
+        "title": "Trips"
+      }
+    },
+    {
+      "patterns": [".*"],
+      "properties": {
+        "context": "default"
+      }
+    }
+  ]
+}

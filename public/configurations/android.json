@@ -1,0 +1,38 @@
+{
+  "settings": {
+    "screenshots_enabled": true
+  },
+  "rules": [
+    {
+      "patterns": ["/users/sign_in$", "/users/sign_up$", "/users/password/.*"],
+      "properties": {
+        "context": "modal",
+        "uri": "hotwire://fragment/web/modal",
+        "title": "Plan My Trip"
+      }
+    },
+    {
+      "patterns": ["/trips/new$", "/trips/[0-9a-f-]+/edit$", "/trips/[0-9a-f-]+/shares/new$", "/users/edit$"],
+      "properties": {
+        "context": "modal",
+        "uri": "hotwire://fragment/web/modal"
+      }
+    },
+    {
+      "patterns": ["/$"],
+      "properties": {
+        "uri": "hotwire://fragment/web/home",
+        "fallback_uri": "hotwire://fragment/web",
+        "title": "Trips"
+      }
+    },
+    {
+      "patterns": [".*"],
+      "properties": {
+        "uri": "hotwire://fragment/web",
+        "context": "default",
+        "pull_to_refresh_enabled": true
+      }
+    }
+  ]
+}

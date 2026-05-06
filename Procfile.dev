@@ -1,0 +1,2 @@
+web: PORT=3010 bin/rails server -p 3010
+css: bin/rails tailwindcss:watch

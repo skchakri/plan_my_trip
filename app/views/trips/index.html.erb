@@ -1,0 +1,43 @@
+<% content_for :title, "Your trips" %>
+
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <p class="text-xs uppercase tracking-widest text-slate-500">Plan My Trip</p>
+    <h1 class="text-3xl font-semibold tracking-tight">Your trips</h1>
+  </div>
+  <%= link_to "New trip", new_trip_path, class: "px-4 py-2 bg-amber-500 text-slate-900 rounded-md font-medium hover:bg-amber-400" %>
+</div>
+
+<% if @trips.empty? %>
+  <div class="rounded-xl border border-dashed border-slate-700 p-10 text-center">
+    <p class="text-slate-400 mb-4">No trips yet. Create your first one — or have someone share theirs with you.</p>
+    <%= link_to "Plan a trip", new_trip_path, class: "px-4 py-2 bg-amber-500 text-slate-900 rounded-md font-medium hover:bg-amber-400" %>
+  </div>
+<% else %>
+  <ul class="space-y-3">
+    <% @trips.each do |trip| %>
+      <li>
+        <%= link_to trip, class: "block rounded-xl border border-slate-800 bg-slate-900/60 p-5 hover:border-amber-500 transition" do %>
+          <div class="flex items-center justify-between gap-4">
+            <div class="min-w-0">
+              <h2 class="font-semibold text-lg truncate"><%= trip.title_for(current_user) %></h2>
+              <p class="text-sm text-slate-400 truncate">
+                <% if trip.destination.present? %><%= trip.destination %> · <% end %>
+                <% if trip.start_date && trip.end_date %>
+                  <%= trip.start_date.strftime("%b %-d") %> – <%= trip.end_date.strftime("%b %-d, %Y") %>
+                <% end %>
+              </p>
+            </div>
+            <div class="text-xs">
+              <% if trip.owner_id == current_user.id %>
+                <span class="px-2 py-1 rounded bg-amber-500/15 text-amber-300">Owner</span>
+              <% else %>
+                <span class="px-2 py-1 rounded bg-slate-700/40 text-slate-300">Shared by <%= trip.owner.display_name %></span>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </li>
+    <% end %>
+  </ul>
+<% end %>

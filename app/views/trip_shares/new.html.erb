@@ -1,0 +1,13 @@
+<% content_for :title, "Share trip" %>
+
+<div class="mb-6">
+  <%= link_to "← Back to trip", @trip, class: "text-sm text-slate-400 hover:text-white" %>
+</div>
+
+<h1 class="text-2xl font-semibold mb-2">Share "<%= @trip.title %>"</h1>
+<p class="text-slate-400 mb-6">Enter the email of someone who has signed up. They'll see this trip in their list next time they log in.</p>
+
+<%= form_with url: trip_shares_path(@trip), method: :post, class: "flex gap-2" do |f| %>
+  <%= f.email_field :email, required: true, placeholder: "friend@example.com", class: "flex-1 rounded-md bg-slate-800 border border-slate-700 px-3 py-2 focus:border-amber-500 focus:outline-none" %>
+  <%= f.submit "Share", class: "px-4 py-2 bg-amber-500 text-slate-900 rounded-md font-medium hover:bg-amber-400 cursor-pointer" %>
+<% end %>

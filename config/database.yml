@@ -1,0 +1,35 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  host: localhost
+  port: 5432
+  username: root
+  password: password
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+
+development:
+  <<: *default
+  database: plan_my_trip_development
+
+test:
+  <<: *default
+  database: plan_my_trip_test
+
+production:
+  primary: &primary_production
+    <<: *default
+    database: plan_my_trip_production
+    username: plan_my_trip
+    password: <%= ENV["PLAN_MY_TRIP_DATABASE_PASSWORD"] %>
+  cache:
+    <<: *primary_production
+    database: plan_my_trip_production_cache
+    migrations_paths: db/cache_migrate
+  queue:
+    <<: *primary_production
+    database: plan_my_trip_production_queue
+    migrations_paths: db/queue_migrate
+  cable:
+    <<: *primary_production
+    database: plan_my_trip_production_cable
+    migrations_paths: db/cable_migrate

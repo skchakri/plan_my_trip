@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Vegas Pack" />
+<meta name="theme-color" content="#0a0e1a" />
+<title>Vegas Trip · Packing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #0a0e1a;
+  --bg-2: #0f1424;
+  --surface: #161b2e;
+  --surface-2: #1d243d;
+  --border: #262d49;
+  --text: #f4f1e8;
+  --text-dim: #9aa3bf;
+  --text-mute: #6b7390;
+  --gold: #e8a04f;
+  --gold-soft: #f0b870;
+  --teal: #5dc3b8;
+  --pink: #e87aa6;
+  --blue: #6ca3e8;
+  --purple: #b18cd9;
+  --green: #7cc88e;
+  --shadow: 0 8px 32px rgba(0,0,0,0.4);
+  --radius: 14px;
+  --accent: var(--gold);
+}
+
+[data-person="kalyan"] { --accent: var(--gold); }
+[data-person="wife"] { --accent: var(--pink); }
+[data-person="kids"] { --accent: var(--blue); }
+[data-person="parents"] { --accent: var(--teal); }
+[data-person="shared"] { --accent: var(--purple); }
+[data-person="daypack"] { --accent: var(--green); }
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  font-family: 'Manrope', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+body {
+  background:
+    radial-gradient(ellipse at top, rgba(232, 160, 79, 0.06), transparent 50%),
+    radial-gradient(ellipse at bottom, rgba(177, 140, 217, 0.04), transparent 50%),
+    var(--bg);
+  min-height: 100vh;
+  padding-bottom: 90px;
+}
+
+.app {
+  max-width: 480px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.header {
+  padding: max(env(safe-area-inset-top), 24px) 22px 14px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: linear-gradient(to bottom, var(--bg) 80%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 600;
+  margin-bottom: 6px;
+  transition: color 0.3s ease;
+}
+
+.title {
+  font-family: 'Fraunces', serif;
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  margin-bottom: 14px;
+}
+
+.title em {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--accent);
+  transition: color 0.3s ease;
+}
+
+.meta-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  font-size: 11.5px;
+  color: var(--text-dim);
+  font-weight: 500;
+}
+
+.progress {
+  flex: 1;
+  height: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 70%, white));
+  width: 0%;
+  transition: width 0.4s ease;
+  border-radius: 100px;
+}
+
+/* PERSON PICKER */
+.person-picker {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 4px 0 6px;
+  margin: 0 -22px 4px;
+  padding-left: 22px;
+  padding-right: 22px;
+  scrollbar-width: none;
+}
+.person-picker::-webkit-scrollbar { display: none; }
+
+.person-btn {
+  flex-shrink: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 10px 14px;
+  cursor: pointer;
+  text-align: center;
+  font-family: inherit;
+  color: var(--text-dim);
+  transition: all 0.2s ease;
+  min-width: 92px;
+}
+
+.person-btn:active { transform: scale(0.96); }
+
+.person-btn.active {
+  background: var(--accent);
+  color: #1a0f00;
+  border-color: var(--accent);
+}
+
+[data-person="kids"] .person-btn.active,
+[data-person="parents"] .person-btn.active { color: #001226; }
+
+[data-person="wife"] .person-btn.active { color: #2e0218; }
+
+[data-person="shared"] .person-btn.active { color: #1a002e; }
+
+[data-person="daypack"] .person-btn.active { color: #002e15; }
+
+.person-emoji {
+  display: block;
+  font-size: 22px;
+  margin-bottom: 4px;
+  line-height: 1;
+}
+
+.person-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  display: block;
+}
+
+.person-count {
+  font-size: 10px;
+  margin-top: 2px;
+  opacity: 0.75;
+  font-variant-numeric: tabular-nums;
+}
+
+/* SECTIONS */
+.content {
+  padding: 16px 22px 30px;
+  display: none;
+  animation: fadeIn 0.4s ease;
+}
+
+.content.active { display: block; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.intro-card {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 8%, transparent), transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--border));
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 22px;
+}
+
+.intro-card h3 {
+  font-family: 'Fraunces', serif;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--accent);
+  transition: color 0.3s ease;
+}
+
+.intro-card p {
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.55;
+}
+
+/* CATEGORY GROUPS */
+.cat {
+  margin-bottom: 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.cat-head {
+  padding: 13px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--border);
+}
+
+.cat-name {
+  font-family: 'Fraunces', serif;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cat-name svg {
+  width: 16px;
+  height: 16px;
+  color: var(--accent);
+  transition: color 0.3s ease;
+}
+
+.cat-progress {
+  font-size: 11px;
+  color: var(--text-mute);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.cat-list {
+  list-style: none;
+}
+
+.cat-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.cat-list li:last-child { border-bottom: none; }
+
+.cat-list li:active { background: var(--bg-2); }
+
+.cat-list li.done .item-text {
+  color: var(--text-mute);
+  text-decoration: line-through;
+}
+
+.checkbox {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  border: 1.5px solid var(--text-mute);
+  border-radius: 5px;
+  background: transparent;
+  position: relative;
+  margin-top: 1px;
+  transition: all 0.15s ease;
+}
+
+li.done .checkbox {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+li.done .checkbox::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 6px;
+  height: 11px;
+  border-right: 2px solid #1a0f00;
+  border-bottom: 2px solid #1a0f00;
+  transform: rotate(45deg);
+}
+
+[data-person="kids"] li.done .checkbox::after,
+[data-person="parents"] li.done .checkbox::after { border-color: #001226; }
+
+[data-person="wife"] li.done .checkbox::after { border-color: #2e0218; }
+
+[data-person="shared"] li.done .checkbox::after { border-color: #1a002e; }
+
+[data-person="daypack"] li.done .checkbox::after { border-color: #002e15; }
+
+.item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.item-text {
+  font-size: 13.5px;
+  color: var(--text);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.item-note {
+  font-size: 11.5px;
+  color: var(--text-mute);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+.item-tag {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.item-tag.critical {
+  background: rgba(232, 90, 90, 0.15);
+  color: #f0848a;
+}
+
+.item-tag.day { background: rgba(232, 160, 79, 0.15); color: var(--gold-soft); }
+
+/* FAB - reset all */
+.fab {
+  position: fixed;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  background: rgba(15, 20, 36, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 6px;
+  z-index: 100;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+
+.fab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 100px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.fab-btn:active { transform: scale(0.96); }
+.fab-btn svg { width: 14px; height: 14px; }
+
+.fab-btn.primary {
+  background: var(--gold);
+  color: #1a0f00;
+}
+
+.footer {
+  padding: 24px 22px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-mute);
+  letter-spacing: 0.08em;
+}
+
+.footer-line {
+  height: 1px;
+  background: var(--border);
+  margin: 0 22px 20px;
+}
+
+@media (min-width: 481px) {
+  .app { box-shadow: 0 0 40px rgba(0,0,0,0.6); }
+}
+</style>
+</head>
+<body data-person="kalyan">
+<div class="app">
+
+  <header class="header">
+    <div class="eyebrow">Vegas trip · May 7–10</div>
+    <h1 class="title">Pack <em>like a pro</em></h1>
+    <div class="meta-row">
+      <span class="pill" id="totalPill">0 / 0 packed</span>
+      <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+    </div>
+
+    <div class="person-picker" role="tablist">
+      <button class="person-btn active" data-p="kalyan">
+        <span class="person-emoji">🧔</span>
+        <span class="person-label">You</span>
+        <span class="person-count" data-count-for="kalyan">0/0</span>
+      </button>
+      <button class="person-btn" data-p="wife">
+        <span class="person-emoji">👩</span>
+        <span class="person-label">Wife</span>
+        <span class="person-count" data-count-for="wife">0/0</span>
+      </button>
+      <button class="person-btn" data-p="kids">
+        <span class="person-emoji">👧</span>
+        <span class="person-label">Kids</span>
+        <span class="person-count" data-count-for="kids">0/0</span>
+      </button>
+      <button class="person-btn" data-p="parents">
+        <span class="person-emoji">👴</span>
+        <span class="person-label">Parents</span>
+        <span class="person-count" data-count-for="parents">0/0</span>
+      </button>
+      <button class="person-btn" data-p="shared">
+        <span class="person-emoji">🎒</span>
+        <span class="person-label">Shared</span>
+        <span class="person-count" data-count-for="shared">0/0</span>
+      </button>
+      <button class="person-btn" data-p="daypack">
+        <span class="person-emoji">🌞</span>
+        <span class="person-label">Day pack</span>
+        <span class="person-count" data-count-for="daypack">0/0</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- KALYAN -->
+  <section class="content active" data-p="kalyan">
+    <div class="intro-card">
+      <h3>You · the trip lead</h3>
+      <p>You're driving most of the time and managing logistics. Pack light but functional. Your phone is the trip's command center — protect the battery.</p>
+    </div>
+
+    <div class="cat">
+      <div class="cat-head">
+        <div class="cat-name">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18l-2 13H5L3 7zM8 7V4a4 4 0 018 0v3"/></svg>
+          Clothes
+        </div>
+      </div>
+      <ul class="cat-list">
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">5 t-shirts</div><div class="item-note">Light colors for desert heat</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">2 shorts + 1 long pants</div><div class="item-note">Pants for Sphere AC and Skywalk shuttle</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">5 underwear · 5 socks</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Swim trunks</div><div class="item-note">Pool at rental</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Light cardigan / hoodie<span class="item-tag critical">Critical</span></div><div class="item-note">Sphere is 68°F · 30°F cooler than outside</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Sneakers + flip flops</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Cap or hat<span class="item-tag critical">Critical</span></div><div class="item-note">Wind on Pat Tillman bridge will steal it — strap or beanie</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Sunglasses</div></div></li>
+      </ul>
+    </div>
+
+    <div class="cat">
+      <div class="cat-head">
+        <div class="cat-name">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M22 10h-3"/></svg>
+          Tech
+        </div>
+      </div>
+      <ul class="cat-list">
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Phone + charger<span class="item-tag critical">Critical</span></div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Battery bank (10K mAh+)<span class="item-tag critical">Critical</span></div><div class="item-note">Sphere drains 30%, photos all day</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">USB-C / Lightning car cables</div><div class="item-note">2 of each, kids' tablets need them too</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Camera (if you have one)</div><div class="item-note">Better than phone for canyon shots</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Laptop · only if working</div><div class="item-note">Skip unless you have a Rails deploy mid-trip</div></div></li>
+      </ul>
+    </div>
+
+    <div class="cat">
+      <div class="cat-head">
+        <div class="cat-name">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          Documents · the must-haves
+        </div>
+      </div>
+      <ul class="cat-list">
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Driver's license<span class="item-tag critical">Critical</span></div><div class="item-note">Required at rental counter</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Credit card (primary CDW one)<span class="item-tag critical">Critical</span></div><div class="item-note">Same card pays for full rental</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Backup card</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">$200 cash</div><div class="item-note">Tips, parking, in-app purchases</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Insurance card (auto + health)</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Sphere QR code · screenshot</div><div class="item-note">Save to Photos · works offline</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Skywalk QR code · screenshot</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Spy Ninjas QR code · screenshot</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Rental car confirmation</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Airbnb / rental check-in instructions</div></div></li>
+      </ul>
+    </div>
+
+    <div class="cat">
+      <div class="cat-head">
+        <div class="cat-name">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          Toiletries
+        </div>
+      </div>
+      <ul class="cat-list">
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Toothbrush + toothpaste</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Deodorant</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Razor + shaving stuff</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Daily meds (own supply)</div></div></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- WIFE -->
+  <section class="content" data-p="wife">
+    <div class="intro-card">
+      <h3>Wife · navigator + Friday driver</h3>
+      <p>Friday she drives the kids to Spy Ninjas in the minivan. Pack a little extra in case you split up — she has the bigger group with kids.</p>
+    </div>
+
+    <div class="cat">
+      <div class="cat-head">
+        <div class="cat-name">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18l-2 13H5L3 7zM8 7V4a4 4 0 018 0v3"/></svg>
+          Clothes
+        </div>
+      </div>
+      <ul class="cat-list">
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">5 outfits · light fabrics</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">1 nice dress / outfit for Strip</div><div class="item-note">Optional — for Friday evening if going out</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">5 underwear · 5 socks</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Swimsuit + cover-up</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Cardigan / wrap<span class="item-tag critical">Critical</span></div><div class="item-note">Sphere AC · also good for Skywalk shuttle</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Walking shoes + sandals</div><div class="item-note">Lots of walking on Strip and at Spy Ninjas</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Hat + sunglasses</div></div></li>
+      </ul>
+    </div>
+
+    <div class="cat">
+      <div class="cat-head">
+        <div class="cat-name">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/></svg>
+          Tech
+        </div>
+      </div>
+      <ul class="cat-list">
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Phone + charger</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Personal battery bank<span class="item-tag critical">Critical</span></div><div class="item-note">Friday split-day means she needs her own backup</div></div></li>
+      </ul>
+    </div>
+
+    <div class="cat">
+      <div class="cat-head">
+        <div class="cat-name">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
+          Friday backup info
+        </div>
+      </div>
+      <ul class="cat-list">
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Spy Ninjas QR code · screenshot</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Sphere QR code · screenshot</div><div class="item-note">In case her group arrives first</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Cash · $50</div><div class="item-note">In-N-Out, Spy Ninjas grip socks if needed</div></div></li>
+      </ul>
+    </div>
+
+    <div class="cat">
+      <div class="cat-head">
+        <div class="cat-name">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+          Toiletries · personal
+        </div>
+      </div>
+      <ul class="cat-list">
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Toothbrush · skincare · makeup</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Hair stuff (brush, ties, dryer if needed)</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Daily meds</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Feminine products (just in case)</div></div></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- KIDS -->
+  <section class="content" data-p="kids">
+    <div class="intro-card">
+      <h3>Kids · 2 of them, lots of activity</h3>
+      <p>Pack twice as much as you think — kids spill, get wet, and burn through clothes fast in heat. Spy Ninjas requires grip socks. Skywalk requires shoes (booties provided over them).</p>
+    </div>
+
+    <div class="cat">
+      <div class="cat-head">
+        <div class="cat-name">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18l-2 13H5L3 7zM8 7V4a4 4 0 018 0v3"/></svg>
+          Clothes (per kid)
+        </div>
+      </div>
+      <ul class="cat-list">
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">6 t-shirts</div><div class="item-note">More than days — they will get dirty</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">3 shorts + 1 long pants</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">6 underwear · 6 socks</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Swim suit + goggles</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Light hoodie or cardigan<span class="item-tag critical">Critical</span></div><div class="item-note">Sphere will be COLD for kids</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">2 pairs sneakers</div><div class="item-note">One backup if first gets wet/dirty</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Flip flops for pool</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Sun hat / cap</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Pajamas (2 sets)</div></div></li>
+      </ul>
+    </div>
+
+    <div class="cat">
+      <div class="cat-head">
+        <div class="cat-name">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/></svg>
+          Activity-specific
+        </div>
+      </div>
+      <ul class="cat-list">
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Grip socks for Spy Ninjas<span class="item-tag day">Friday</span></div><div class="item-note">Required! Buy on-site $4 or BYO</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Pool towels (or use rental's)</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Goggles + arm floats if needed</div></div></li>
+      </ul>
+    </div>
+
+    <div class="cat">
+      <div class="cat-head">
+        <div class="cat-name">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/></svg>
+          Long-drive entertainment
+        </div>
+      </div>
+      <ul class="cat-list">
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Tablets · pre-loaded with movies<span class="item-tag critical">Critical</span></div><div class="item-note">Download Netflix/Disney+ offline before leaving</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Headphones (kid-safe volume)</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Tablet chargers + car cables</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">2 favorite stuffed animals</div><div class="item-note">For sleeping in unfamiliar bed</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Coloring books + crayons</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Travel-friendly snacks</div></div></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- PARENTS -->
+  <section class="content" data-p="parents">
+    <div class="intro-card">
+      <h3>Parents · take it easy</h3>
+      <p>Their packing is mostly about comfort and meds. Strip mornings (Friday) and Skywalk day (Saturday) involve walking — make sure their shoes are right.</p>
+    </div>
+
+    <div class="cat">
+      <div class="cat-head">
+        <div class="cat-name">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18l-2 13H5L3 7zM8 7V4a4 4 0 018 0v3"/></svg>
+          Clothes
+        </div>
+      </div>
+      <ul class="cat-list">
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">5 outfits each — comfortable, breathable</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Cardigan / sweater each<span class="item-tag critical">Critical</span></div><div class="item-note">Sphere is 68°F · they'll feel it more</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Comfortable walking shoes — no new ones</div><div class="item-note">Already broken-in only · lots of walking</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Hat with strap or chin tie<span class="item-tag day">Saturday</span></div><div class="item-note">Skywalk wind</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Sunglasses</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Pajamas / sleepwear</div></div></li>
+      </ul>
+    </div>
+
+    <div class="cat">
+      <div class="cat-head">
+        <div class="cat-name">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/></svg>
+          Health · take seriously
+        </div>
+      </div>
+      <ul class="cat-list">
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">All daily medications · 7-day supply<span class="item-tag critical">Critical</span></div><div class="item-note">Pack 4 days needed + 3 buffer days</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Pill organizer (labeled)</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Reading glasses + spare pair</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Insurance cards (Medicare + supplemental)<span class="item-tag critical">Critical</span></div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Doctor's contact info / med list</div><div class="item-note">For ER if anything happens</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Knee/back brace if used</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Walking stick if mom/dad uses one</div></div></li>
+      </ul>
+    </div>
+
+    <div class="cat">
+      <div class="cat-head">
+        <div class="cat-name">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+          Toiletries
+        </div>
+      </div>
+      <ul class="cat-list">
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Personal toiletries each</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Denture supplies if needed</div></div></li>
+      </ul>
+    </div>
+
+    <div class="cat">
+      <div class="cat-head">
+        <div class="cat-name">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/></svg>
+          Tech
+        </div>
+      </div>
+      <ul class="cat-list">
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Phone + charger</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Cash · $100 each for personal use</div></div></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- SHARED -->
+  <section class="content" data-p="shared">
+    <div class="intro-card">
+      <h3>Shared · the family bag</h3>
+      <p>One duffel for the whole family. These items don't belong to one person — they belong to the trip. Live in the minivan or rental's main room.</p>
+    </div>
+
+    <div class="cat">
+      <div class="cat-head">
+        <div class="cat-name">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+          First aid · safety
+        </div>
+      </div>
+      <ul class="cat-list">
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">First aid kit<span class="item-tag critical">Critical</span></div><div class="item-note">Bandaids, antibiotic ointment, gauze</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Tylenol / Advil / kids' Tylenol</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Allergy meds (Benadryl + Zyrtec)</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Pepto / Tums / Imodium</div><div class="item-note">Hot weather + new food = stomach issues</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Motion sickness pills (Dramamine)</div><div class="item-note">For Skywalk drive · winding road</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Thermometer</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Hand sanitizer · large bottle</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Wet wipes · big pack</div></div></li>
+      </ul>
+    </div>
+
+    <div class="cat">
+      <div class="cat-head">
+        <div class="cat-name">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2"/></svg>
+          Sun protection
+        </div>
+      </div>
+      <ul class="cat-list">
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Sunscreen · SPF 50+ · 2 bottles<span class="item-tag critical">Critical</span></div><div class="item-note">100°F · everyone uses it · twice daily</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Aloe vera · post-sun</div><div class="item-note">In case someone gets burned</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">SPF lip balm</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Bug spray</div><div class="item-note">For Skywalk day at canyon</div></div></li>
+      </ul>
+    </div>
+
+    <div class="cat">
+      <div class="cat-head">
+        <div class="cat-name">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          For the car
+        </div>
+      </div>
+      <ul class="cat-list">
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Soft cooler / cooler bag<span class="item-tag critical">Critical</span></div><div class="item-note">Ice + water + sandwiches for drive days</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Reusable water bottles · 6</div><div class="item-note">Refill at rest stops · save $50/day</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Trash bag (for car)</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Paper towels</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Phone mount for minivan</div><div class="item-note">For Google Maps while driving</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Multi-port USB car charger</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Kids' barf bags</div><div class="item-note">Long winding road to Skywalk · be ready</div></div></li>
+      </ul>
+    </div>
+
+    <div class="cat">
+      <div class="cat-head">
+        <div class="cat-name">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          Snacks · drive days
+        </div>
+      </div>
+      <ul class="cat-list">
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Trail mix / nuts</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Granola / breakfast bars</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Apples / oranges (don't melt)</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Crackers / pretzels for kids</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Mints / chewing gum</div></div></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- DAYPACK -->
+  <section class="content" data-p="daypack">
+    <div class="intro-card">
+      <h3>Day pack · grab and go</h3>
+      <p>One small backpack stays loaded with these items. Take it everywhere on outings. Refill water bottles every morning.</p>
+    </div>
+
+    <div class="cat">
+      <div class="cat-head">
+        <div class="cat-name">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/></svg>
+          Always in the day pack
+        </div>
+      </div>
+      <ul class="cat-list">
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">2 water bottles (refilled)</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Sunscreen (travel size)</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Hand sanitizer</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Wet wipes (small pack)</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Snacks (granola bars × 4)</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Battery bank + cables</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Tylenol + Tums (small)</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Cash $100 + cards</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Empty plastic bag (trash / wet stuff)</div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Kids' Tylenol (chewable)</div></div></li>
+      </ul>
+    </div>
+
+    <div class="cat">
+      <div class="cat-head">
+        <div class="cat-name">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/></svg>
+          Day-specific add-ons
+        </div>
+      </div>
+      <ul class="cat-list">
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Friday: Cardigans for everyone<span class="item-tag day">Sphere</span></div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Friday: Grip socks for kids<span class="item-tag day">Spy Ninjas</span></div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Saturday: Extra water bottles (4)<span class="item-tag day">Skywalk</span></div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Saturday: Hats with straps<span class="item-tag day">Skywalk</span></div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Saturday: Dramamine for car<span class="item-tag day">Skywalk</span></div></div></li>
+        <li><div class="checkbox"></div><div class="item-content"><div class="item-text">Saturday: Cash for photo package<span class="item-tag day">Skywalk</span></div></div></li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="footer-line"></div>
+  <div class="footer">Tap items to mark packed · saves automatically</div>
+</div>
+
+<!-- FAB -->
+<div class="fab">
+  <button class="fab-btn primary" id="resetBtn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 0115.5-6.36L21 3M21 8V3h-5"/></svg>
+    Reset all
+  </button>
+  <button class="fab-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 15l-6-6-6 6"/></svg>
+    Top
+  </button>
+</div>
+
+<script>
+  const personBtns = document.querySelectorAll('.person-btn');
+  const contents = document.querySelectorAll('.content');
+  const items = document.querySelectorAll('.cat-list li');
+  const body = document.body;
+
+  function switchPerson(p) {
+    personBtns.forEach(b => b.classList.toggle('active', b.dataset.p === p));
+    contents.forEach(c => c.classList.toggle('active', c.dataset.p === p));
+    body.dataset.person = p;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  personBtns.forEach(b => b.addEventListener('click', () => switchPerson(b.dataset.p)));
+
+  // Each item gets a stable id
+  items.forEach((li, i) => { li.dataset.id = 'item-' + i; });
+
+  function persist() {
+    try {
+      const done = {};
+      items.forEach(li => { done[li.dataset.id] = li.classList.contains('done'); });
+      localStorage.setItem('vegas-pack', JSON.stringify(done));
+    } catch(e) {}
+    updateCounts();
+  }
+
+  function restore() {
+    try {
+      const done = JSON.parse(localStorage.getItem('vegas-pack') || '{}');
+      items.forEach(li => { if (done[li.dataset.id]) li.classList.add('done'); });
+    } catch(e) {}
+    updateCounts();
+  }
+
+  function updateCounts() {
+    let totalDone = 0, totalItems = items.length;
+    document.querySelectorAll('.person-count').forEach(el => {
+      const p = el.dataset.countFor;
+      const section = document.querySelector('.content[data-p="' + p + '"]');
+      const sItems = section.querySelectorAll('.cat-list li');
+      const sDone = section.querySelectorAll('.cat-list li.done').length;
+      el.textContent = sDone + '/' + sItems.length;
+      totalDone += sDone;
+    });
+    document.getElementById('totalPill').textContent = totalDone + ' / ' + totalItems + ' packed';
+    const pct = totalItems > 0 ? Math.round((totalDone / totalItems) * 100) : 0;
+    document.getElementById('progressBar').style.width = pct + '%';
+  }
+
+  items.forEach(li => {
+    li.addEventListener('click', () => {
+      li.classList.toggle('done');
+      persist();
+    });
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    if (confirm('Uncheck all items?')) {
+      items.forEach(li => li.classList.remove('done'));
+      persist();
+    }
+  });
+
+  restore();
+</script>
+</body>
+</html>

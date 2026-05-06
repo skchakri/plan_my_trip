@@ -1,0 +1,54 @@
+<% content_for :title, "Account" %>
+<div class="max-w-md mx-auto">
+  <h1 class="text-2xl font-semibold mb-6">Account</h1>
+
+  <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put, class: "space-y-4" }) do |f| %>
+    <%= render "devise/shared/error_messages", resource: resource %>
+
+    <div>
+      <%= f.label :name, class: "block text-sm font-medium text-slate-300 mb-1" %>
+      <%= f.text_field :name, autofocus: true, class: "w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 focus:border-amber-500 focus:outline-none" %>
+    </div>
+
+    <div>
+      <%= f.label :email, class: "block text-sm font-medium text-slate-300 mb-1" %>
+      <%= f.email_field :email, autocomplete: "email", class: "w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 focus:border-amber-500 focus:outline-none" %>
+    </div>
+
+    <div class="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-4">
+      <label class="flex items-start gap-3 cursor-pointer">
+        <%= f.check_box :alltrails_pro, class: "mt-1 rounded bg-slate-800 border-slate-600" %>
+        <span>
+          <span class="font-medium text-emerald-200">I have AllTrails+ membership</span>
+          <span class="block text-xs text-slate-400 mt-1">Turning this on unlocks Pro-only hints next to trail links — offline maps, 3D map view, and Lifeline. The trail buttons themselves always work; this just changes the help text shown to you.</span>
+        </span>
+      </label>
+    </div>
+
+    <details class="rounded-md border border-slate-800 bg-slate-900/40">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-medium text-slate-300">Change password</summary>
+      <div class="px-4 pb-4 space-y-4">
+        <div>
+          <%= f.label :password, "New password", class: "block text-sm font-medium text-slate-300 mb-1" %>
+          <%= f.password_field :password, autocomplete: "new-password", class: "w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 focus:border-amber-500 focus:outline-none" %>
+        </div>
+
+        <div>
+          <%= f.label :password_confirmation, "Confirm new password", class: "block text-sm font-medium text-slate-300 mb-1" %>
+          <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 focus:border-amber-500 focus:outline-none" %>
+        </div>
+
+        <div>
+          <%= f.label :current_password, "Current password (only needed if changing password)", class: "block text-sm font-medium text-slate-300 mb-1" %>
+          <%= f.password_field :current_password, autocomplete: "current-password", class: "w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 focus:border-amber-500 focus:outline-none" %>
+        </div>
+      </div>
+    </details>
+
+    <%= f.submit "Save changes", class: "w-full px-4 py-2 bg-amber-500 text-slate-900 rounded-md font-medium hover:bg-amber-400 cursor-pointer" %>
+  <% end %>
+
+  <hr class="my-8 border-slate-800">
+  <h2 class="text-sm font-semibold text-rose-300 mb-2">Delete account</h2>
+  <%= button_to "Delete my account", registration_path(resource_name), method: :delete, form: { data: { turbo_confirm: "This will delete your trips and access. Continue?" } }, class: "px-4 py-2 border border-rose-700/50 text-rose-300 rounded-md hover:bg-rose-500/10" %>
+</div>
