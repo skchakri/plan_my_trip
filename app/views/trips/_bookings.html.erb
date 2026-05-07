@@ -1,40 +1,49 @@
 <% sections = [
-  ["Hotels",     :hotels,     "🛏"],
-  ["Cars",       :cars,       "🚗"],
-  ["Flights",    :flights,    "✈"],
-  ["Activities", :activities, "🎟"]
+  ["Hotels",     :hotels,     :bed],
+  ["Cars",       :cars,       :car],
+  ["Flights",    :flights,    :plane],
+  ["Activities", :activities, :ticket]
 ] %>
 
-<section class="mt-10">
-  <div class="flex items-center justify-between mb-3">
-    <h2 class="text-lg font-semibold">Book this trip</h2>
-    <%= link_to "Edit your memberships", edit_user_registration_path, class: "text-xs text-slate-400 hover:text-amber-300 underline-offset-2 hover:underline" %>
+<section class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 sm:p-7 mt-6">
+  <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+    <h2 class="font-display text-xl font-semibold flex items-center gap-2"><%= icon :sparkles, class: "w-5 h-5 text-amber-400/80" %> Book this trip</h2>
+    <%= link_to edit_user_registration_path, class: "text-xs inline-flex items-center gap-1 text-slate-400 hover:text-amber-300 transition-colors" do %>
+      <%= icon :settings, class: "w-3.5 h-3.5" %> Edit your memberships
+    <% end %>
   </div>
   <% if @trip.destination.blank? %>
     <p class="text-sm text-slate-500 italic">Add a destination to this trip to see booking links.</p>
   <% else %>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      <% sections.each do |title, method, glyph|
+      <% sections.each do |title, method, glyph_name|
            links = booking.public_send(method)
            next if links.empty? %>
-        <details class="rounded-lg border border-slate-800 bg-slate-900/60 group" <%= "open" if method == :hotels %>>
-          <summary class="cursor-pointer px-4 py-3 flex items-center justify-between">
-            <span class="font-medium"><span class="mr-2"><%= glyph %></span><%= title %></span>
-            <span class="text-xs text-slate-500"><%= links.size %> options</span>
+        <details class="rounded-xl border border-slate-800 bg-slate-800/40 hover:border-slate-700 transition-colors" <%= "open".html_safe if method == :hotels %>>
+          <summary class="cursor-pointer px-4 py-3 flex items-center justify-between gap-2 select-none">
+            <span class="inline-flex items-center gap-2 font-medium text-slate-100">
+              <span class="text-amber-400/80"><%= icon glyph_name, class: "w-4 h-4" %></span>
+              <%= title %>
+            </span>
+            <span class="inline-flex items-center gap-1 text-xs text-slate-500">
+              <%= links.size %> options <%= icon :chevron_down, class: "w-4 h-4 transition-transform group-open:rotate-180" %>
+            </span>
           </summary>
-          <ul class="px-4 pb-3 space-y-2">
+          <ul class="px-4 pb-3 space-y-2.5">
             <% links.each do |link| %>
-              <li class="flex items-start justify-between gap-3 border-t border-slate-800 pt-2">
-                <div class="min-w-0">
-                  <%= link_to link.url, target: "_blank", rel: "noopener", class: "font-medium text-slate-100 hover:text-amber-300" do %>
-                    <%= link.provider %> →
-                  <% end %>
-                  <% if link.badge.present? %>
-                    <span class="ml-2 text-xs px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300"><%= link.badge %></span>
-                  <% end %>
-                  <% if link.note.present? %>
-                    <p class="text-xs text-slate-400 mt-0.5"><%= link.note %></p>
-                  <% end %>
+              <li class="border-t border-slate-700/50 pt-2.5">
+                <div class="flex items-start justify-between gap-2">
+                  <div class="min-w-0">
+                    <%= link_to link.url, target: "_blank", rel: "noopener", class: "inline-flex items-center gap-1 font-medium text-slate-100 hover:text-amber-300 transition-colors" do %>
+                      <%= link.provider %> <%= icon :external_link, class: "w-3 h-3" %>
+                    <% end %>
+                    <% if link.badge.present? %>
+                      <span class="ml-1 text-[11px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 font-medium"><%= link.badge %></span>
+                    <% end %>
+                    <% if link.note.present? %>
+                      <p class="text-xs text-slate-400 mt-0.5 leading-relaxed"><%= link.note %></p>
+                    <% end %>
+                  </div>
                 </div>
               </li>
             <% end %>
@@ -45,16 +54,16 @@
 
     <% portals = booking.card_portals %>
     <% if portals.any? %>
-      <div class="mt-4 rounded-lg border border-violet-500/30 bg-violet-500/5 p-4">
-        <p class="text-xs uppercase tracking-widest text-violet-300 mb-2 font-medium">Stack points via your card portal</p>
+      <div class="mt-4 rounded-xl border border-violet-500/30 bg-violet-500/5 p-4">
+        <p class="text-[11px] uppercase tracking-widest text-violet-300 mb-2 font-semibold">Stack points via your card portal</p>
         <ul class="space-y-1.5">
           <% portals.each do |link| %>
             <li>
-              <%= link_to link.url, target: "_blank", rel: "noopener", class: "font-medium text-violet-200 hover:text-violet-100" do %>
-                <%= link.provider %> →
+              <%= link_to link.url, target: "_blank", rel: "noopener", class: "inline-flex items-center gap-1 font-medium text-violet-200 hover:text-violet-100 transition-colors" do %>
+                <%= link.provider %> <%= icon :external_link, class: "w-3 h-3" %>
               <% end %>
               <% if link.note.present? %>
-                <span class="text-xs text-slate-400 ml-2"><%= link.note %></span>
+                <span class="text-xs text-slate-400 ml-1"><%= link.note %></span>
               <% end %>
             </li>
           <% end %>
@@ -64,16 +73,19 @@
 
     <% tips = booking.discount_tips %>
     <% if tips.any? %>
-      <details class="mt-4 rounded-lg border border-emerald-500/30 bg-emerald-500/5">
-        <summary class="cursor-pointer px-4 py-3 flex items-center justify-between">
-          <span class="font-medium text-emerald-200">💡 Discounts available to you (<%= tips.size %>)</span>
-          <span class="text-xs text-emerald-300/70">Real recurring offers — no codes</span>
+      <details class="mt-4 rounded-xl border border-emerald-500/30 bg-emerald-500/5">
+        <summary class="cursor-pointer px-4 py-3 flex items-center justify-between gap-2">
+          <span class="inline-flex items-center gap-2 font-medium text-emerald-200">
+            <%= icon :sparkles, class: "w-4 h-4" %>
+            Discounts available to you (<%= tips.size %>)
+          </span>
+          <span class="text-xs text-emerald-300/70 hidden sm:inline">Real recurring offers — no codes</span>
         </summary>
         <ul class="px-4 pb-4 space-y-3 mt-1">
           <% tips.each do |tip| %>
-            <li class="border-t border-emerald-500/20 pt-2">
+            <li class="border-t border-emerald-500/20 pt-2.5">
               <p class="font-medium text-emerald-100"><%= tip[:title] %></p>
-              <p class="text-sm text-slate-300 mt-0.5"><%= tip[:body] %></p>
+              <p class="text-sm text-slate-300 mt-0.5 leading-relaxed"><%= tip[:body] %></p>
             </li>
           <% end %>
         </ul>

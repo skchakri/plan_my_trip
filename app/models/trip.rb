@@ -25,6 +25,20 @@ class Trip < ApplicationRecord
     membership&.custom_title.presence || title
   end
 
+  def nights
+    return nil if start_date.blank? || end_date.blank?
+    (end_date - start_date).to_i
+  end
+
+  def days
+    n = nights
+    n.nil? ? nil : n + 1
+  end
+
+  def member_count
+    trip_memberships.count
+  end
+
   private
 
   def end_after_start

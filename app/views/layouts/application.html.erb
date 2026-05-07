@@ -1,60 +1,108 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
   <head>
     <title><%= content_for(:title) || "Plan My Trip" %></title>
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="application-name" content="Plan My Trip">
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0a0e1a">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
     <%= yield :head %>
 
-    <link rel="icon" href="/icon.png" type="image/png">
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="icon" href="/icon.png" type="image/png">
     <link rel="apple-touch-icon" href="/icon.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
 
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
+
+    <style>
+      :root { --font-sans: 'Inter', system-ui, sans-serif; --font-display: 'Fraunces', Georgia, serif; }
+      html, body { font-family: var(--font-sans); font-feature-settings: 'cv11', 'ss01'; }
+      .font-display { font-family: var(--font-display); letter-spacing: -0.02em; }
+      *:focus-visible { outline: 2px solid #f0b870; outline-offset: 2px; border-radius: 6px; }
+      input:focus-visible, select:focus-visible, textarea:focus-visible { outline: none; }
+      .bg-noise { background-image: radial-gradient(rgba(232,160,79,0.04) 1px, transparent 1px); background-size: 24px 24px; }
+    </style>
   </head>
 
-  <body class="bg-slate-950 text-slate-100 min-h-screen <%= 'hotwire-native' if hotwire_native_app? %>">
+  <body class="bg-slate-950 text-slate-100 min-h-full antialiased <%= 'hotwire-native' if hotwire_native_app? %>">
     <% unless hotwire_native_app? %>
-    <header class="border-b border-slate-800 bg-slate-900/60 backdrop-blur sticky top-0 z-30">
-      <div class="max-w-3xl mx-auto px-5 py-3 flex items-center justify-between">
-        <%= link_to root_path, class: "flex items-center gap-2 font-semibold tracking-tight text-amber-300" do %>
-          <%= image_tag "/icon.svg", alt: "", width: 28, height: 28, class: "rounded-md" %>
-          <span>Plan My Trip</span>
-        <% end %>
-        <nav class="flex items-center gap-4 text-sm">
-          <% if user_signed_in? %>
-            <span class="text-slate-400 hidden sm:inline">Hi, <%= current_user.display_name %></span>
-            <%= link_to "Account", edit_user_registration_path, class: "text-slate-300 hover:text-white" %>
-            <%= link_to "New trip", new_trip_path, class: "px-3 py-1.5 bg-amber-500 text-slate-900 rounded-md font-medium hover:bg-amber-400" %>
-            <%= button_to "Sign out", destroy_user_session_path, method: :delete, form: { data: { turbo: false } }, class: "text-slate-300 hover:text-white" %>
-          <% else %>
-            <%= link_to "Sign in", new_user_session_path, class: "text-slate-300 hover:text-white" %>
-            <%= link_to "Sign up", new_user_registration_path, class: "px-3 py-1.5 bg-amber-500 text-slate-900 rounded-md font-medium hover:bg-amber-400" %>
+      <header class="border-b border-slate-800/70 bg-slate-950/80 backdrop-blur-xl sticky top-0 z-30">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
+          <%= link_to root_path, class: "flex items-center gap-2.5 group" do %>
+            <%= image_tag "/icon.svg", alt: "", width: 30, height: 30, class: "rounded-lg shadow-lg shadow-amber-500/10 group-hover:shadow-amber-500/30 transition-shadow" %>
+            <div class="leading-tight">
+              <div class="text-[15px] font-semibold tracking-tight bg-gradient-to-r from-amber-200 to-amber-400 bg-clip-text text-transparent">Plan My Trip</div>
+              <div class="text-[10px] uppercase tracking-widest text-slate-500 hidden sm:block">Itineraries · Bookings · Trails</div>
+            </div>
           <% end %>
-        </nav>
-      </div>
-    </header>
+
+          <nav class="flex items-center gap-1.5 text-sm">
+            <% if user_signed_in? %>
+              <%= link_to trips_path, class: "hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors #{'bg-slate-800/60 text-white' if controller_name == 'trips' && action_name == 'index'}" do %>
+                <%= icon :list, class: "w-4 h-4" %><span>Trips</span>
+              <% end %>
+              <%= link_to edit_user_registration_path, class: "hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors" do %>
+                <%= icon :user_circle, class: "w-4 h-4" %><span class="hidden md:inline">Account</span>
+              <% end %>
+              <%= link_to new_trip_path, class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-semibold text-sm shadow-lg shadow-amber-500/20 hover:bg-amber-400 hover:shadow-amber-500/40 transition-all" do %>
+                <%= icon :plus, class: "w-4 h-4" %><span>New trip</span>
+              <% end %>
+              <%= button_to destroy_user_session_path, method: :delete, form: { data: { turbo: false }, class: "hidden sm:block" }, class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors" do %>
+                <%= icon :log_out, class: "w-4 h-4" %>
+              <% end %>
+            <% else %>
+              <%= link_to "Sign in", new_user_session_path, class: "px-3 py-1.5 rounded-md text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors" %>
+              <%= link_to "Sign up", new_user_registration_path, class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-semibold shadow-lg shadow-amber-500/20 hover:bg-amber-400 transition-all" %>
+            <% end %>
+          </nav>
+        </div>
+      </header>
     <% end %>
 
     <% if notice.present? %>
-      <div class="max-w-3xl mx-auto px-5 mt-4">
-        <div class="rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-200 px-4 py-2 text-sm"><%= notice %></div>
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 mt-4">
+        <div role="status" class="rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-200 px-4 py-2.5 text-sm flex items-start gap-2">
+          <%= icon :check, class: "w-4 h-4 mt-0.5 shrink-0" %>
+          <span><%= notice %></span>
+        </div>
       </div>
     <% end %>
     <% if alert.present? %>
-      <div class="max-w-3xl mx-auto px-5 mt-4">
-        <div class="rounded-md bg-rose-500/10 border border-rose-500/30 text-rose-200 px-4 py-2 text-sm"><%= alert %></div>
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 mt-4">
+        <div role="alert" class="rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-200 px-4 py-2.5 text-sm">
+          <%= alert %>
+        </div>
       </div>
     <% end %>
 
-    <main class="max-w-3xl mx-auto px-5 py-8">
+    <main class="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10 pb-24 sm:pb-12">
       <%= yield %>
     </main>
+
+    <% if user_signed_in? && !hotwire_native_app? %>
+      <nav class="sm:hidden fixed bottom-0 inset-x-0 z-30 border-t border-slate-800 bg-slate-950/95 backdrop-blur-xl pb-[env(safe-area-inset-bottom)]" aria-label="Primary">
+        <div class="grid grid-cols-3 px-2 py-2">
+          <%= link_to trips_path, class: "flex flex-col items-center gap-0.5 py-1.5 rounded-md #{(controller_name == 'trips' && action_name == 'index') ? 'text-amber-300' : 'text-slate-400 hover:text-white'}" do %>
+            <%= icon :list, class: "w-5 h-5" %><span class="text-[10px] font-medium">Trips</span>
+          <% end %>
+          <%= link_to new_trip_path, class: "flex flex-col items-center gap-0.5 py-1.5 rounded-md #{action_name == 'new' ? 'text-amber-300' : 'text-slate-400 hover:text-white'}" do %>
+            <%= icon :plus, class: "w-5 h-5" %><span class="text-[10px] font-medium">New</span>
+          <% end %>
+          <%= link_to edit_user_registration_path, class: "flex flex-col items-center gap-0.5 py-1.5 rounded-md #{controller_name == 'registrations' ? 'text-amber-300' : 'text-slate-400 hover:text-white'}" do %>
+            <%= icon :user_circle, class: "w-5 h-5" %><span class="text-[10px] font-medium">Account</span>
+          <% end %>
+        </div>
+      </nav>
+    <% end %>
   </body>
 </html>

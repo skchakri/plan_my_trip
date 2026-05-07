@@ -1,89 +1,96 @@
-<%= form_with model: @trip, class: "space-y-5" do |f| %>
+<% input_classes = "w-full rounded-lg bg-slate-800/70 border border-slate-700 px-3 py-2.5 text-slate-100 placeholder-slate-500 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 focus:outline-none transition-colors" %>
+<% label_classes = "block text-xs uppercase tracking-widest text-slate-400 font-semibold mb-1.5" %>
+
+<%= form_with model: @trip, class: "space-y-6" do |f| %>
   <% if @trip.errors.any? %>
-    <div class="rounded-md bg-rose-500/10 border border-rose-500/30 text-rose-200 px-4 py-3 text-sm">
+    <div class="rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-200 px-4 py-3 text-sm" role="alert">
       <p class="font-medium mb-1"><%= pluralize(@trip.errors.count, "error") %> stopped this from saving:</p>
-      <ul class="list-disc list-inside">
+      <ul class="list-disc list-inside text-rose-200/80">
         <% @trip.errors.full_messages.each do |msg| %><li><%= msg %></li><% end %>
       </ul>
     </div>
   <% end %>
 
-  <div>
-    <%= f.label :title, class: "block text-sm font-medium text-slate-300 mb-1" %>
-    <%= f.text_field :title, required: true, class: "w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 focus:border-amber-500 focus:outline-none" %>
+  <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 sm:p-6 space-y-5">
+    <div>
+      <%= f.label :title, class: label_classes %>
+      <%= f.text_field :title, required: true, placeholder: "e.g. Vegas trip — May 7-10, 2026", class: input_classes %>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <%= f.label :origin, "Origin (for flight search)", class: label_classes %>
+        <%= f.text_field :origin, placeholder: "e.g. SLC or Salt Lake City", class: input_classes %>
+      </div>
+      <div>
+        <%= f.label :destination, class: label_classes %>
+        <%= f.text_field :destination, placeholder: "e.g. Las Vegas, NV", class: input_classes %>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-3 gap-3 sm:gap-4">
+      <div>
+        <%= f.label :start_date, "Start", class: label_classes %>
+        <%= f.date_field :start_date, class: input_classes %>
+      </div>
+      <div>
+        <%= f.label :end_date, "End", class: label_classes %>
+        <%= f.date_field :end_date, class: input_classes %>
+      </div>
+      <div>
+        <%= f.label :traveler_count, "Travelers", class: label_classes %>
+        <%= f.number_field :traveler_count, min: 1, max: 30, class: input_classes %>
+      </div>
+    </div>
   </div>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-    <div>
-      <%= f.label :origin, "Origin (for flight search)", class: "block text-sm font-medium text-slate-300 mb-1" %>
-      <%= f.text_field :origin, placeholder: "e.g. SLC or Salt Lake City", class: "w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 focus:border-amber-500 focus:outline-none" %>
-    </div>
-    <div>
-      <%= f.label :destination, class: "block text-sm font-medium text-slate-300 mb-1" %>
-      <%= f.text_field :destination, class: "w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 focus:border-amber-500 focus:outline-none" %>
-    </div>
+  <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 sm:p-6">
+    <%= f.label :body, class: label_classes do %>
+      Itinerary <span class="text-slate-500 normal-case tracking-normal font-normal">· markdown supported</span>
+    <% end %>
+    <%= f.text_area :body, rows: 18, class: "#{input_classes} font-mono text-sm leading-relaxed" %>
   </div>
 
-  <div class="grid grid-cols-3 gap-4">
-    <div>
-      <%= f.label :start_date, class: "block text-sm font-medium text-slate-300 mb-1" %>
-      <%= f.date_field :start_date, class: "w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 focus:border-amber-500 focus:outline-none" %>
-    </div>
-    <div>
-      <%= f.label :end_date, class: "block text-sm font-medium text-slate-300 mb-1" %>
-      <%= f.date_field :end_date, class: "w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 focus:border-amber-500 focus:outline-none" %>
-    </div>
-    <div>
-      <%= f.label :traveler_count, "Travelers", class: "block text-sm font-medium text-slate-300 mb-1" %>
-      <%= f.number_field :traveler_count, min: 1, max: 30, class: "w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 focus:border-amber-500 focus:outline-none" %>
-    </div>
-  </div>
-
-  <div>
-    <%= f.label :body, "Plan (markdown supported)", class: "block text-sm font-medium text-slate-300 mb-1" %>
-    <%= f.text_area :body, rows: 18, class: "w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 font-mono text-sm focus:border-amber-500 focus:outline-none" %>
-  </div>
-
-  <fieldset class="border border-slate-800 rounded-lg p-4 space-y-3">
-    <legend class="px-2 text-sm font-medium text-teal-300">Mobile PWA links (optional)</legend>
-    <p class="text-xs text-slate-500 -mt-2">If you have standalone PWA pages for this trip's day-by-day itinerary or packing checklist, paste their URLs here. They'll show as quick-access buttons on the trip card.</p>
-    <div>
-      <%= f.label :pwa_plan_url, "Plan URL", class: "block text-sm font-medium text-slate-300 mb-1" %>
-      <%= f.url_field :pwa_plan_url, placeholder: "/vegas-trip-4days.html or https://...", class: "w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none" %>
-    </div>
-    <div>
-      <%= f.label :pwa_packing_url, "Checklist URL", class: "block text-sm font-medium text-slate-300 mb-1" %>
-      <%= f.url_field :pwa_packing_url, placeholder: "/vegas-packing.html or https://...", class: "w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none" %>
+  <fieldset class="rounded-2xl border border-teal-500/20 bg-teal-500/[0.03] p-5 sm:p-6 space-y-4">
+    <legend class="px-2 text-xs uppercase tracking-widest text-teal-300 font-semibold">Mobile PWA links · optional</legend>
+    <p class="text-xs text-slate-400 leading-relaxed">If you have standalone mobile PWA pages for this trip's day-by-day itinerary or packing checklist, paste their URLs here. They'll appear as quick-access buttons next to the trip.</p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <%= f.label :pwa_plan_url, "Plan URL", class: label_classes %>
+        <%= f.url_field :pwa_plan_url, placeholder: "/vegas-trip-4days.html", class: input_classes %>
+      </div>
+      <div>
+        <%= f.label :pwa_packing_url, "Checklist URL", class: label_classes %>
+        <%= f.url_field :pwa_packing_url, placeholder: "/vegas-packing.html", class: input_classes %>
+      </div>
     </div>
   </fieldset>
 
-  <fieldset class="border border-slate-800 rounded-lg p-4 space-y-3">
-    <legend class="px-2 text-sm font-medium text-emerald-300 flex items-center gap-2">
-      <span>Trails (AllTrails)</span>
-    </legend>
-    <p class="text-xs text-slate-500 -mt-2">Paste an AllTrails URL for each hike. Members on this trip will get a one-tap "Open in AllTrails" button.</p>
+  <fieldset class="rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.03] p-5 sm:p-6 space-y-4">
+    <legend class="px-2 text-xs uppercase tracking-widest text-emerald-300 font-semibold">Trails · AllTrails</legend>
+    <p class="text-xs text-slate-400 leading-relaxed">Paste an AllTrails URL for each hike. Trip members get one-tap "Open in AllTrails" — Pro features apply natively if they're signed in.</p>
     <div id="trails-list" class="space-y-3">
       <%= f.fields_for :trails do |tf| %>
-        <div class="rounded-md bg-slate-800/50 border border-slate-700 p-3 space-y-2">
+        <div class="rounded-xl bg-slate-900/60 border border-slate-700/50 p-3.5 space-y-2.5">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-            <%= tf.text_field :name, placeholder: "Trail name", class: "rounded-md bg-slate-800 border border-slate-700 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none" %>
-            <%= tf.url_field :alltrails_url, placeholder: "https://www.alltrails.com/trail/...", class: "rounded-md bg-slate-800 border border-slate-700 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none" %>
+            <%= tf.text_field :name, placeholder: "Trail name", class: input_classes + " text-sm" %>
+            <%= tf.url_field :alltrails_url, placeholder: "https://www.alltrails.com/trail/…", class: input_classes + " text-sm" %>
           </div>
-          <%= tf.text_area :notes, rows: 2, placeholder: "Notes (distance, difficulty, who's hiking)", class: "w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none" %>
+          <%= tf.text_area :notes, rows: 2, placeholder: "Notes (distance, difficulty, who's hiking)", class: input_classes + " text-sm" %>
           <% if tf.object.persisted? %>
-            <label class="flex items-center gap-2 text-xs text-rose-400 cursor-pointer">
-              <%= tf.check_box :_destroy %>
+            <label class="inline-flex items-center gap-2 text-xs text-rose-400 cursor-pointer">
+              <%= tf.check_box :_destroy, class: "rounded bg-slate-800 border-slate-600" %>
               Remove this trail
             </label>
           <% end %>
         </div>
       <% end %>
     </div>
-    <p class="text-xs text-slate-500">Save and edit again to add more trails.</p>
+    <p class="text-xs text-slate-500">Save and re-edit to add more trails.</p>
   </fieldset>
 
-  <div class="flex justify-end gap-3">
-    <%= link_to "Cancel", (@trip.persisted? ? @trip : trips_path), class: "px-4 py-2 text-slate-300 hover:text-white" %>
-    <%= f.submit class: "px-4 py-2 bg-amber-500 text-slate-900 rounded-md font-medium hover:bg-amber-400 cursor-pointer" %>
+  <div class="flex items-center justify-end gap-3 pt-2">
+    <%= link_to "Cancel", (@trip.persisted? ? @trip : trips_path), class: "px-4 py-2.5 text-slate-300 hover:text-white text-sm font-medium" %>
+    <%= f.submit (@trip.persisted? ? "Save changes" : "Create trip"), class: "inline-flex items-center gap-2 px-5 py-2.5 bg-amber-500 text-slate-950 rounded-lg font-semibold shadow-lg shadow-amber-500/20 hover:bg-amber-400 hover:shadow-amber-500/40 cursor-pointer transition-all" %>
   </div>
 <% end %>
