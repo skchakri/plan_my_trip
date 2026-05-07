@@ -10,10 +10,28 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_07_015201) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_07_150956) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
+
+  create_table "activities", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "address"
+    t.datetime "created_at", null: false
+    t.string "group_label"
+    t.string "location_name"
+    t.string "maps_url"
+    t.text "notes"
+    t.string "photo_url"
+    t.integer "position", default: 0, null: false
+    t.string "time_label"
+    t.string "title", null: false
+    t.uuid "trip_day_id", null: false
+    t.string "uber_url"
+    t.datetime "updated_at", null: false
+    t.index ["trip_day_id", "position"], name: "index_activities_on_trip_day_id_and_position"
+    t.index ["trip_day_id"], name: "index_activities_on_trip_day_id"
+  end
 
   create_table "checklist_items", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "activity_label"
@@ -43,6 +61,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_07_015201) do
     t.datetime "updated_at", null: false
     t.index ["trip_id", "position"], name: "index_trails_on_trip_id_and_position"
     t.index ["trip_id"], name: "index_trails_on_trip_id"
+  end
+
+  create_table "trip_days", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "accent", default: "gold", null: false
+    t.datetime "created_at", null: false
+    t.date "date"
+    t.string "label", null: false
+    t.integer "position", default: 0, null: false
+    t.text "summary"
+    t.string "theme"
+    t.string "title", null: false
+    t.uuid "trip_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["trip_id", "label"], name: "index_trip_days_on_trip_id_and_label"
+    t.index ["trip_id", "position"], name: "index_trip_days_on_trip_id_and_position"
+    t.index ["trip_id"], name: "index_trip_days_on_trip_id"
   end
 
   create_table "trip_invitations", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -108,8 +142,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_07_015201) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
+  add_foreign_key "activities", "trip_days"
   add_foreign_key "checklist_items", "trips"
   add_foreign_key "trails", "trips"
+  add_foreign_key "trip_days", "trips"
   add_foreign_key "trip_invitations", "trips"
   add_foreign_key "trip_invitations", "users", column: "inviter_id"
   add_foreign_key "trip_memberships", "trips"

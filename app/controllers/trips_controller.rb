@@ -50,9 +50,10 @@ class TripsController < ApplicationController
     redirect_to trips_path, notice: "Trip removed."
   end
 
-  # GET /trips/:id/plan — mobile-optimized standalone view of the itinerary
+  # GET /trips/:id/plan — rich day-by-day Final plan with photos and deep-linked maps
   def plan
     authorize @trip, :show?
+    @days = @trip.trip_days.ordered.includes(:activities)
     @rendered_body = render_markdown(@trip.body)
   end
 

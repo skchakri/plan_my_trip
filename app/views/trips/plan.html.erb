@@ -1,5 +1,25 @@
 <% content_for :title, "Final plan · #{@trip.title_for(current_user)}" %>
 
+<%# Per-day accent colours via CSS variables — Tailwind won't compile dynamic classes,
+    so we set --accent on each day card and the rules below pick that up. %>
+<% content_for :head do %>
+<style>
+  [data-accent="blue"]    { --accent: 108 163 232; --accent-soft: rgba(108,163,232,.12); --accent-strong: rgba(108,163,232,.30); }
+  [data-accent="gold"]    { --accent: 232 160 79;  --accent-soft: rgba(232,160,79,.12);  --accent-strong: rgba(232,160,79,.30); }
+  [data-accent="teal"]    { --accent: 93 195 184;  --accent-soft: rgba(93,195,184,.12);  --accent-strong: rgba(93,195,184,.30); }
+  [data-accent="pink"]    { --accent: 232 122 166; --accent-soft: rgba(232,122,166,.12); --accent-strong: rgba(232,122,166,.30); }
+  [data-accent="violet"]  { --accent: 177 140 217; --accent-soft: rgba(177,140,217,.12); --accent-strong: rgba(177,140,217,.30); }
+  [data-accent="emerald"] { --accent: 110 231 183; --accent-soft: rgba(110,231,183,.12); --accent-strong: rgba(110,231,183,.30); }
+  [data-accent="rose"]    { --accent: 251 113 133; --accent-soft: rgba(251,113,133,.12); --accent-strong: rgba(251,113,133,.30); }
+  .accent-text { color: rgb(var(--accent)); }
+  .accent-bg   { background: var(--accent-soft); }
+  .accent-bg-strong { background: var(--accent-strong); }
+  .accent-border { border-color: var(--accent-strong); }
+  .accent-fg-bg { background: rgb(var(--accent)); color: #0a0e1a; }
+  .accent-dot::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 999px; background: rgb(var(--accent)); margin-right: 8px; vertical-align: middle; }
+</style>
+<% end %>
+
 <div class="mb-5">
   <%= link_to @trip, class: "inline-flex items-center gap-1 text-sm text-slate-400 hover:text-amber-300 transition-colors" do %>
     <%= icon :arrow_left, class: "w-4 h-4" %> <%= @trip.title_for(current_user) %>
@@ -28,12 +48,154 @@
   </div>
 <% end %>
 
-<article class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 sm:p-7">
-  <% if @rendered_body.blank? %>
-    <p class="text-slate-500 italic">No plan yet. <%= link_to "Add one", edit_trip_path(@trip), class: "text-amber-300 underline-offset-2 hover:underline" %>.</p>
-  <% else %>
-    <div class="prose-invert">
-      <%= @rendered_body %>
+<% if @days.empty? %>
+  <div class="rounded-2xl border border-dashed border-slate-700/70 bg-slate-900/30 p-8 text-center mb-6">
+    <p class="text-slate-300 font-medium">No day-by-day plan yet</p>
+    <p class="text-sm text-slate-500 mt-1 max-w-md mx-auto">Add days and activities so the trip shows photos, addresses, deep-linked maps, and inline checklist items per day. For now you can still see the markdown notes below.</p>
+  </div>
+<% else %>
+  <%# Day picker (jump-anchor strip) %>
+  <nav class="sticky top-[60px] z-20 -mx-4 sm:-mx-6 px-4 sm:px-6 mb-4 bg-slate-950/85 backdrop-blur-md border-b border-slate-800/70 py-2 overflow-x-auto" aria-label="Days">
+    <div class="flex gap-2 min-w-max">
+      <% @days.each_with_index do |day, idx| %>
+        <a href="#day-<%= day.id %>" data-accent="<%= day.accent %>" class="shrink-0 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border accent-border accent-bg text-slate-200 hover:accent-bg-strong text-sm">
+          <span class="text-[10px] uppercase tracking-widest accent-text font-semibold">Day <%= idx + 1 %></span>
+          <span class="font-medium"><%= day.date&.strftime("%a %-d") || day.title %></span>
+        </a>
+      <% end %>
     </div>
-  <% end %>
-</article>
+  </nav>
+
+  <%# Day cards %>
+  <div class="space-y-6">
+    <% @days.each_with_index do |day, idx|
+         day_items = day.checklist_items.to_a %>
+      <article id="day-<%= day.id %>" data-accent="<%= day.accent %>" class="rounded-2xl border accent-border bg-slate-900/40 overflow-hidden">
+        <header class="px-5 sm:px-6 pt-5 pb-4 accent-bg">
+          <p class="text-[11px] uppercase tracking-[0.18em] accent-text font-semibold mb-1 accent-dot">
+            Day <%= idx + 1 %><% if day.theme.present? %> · <%= day.theme %><% end %>
+          </p>
+          <h2 class="font-display text-2xl font-semibold tracking-tight">
+            <% if day.date %><span class="text-slate-300 font-normal"><%= day.date.strftime("%A %b %-d") %> — </span><% end %><%= day.title %>
+          </h2>
+          <% if day.summary.present? %>
+            <p class="text-sm text-slate-300 mt-2"><%= day.summary %></p>
+          <% end %>
+        </header>
+
+        <%# Activities %>
+        <% if day.activities.any? %>
+          <ol class="divide-y divide-slate-800/60">
+            <% day.activities.each do |activity| %>
+              <li class="p-5 sm:p-6">
+                <div class="flex flex-col sm:flex-row gap-4">
+                  <% if activity.photo_url.present? %>
+                    <div class="shrink-0 w-full sm:w-44 sm:h-32 h-44 rounded-xl overflow-hidden bg-slate-800 relative">
+                      <img loading="lazy" src="<%= activity.photo_url %>" alt="<%= activity.location_name.presence || activity.title %>" class="w-full h-full object-cover">
+                    </div>
+                  <% else %>
+                    <div class="shrink-0 w-full sm:w-44 sm:h-32 h-32 rounded-xl bg-gradient-to-br from-slate-800 to-slate-700 flex items-center justify-center text-slate-500" aria-hidden="true">
+                      <%= icon :map_pin, class: "w-8 h-8" %>
+                    </div>
+                  <% end %>
+
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-baseline gap-2 flex-wrap">
+                      <% if activity.time_label.present? %>
+                        <span class="text-xs px-2 py-0.5 rounded accent-bg accent-text font-semibold tabular-nums"><%= activity.time_label %></span>
+                      <% end %>
+                      <% if activity.group_label.present? %>
+                        <span class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold"><%= activity.group_label %></span>
+                      <% end %>
+                    </div>
+                    <h3 class="font-semibold text-slate-50 mt-1 leading-snug"><%= activity.title %></h3>
+                    <% if activity.location_name.present? %>
+                      <p class="text-sm text-slate-400 inline-flex items-center gap-1 mt-0.5">
+                        <%= icon :map_pin, class: "w-3.5 h-3.5 text-slate-500" %><%= activity.location_name %>
+                      </p>
+                    <% end %>
+                    <% if activity.address.present? %>
+                      <p class="text-xs text-slate-500 mt-0.5"><%= activity.address %></p>
+                    <% end %>
+                    <% if activity.notes.present? %>
+                      <div class="text-sm text-slate-300 mt-2 leading-relaxed prose-invert"><%= render_markdown(activity.notes) %></div>
+                    <% end %>
+
+                    <%# Action buttons: Maps / Uber / Call %>
+                    <div class="flex flex-wrap gap-2 mt-3">
+                      <% if (link = activity.maps_link) %>
+                        <%= link_to link, target: "_blank", rel: "noopener", class: "inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-md bg-slate-800 text-slate-200 border border-slate-700 hover:border-amber-500/50 hover:text-amber-200 transition-colors" do %>
+                          <%= icon :map_pin, class: "w-3.5 h-3.5" %> Open in Maps <%= icon :external_link, class: "w-3 h-3" %>
+                        <% end %>
+                      <% end %>
+                      <% if (link = activity.uber_link) %>
+                        <%= link_to link, target: "_blank", rel: "noopener", class: "inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-md bg-slate-800 text-slate-200 border border-slate-700 hover:border-amber-500/50 hover:text-amber-200 transition-colors" do %>
+                          <%= icon :car, class: "w-3.5 h-3.5" %> Uber <%= icon :external_link, class: "w-3 h-3" %>
+                        <% end %>
+                      <% end %>
+                    </div>
+
+                    <%# Inline activity checklist %>
+                    <% activity_items = activity.checklist_items.to_a %>
+                    <% if activity_items.any? %>
+                      <details class="mt-3 rounded-lg border border-slate-700/50 bg-slate-800/30">
+                        <summary class="cursor-pointer px-3 py-2 text-xs flex items-center justify-between gap-2 text-slate-300">
+                          <span class="inline-flex items-center gap-1.5">
+                            <%= icon :check, class: "w-3.5 h-3.5 text-emerald-400" %>
+                            Activity checklist
+                          </span>
+                          <span class="text-[11px] tabular-nums text-slate-500"><%= activity.packed_count %>/<%= activity_items.size %></span>
+                        </summary>
+                        <ul class="px-2 pb-2 divide-y divide-slate-700/50">
+                          <% activity_items.each do |item| %>
+                            <%= render item %>
+                          <% end %>
+                        </ul>
+                      </details>
+                    <% end %>
+                  </div>
+                </div>
+              </li>
+            <% end %>
+          </ol>
+        <% else %>
+          <p class="px-5 py-4 text-sm text-slate-500 italic">No activities scheduled for this day yet.</p>
+        <% end %>
+
+        <%# Inline day checklist %>
+        <% if day_items.any? %>
+          <details class="border-t border-slate-800/60 bg-slate-900/30">
+            <summary class="cursor-pointer px-5 py-3 flex items-center justify-between gap-2">
+              <span class="inline-flex items-center gap-2 text-sm font-medium text-slate-200">
+                <%= icon :check, class: "w-4 h-4 text-emerald-400" %>
+                Day checklist
+              </span>
+              <span class="text-xs tabular-nums text-slate-400"><%= day.packed_count %>/<%= day_items.size %></span>
+            </summary>
+            <ul class="px-3 pb-3 divide-y divide-slate-800/50">
+              <% day_items.each do |item| %>
+                <%= render item %>
+              <% end %>
+            </ul>
+          </details>
+        <% end %>
+      </article>
+    <% end %>
+  </div>
+<% end %>
+
+<%# Free-form markdown notes (fallback) %>
+<% if @rendered_body.present? %>
+  <details class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/30">
+    <summary class="cursor-pointer px-5 py-4 flex items-center justify-between gap-2">
+      <span class="inline-flex items-center gap-2 text-sm font-medium text-slate-200">
+        <%= icon :list, class: "w-4 h-4 text-slate-400" %>
+        Trip notes (markdown)
+      </span>
+      <%= icon :chevron_down, class: "w-4 h-4 text-slate-500" %>
+    </summary>
+    <article class="prose-invert px-5 sm:px-6 pb-6">
+      <%= @rendered_body %>
+    </article>
+  </details>
+<% end %>
