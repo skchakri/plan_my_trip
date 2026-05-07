@@ -11,7 +11,15 @@ vegas_trip = Trip.find_or_create_by!(owner: demo, title: "Vegas trip — May 7-1
   t.start_date = Date.new(2026, 5, 7)
   t.end_date = Date.new(2026, 5, 10)
   t.body = vegas_body
+  t.pwa_plan_url = "/vegas-trip-4days.html"
+  t.pwa_packing_url = "/vegas-packing.html"
 end
+
+# Backfill PWA links if the trip already existed before these columns
+vegas_trip.update_columns(
+  pwa_plan_url: "/vegas-trip-4days.html",
+  pwa_packing_url: "/vegas-packing.html"
+) if vegas_trip.pwa_plan_url.blank?
 
 [
   { name: "Calico Tanks Trail (Red Rock Canyon)",

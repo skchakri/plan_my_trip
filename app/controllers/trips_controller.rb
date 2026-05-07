@@ -65,6 +65,7 @@ class TripsController < ApplicationController
   def trip_params
     params.require(:trip).permit(
       :title, :destination, :start_date, :end_date, :body,
+      :pwa_plan_url, :pwa_packing_url,
       trails_attributes: [ :id, :name, :alltrails_url, :notes, :position, :_destroy ]
     )
   end

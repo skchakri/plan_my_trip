@@ -16,27 +16,33 @@
 <% else %>
   <ul class="space-y-3">
     <% @trips.each do |trip| %>
-      <li>
-        <%= link_to trip, class: "block rounded-xl border border-slate-800 bg-slate-900/60 p-5 hover:border-amber-500 transition" do %>
-          <div class="flex items-center justify-between gap-4">
-            <div class="min-w-0">
-              <h2 class="font-semibold text-lg truncate"><%= trip.title_for(current_user) %></h2>
-              <p class="text-sm text-slate-400 truncate">
-                <% if trip.destination.present? %><%= trip.destination %> · <% end %>
-                <% if trip.start_date && trip.end_date %>
-                  <%= trip.start_date.strftime("%b %-d") %> – <%= trip.end_date.strftime("%b %-d, %Y") %>
-                <% end %>
-              </p>
-            </div>
-            <div class="text-xs">
-              <% if trip.owner_id == current_user.id %>
-                <span class="px-2 py-1 rounded bg-amber-500/15 text-amber-300">Owner</span>
-              <% else %>
-                <span class="px-2 py-1 rounded bg-slate-700/40 text-slate-300">Shared by <%= trip.owner.display_name %></span>
+      <li class="rounded-xl border border-slate-800 bg-slate-900/60 hover:border-amber-500 transition">
+        <div class="flex items-center justify-between gap-3 p-5">
+          <%= link_to trip, class: "min-w-0 flex-1 block" do %>
+            <h2 class="font-semibold text-lg truncate"><%= trip.title_for(current_user) %></h2>
+            <p class="text-sm text-slate-400 truncate">
+              <% if trip.destination.present? %><%= trip.destination %> · <% end %>
+              <% if trip.start_date && trip.end_date %>
+                <%= trip.start_date.strftime("%b %-d") %> – <%= trip.end_date.strftime("%b %-d, %Y") %>
               <% end %>
-            </div>
+            </p>
+          <% end %>
+
+          <div class="flex items-center gap-2 shrink-0">
+            <% if trip.pwa_plan_url.present? %>
+              <%= link_to "Plan", trip.pwa_plan_url, target: "_blank", rel: "noopener", class: "text-xs px-2.5 py-1.5 rounded-md bg-teal-500/15 text-teal-300 border border-teal-500/30 hover:bg-teal-500/25" %>
+            <% end %>
+            <% if trip.pwa_packing_url.present? %>
+              <%= link_to "Checklist", trip.pwa_packing_url, target: "_blank", rel: "noopener", class: "text-xs px-2.5 py-1.5 rounded-md bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/25" %>
+            <% end %>
+
+            <% if trip.owner_id == current_user.id %>
+              <span class="text-xs px-2 py-1 rounded bg-amber-500/15 text-amber-300">Owner</span>
+            <% else %>
+              <span class="text-xs px-2 py-1 rounded bg-slate-700/40 text-slate-300">Shared</span>
+            <% end %>
           </div>
-        <% end %>
+        </div>
       </li>
     <% end %>
   </ul>

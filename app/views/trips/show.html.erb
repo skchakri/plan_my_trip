@@ -16,7 +16,13 @@
       <p class="text-xs text-slate-500 mt-1">Original: <%= @trip.title %></p>
     <% end %>
   </div>
-  <div class="flex gap-2 shrink-0">
+  <div class="flex gap-2 shrink-0 flex-wrap justify-end">
+    <% if @trip.pwa_plan_url.present? %>
+      <%= link_to "Plan", @trip.pwa_plan_url, target: "_blank", rel: "noopener", class: "px-3 py-1.5 rounded-md bg-teal-500/15 text-teal-300 border border-teal-500/30 text-sm hover:bg-teal-500/25" %>
+    <% end %>
+    <% if @trip.pwa_packing_url.present? %>
+      <%= link_to "Checklist", @trip.pwa_packing_url, target: "_blank", rel: "noopener", class: "px-3 py-1.5 rounded-md bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-sm hover:bg-emerald-500/25" %>
+    <% end %>
     <% if is_owner %>
       <%= link_to "Edit", edit_trip_path(@trip), class: "px-3 py-1.5 border border-slate-700 rounded-md text-sm hover:border-amber-500" %>
       <%= link_to "Share", new_trip_share_path(@trip), class: "px-3 py-1.5 bg-amber-500 text-slate-900 rounded-md text-sm font-medium hover:bg-amber-400" %>
