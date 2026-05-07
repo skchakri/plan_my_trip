@@ -4,11 +4,10 @@ class ChecklistItemsController < ApplicationController
 
   def create
     authorize @trip, :show?
-    @item = @trip.checklist_items.create!(item_params.merge(packed: false))
-    respond_to do |format|
-      format.turbo_stream
-      format.html { redirect_to checklist_trip_path(@trip) }
-    end
+    attrs = item_params.merge(packed: false)
+    attrs[:scope] = "before_trip" if attrs[:scope].blank?
+    @item = @trip.checklist_items.create!(attrs)
+    redirect_to checklist_trip_path(@trip), notice: "Added \"#{@item.title}\""
   end
 
   def update
@@ -40,6 +39,6 @@ class ChecklistItemsController < ApplicationController
   end
 
   def item_params
-    params.require(:checklist_item).permit(:title, :person, :category, :position, :packed)
+    params.require(:checklist_item).permit(:title, :person, :category, :position, :packed, :scope, :day_label, :activity_label)
   end
 end

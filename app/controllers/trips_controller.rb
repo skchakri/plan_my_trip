@@ -56,15 +56,24 @@ class TripsController < ApplicationController
     @rendered_body = render_markdown(@trip.body)
   end
 
-  # GET /trips/:id/checklist — mobile-optimized checklist with Turbo toggles
+  # GET /trips/:id/checklist — sectioned checklist (Before trip / By day / By activity)
   def checklist
     authorize @trip, :show?
     @items = @trip.checklist_items.ordered
-    @grouped = @items.group_by { |i| i.category.presence || "Other" }
-    @progress = {
-      total: @items.size,
-      packed: @items.packed.count
-    }
+
+    # group: scope -> section_key -> items
+    @grouped = ChecklistItem::SCOPES.index_with do |scope_key|
+      scoped = @items.select { |i| i.scope == scope_key }
+      scoped.group_by(&:section_key)
+    end
+
+    @section_progress = ChecklistItem::SCOPES.index_with do |scope_key|
+      scoped = @items.select { |i| i.scope == scope_key }
+      { total: scoped.size, packed: scoped.count(&:packed) }
+    end
+
+    @day_options = @trip.checklist_items.for_day.distinct.pluck(:day_label).compact.sort
+    @activity_options = @trip.checklist_items.for_activity.distinct.pluck(:activity_label).compact.sort
   end
 
   # PATCH /trips/:id/rename — per-user title via membership.custom_title

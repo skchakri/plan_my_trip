@@ -1,4 +1,4 @@
-<% content_for :title, "Plan · #{@trip.title_for(current_user)}" %>
+<% content_for :title, "Final plan · #{@trip.title_for(current_user)}" %>
 
 <div class="mb-5">
   <%= link_to @trip, class: "inline-flex items-center gap-1 text-sm text-slate-400 hover:text-amber-300 transition-colors" do %>
@@ -6,9 +6,9 @@
   <% end %>
 </div>
 
-<header class="mb-6">
+<header class="mb-5">
   <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500 font-medium mb-1.5 inline-flex items-center gap-2">
-    <%= icon :sparkles, class: "w-3.5 h-3.5 text-amber-400" %> Plan
+    <%= icon :sparkles, class: "w-3.5 h-3.5 text-amber-400" %> Final plan
   </p>
   <h1 class="font-display text-3xl sm:text-4xl font-semibold tracking-tight"><%= @trip.title_for(current_user) %></h1>
   <% if @trip.start_date && @trip.end_date %>
@@ -17,6 +17,16 @@
     </p>
   <% end %>
 </header>
+
+<% if @trip.pwa_plan_url.present? %>
+  <div class="mb-5 rounded-xl border border-teal-500/30 bg-teal-500/5 p-4 flex items-start gap-3">
+    <span class="shrink-0 mt-0.5 text-teal-300"><%= icon :external_link, class: "w-4 h-4" %></span>
+    <div class="text-sm">
+      <p class="text-teal-100 font-medium">A standalone PWA itinerary exists for this trip</p>
+      <p class="text-slate-400 mt-0.5">It works offline on its own home-screen icon. <%= link_to "Open the standalone plan →", @trip.pwa_plan_url, target: "_blank", rel: "noopener", class: "text-teal-300 hover:text-teal-200 underline-offset-2 hover:underline" %></p>
+    </div>
+  </div>
+<% end %>
 
 <article class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 sm:p-7">
   <% if @rendered_body.blank? %>
@@ -27,12 +37,3 @@
     </div>
   <% end %>
 </article>
-
-<% if @trip.pwa_plan_url.present? %>
-  <div class="mt-6 rounded-xl border border-slate-800 bg-slate-900/30 p-4 text-sm text-slate-400">
-    A standalone PWA version exists for this trip:
-    <%= link_to @trip.pwa_plan_url, target: "_blank", rel: "noopener", class: "inline-flex items-center gap-1 text-amber-300 hover:text-amber-200 ml-1" do %>
-      Open separately <%= icon :external_link, class: "w-3 h-3" %>
-    <% end %>
-  </div>
-<% end %>
