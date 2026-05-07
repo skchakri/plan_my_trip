@@ -25,6 +25,28 @@
       </label>
     </div>
 
+    <fieldset class="rounded-lg border border-slate-800 bg-slate-900/40 p-4 space-y-3">
+      <legend class="px-2 text-sm font-medium text-amber-300">Memberships &amp; loyalty</legend>
+      <p class="text-xs text-slate-500 -mt-2">Tell us what you have. We'll badge "Member rate" links on trip pages and surface real discounts you qualify for. Nothing leaves your account — these are hints, not credentials.</p>
+      <% category_titles = { wholesale: "Wholesale / Auto clubs", hotel: "Hotel programs", airline: "Airlines", card: "Travel credit cards" } %>
+      <% category_titles.each do |cat, label|
+           items = User::MEMBERSHIPS.select { |_, v| v[:category] == cat }
+           next if items.empty? %>
+        <div>
+          <p class="text-xs uppercase tracking-widest text-slate-500 mb-1.5"><%= label %></p>
+          <div class="grid grid-cols-2 gap-x-3 gap-y-1.5">
+            <% items.each do |key, info| %>
+              <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
+                <%= hidden_field_tag "user[discount_memberships][#{key}]", "0" %>
+                <%= check_box_tag "user[discount_memberships][#{key}]", "1", current_user.has_membership?(key), id: "user_discount_memberships_#{key}", class: "rounded bg-slate-800 border-slate-600" %>
+                <%= info[:label] %>
+              </label>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </fieldset>
+
     <details class="rounded-md border border-slate-800 bg-slate-900/40">
       <summary class="cursor-pointer px-4 py-3 text-sm font-medium text-slate-300">Change password</summary>
       <div class="px-4 pb-4 space-y-4">

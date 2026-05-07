@@ -53,6 +53,8 @@
   <%= @rendered_body %>
 </article>
 
+<%= render "bookings", booking: @booking %>
+
 <% if @trip.trails.any? %>
   <section class="mt-8">
     <div class="flex items-center justify-between mb-3">

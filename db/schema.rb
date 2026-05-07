@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_07_003639) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_07_004421) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -63,11 +63,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_07_003639) do
     t.string "destination"
     t.datetime "discarded_at"
     t.date "end_date"
+    t.string "origin"
     t.uuid "owner_id", null: false
     t.string "pwa_packing_url"
     t.string "pwa_plan_url"
     t.date "start_date"
     t.string "title", null: false
+    t.integer "traveler_count", default: 2, null: false
     t.datetime "updated_at", null: false
     t.index ["discarded_at"], name: "index_trips_on_discarded_at"
     t.index ["owner_id"], name: "index_trips_on_owner_id"
@@ -76,6 +78,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_07_003639) do
   create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.boolean "alltrails_pro", default: false, null: false
     t.datetime "created_at", null: false
+    t.jsonb "discount_memberships", default: {}, null: false
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
     t.string "name"

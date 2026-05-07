@@ -59,16 +59,31 @@ Don't stand up another Postgres locally for this app. See workspace
 
 ## Models
 
-- **User** (Devise) — `name`, `email`, `alltrails_pro` boolean (self-declared).
-- **Trip** — `owner` (User), `title`, `destination`, `start_date`, `end_date`,
-  `body` (markdown), `discarded_at`. Owner relationship via `owner_id`.
+- **User** (Devise) — `name`, `email`, `alltrails_pro` boolean (self-declared),
+  `discount_memberships` jsonb (per-program booleans — see `User::MEMBERSHIPS`).
+- **Trip** — `owner` (User), `title`, `destination`, `origin`,
+  `start_date`, `end_date`, `traveler_count`, `body` (markdown),
+  `pwa_plan_url`, `pwa_packing_url`, `discarded_at`. Owner via `owner_id`.
 - **TripMembership** — join between Trip and User with `role` (owner/member)
   and `custom_title` (per-user title override). Created automatically for
   the owner on Trip creation; created by `TripSharesController#create` for
   invitees.
+- **TripInvitation** — pending invite for an unregistered email. Magic-link
+  token; `accepted_at`/`declined_at`/`discarded_at`.
 - **Trail** — belongs_to Trip, with `name`, `alltrails_url` (validated to
   `alltrails.com`), `notes`, `position`. Nested-attribute editing via the
   Trip form.
+
+## Services
+
+- **`BookingLinks` (`app/services/booking_links.rb`)** — given a Trip
+  (and optionally a viewing User), emits hotel/car/flight/activity search
+  URLs with member-rate badges where the viewer has the relevant program.
+  No scraped promo codes — only real recurring offers (Hilton Honors,
+  Marriott member rate, Booking.com Genius, Costco Travel, AAA, AARP,
+  Best Price Guarantee, AutoSlash). Card travel portals (Chase / Amex /
+  Cap One) are surfaced as a separate "stack points" panel when the
+  viewer marks the relevant card.
 
 ## Authorization
 

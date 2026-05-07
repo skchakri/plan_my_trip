@@ -1,3 +1,30 @@
-<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="256" cy="256" r="256" fill="red"/>
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Plan My Trip">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#161b2e"/>
+      <stop offset="100%" stop-color="#0a0e1a"/>
+    </linearGradient>
+    <linearGradient id="plane" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f0b870"/>
+      <stop offset="100%" stop-color="#e8a04f"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="110" fill="url(#bg)"/>
+
+  <!-- Dotted route arc from origin pin to plane -->
+  <path d="M 90 400 Q 200 100, 430 280"
+        stroke="#e8a04f" stroke-width="10" fill="none"
+        stroke-dasharray="2,22" stroke-linecap="round" opacity="0.45"/>
+
+  <!-- Origin pin -->
+  <circle cx="90" cy="400" r="20" fill="#5dc3b8"/>
+  <circle cx="90" cy="400" r="9"  fill="#0a0e1a"/>
+
+  <!-- Paper plane -->
+  <g transform="translate(370 235) rotate(15)">
+    <path d="M -100 -60 L 110 0 L -100 60 L -55 0 Z" fill="url(#plane)"/>
+    <path d="M -100 -60 L -55 0 L -100 60 Z" fill="#b97a2e"/>
+    <line x1="-55" y1="0" x2="110" y2="0" stroke="#3d2912" stroke-width="2" opacity="0.4"/>
+  </g>
 </svg>

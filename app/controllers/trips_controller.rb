@@ -9,6 +9,7 @@ class TripsController < ApplicationController
     authorize @trip
     @membership = @trip.trip_memberships.find_by(user: current_user)
     @rendered_body = render_markdown(@trip.body)
+    @booking = BookingLinks.new(@trip, viewer: current_user)
   end
 
   def new
@@ -64,7 +65,7 @@ class TripsController < ApplicationController
 
   def trip_params
     params.require(:trip).permit(
-      :title, :destination, :start_date, :end_date, :body,
+      :title, :destination, :origin, :start_date, :end_date, :traveler_count, :body,
       :pwa_plan_url, :pwa_packing_url,
       trails_attributes: [ :id, :name, :alltrails_url, :notes, :position, :_destroy ]
     )

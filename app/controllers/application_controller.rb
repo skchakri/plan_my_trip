@@ -25,7 +25,10 @@ class ApplicationController < ActionController::Base
 
   def configure_permitted_parameters
     devise_parameter_sanitizer.permit(:sign_up, keys: [ :name ])
-    devise_parameter_sanitizer.permit(:account_update, keys: [ :name, :alltrails_pro ])
+    devise_parameter_sanitizer.permit(
+      :account_update,
+      keys: [ :name, :alltrails_pro, { discount_memberships: User::MEMBERSHIPS.keys.map(&:to_s) } ]
+    )
   end
 
   def user_not_authorized
