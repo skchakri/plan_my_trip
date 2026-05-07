@@ -1,2 +1,2 @@
 web: PORT=3010 bin/rails server -p 3010
-css: bin/rails tailwindcss:watch
+css: bundle exec tailwindcss -i ./app/assets/tailwind/application.css -o ./app/assets/builds/tailwind.css --watch
