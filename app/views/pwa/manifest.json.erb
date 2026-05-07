@@ -1,6 +1,20 @@
 {
-  "name": "PlanMyTrip",
+  "name": "Plan My Trip",
+  "short_name": "Plan My Trip",
+  "description": "Itineraries, bookings, trails, and packing checklists — saved offline.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#0a0e1a",
+  "background_color": "#0a0e1a",
+  "categories": ["travel", "productivity"],
   "icons": [
+    {
+      "src": "/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
+    },
     {
       "src": "/icon.png",
       "type": "image/png",
@@ -13,10 +27,16 @@
       "purpose": "maskable"
     }
   ],
-  "start_url": "/",
-  "display": "standalone",
-  "scope": "/",
-  "description": "PlanMyTrip.",
-  "theme_color": "red",
-  "background_color": "red"
+  "shortcuts": [
+    {
+      "name": "All trips",
+      "url": "/",
+      "icons": [{ "src": "/icon.png", "sizes": "512x512" }]
+    },
+    {
+      "name": "New trip",
+      "url": "/trips/new",
+      "icons": [{ "src": "/icon.png", "sizes": "512x512" }]
+    }
+  ]
 }

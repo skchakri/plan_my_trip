@@ -73,6 +73,32 @@ Don't stand up another Postgres locally for this app. See workspace
 - **Trail** — belongs_to Trip, with `name`, `alltrails_url` (validated to
   `alltrails.com`), `notes`, `position`. Nested-attribute editing via the
   Trip form.
+- **ChecklistItem** — belongs_to Trip, with `title`, `category`,
+  `person`, `position`, `packed`. Used by the in-app checklist page at
+  `/trips/:id/checklist` with Turbo Stream toggles.
+
+## In-app Plan + Checklist routes
+
+- `GET /trips/:id/plan` — full-page mobile-optimized markdown render of
+  the trip body. Cached by the service worker once visited.
+- `GET /trips/:id/checklist` — sectioned checklist with progress bar +
+  inline add form. Each row toggles via Turbo Stream
+  (`POST /trips/:id/checklist_items/:id` with `packed=true|false`).
+
+## PWA / offline
+
+- `app/views/pwa/manifest.json.erb` — theme/colors/icons + "All trips"
+  and "New trip" home-screen shortcuts. Linked from the layout via
+  `pwa_manifest_path(format: :json)`.
+- `app/views/pwa/service-worker.js` — versioned caches:
+  - **Pages** (`/`, `/trips/...`): network-first, falls back to last
+    cached HTML when offline. Once a trip page is visited online, it's
+    available offline.
+  - **Assets** (`/assets/*`, fonts, icons): stale-while-revalidate.
+  - **Auth flows** (`/users/sign_*`, `/invitations/*`): never cached.
+- Service worker registers from the `<head>` script in the application
+  layout; bump the `VERSION` constant in `service-worker.js` to roll
+  out cache changes.
 
 ## Services
 

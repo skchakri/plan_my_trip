@@ -1,5 +1,7 @@
 class TripsController < ApplicationController
-  before_action :set_trip, only: %i[show edit update destroy rename]
+  include MarkdownHelper
+
+  before_action :set_trip, only: %i[show edit update destroy rename plan checklist]
 
   def index
     @trips = policy_scope(Trip).ordered.includes(:owner)
@@ -48,6 +50,23 @@ class TripsController < ApplicationController
     redirect_to trips_path, notice: "Trip removed."
   end
 
+  # GET /trips/:id/plan — mobile-optimized standalone view of the itinerary
+  def plan
+    authorize @trip, :show?
+    @rendered_body = render_markdown(@trip.body)
+  end
+
+  # GET /trips/:id/checklist — mobile-optimized checklist with Turbo toggles
+  def checklist
+    authorize @trip, :show?
+    @items = @trip.checklist_items.ordered
+    @grouped = @items.group_by { |i| i.category.presence || "Other" }
+    @progress = {
+      total: @items.size,
+      packed: @items.packed.count
+    }
+  end
+
   # PATCH /trips/:id/rename — per-user title via membership.custom_title
   def rename
     authorize @trip, :rename?
@@ -71,9 +90,4 @@ class TripsController < ApplicationController
     )
   end
 
-  def render_markdown(text)
-    return "".html_safe if text.blank?
-    renderer = Redcarpet::Render::HTML.new(escape_html: true, hard_wrap: true)
-    Redcarpet::Markdown.new(renderer, autolink: true, fenced_code_blocks: true, tables: true).render(text).html_safe
-  end
 end

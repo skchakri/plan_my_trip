@@ -36,5 +36,31 @@ vegas_trip.update_columns(
   end
 end
 
+checklist = [
+  { category: "Drive day",       title: "Phone chargers (USB-C + Lightning)",          person: "Kalyan" },
+  { category: "Drive day",       title: "Cooler with water + snacks",                  person: "Wife" },
+  { category: "Drive day",       title: "Cash for tolls and parking",                  person: "Kalyan" },
+  { category: "Drive day",       title: "Sunglasses for everyone",                     person: nil },
+  { category: "Sphere",          title: "Cardigans / light jackets (venue is 68°F)",   person: "All" },
+  { category: "Sphere",          title: "Screenshot Sphere QR codes",                  person: "Kalyan" },
+  { category: "Skywalk",         title: "Hats with chin straps (windy at the bridge)", person: "Kids" },
+  { category: "Skywalk",         title: "Dramamine for the winding road",              person: "Kids" },
+  { category: "Skywalk",         title: "Download offline Google Maps",                person: "Kalyan" },
+  { category: "Hotel",           title: "Swim gear + pool towels",                     person: "All" },
+  { category: "Hotel",           title: "Toiletries kit",                              person: "Wife" },
+  { category: "Parents",         title: "Daily medications (3 days)",                  person: "Parents" },
+  { category: "Parents",         title: "Reading glasses",                             person: "Parents" },
+  { category: "Documents",       title: "Driver's license + primary CDW credit card",  person: "Kalyan" },
+  { category: "Documents",       title: "Hotel + car rental confirmations",            person: "Kalyan" }
+]
+checklist.each_with_index do |attrs, i|
+  vegas_trip.checklist_items.find_or_create_by!(title: attrs[:title]) do |it|
+    it.category = attrs[:category]
+    it.person = attrs[:person]
+    it.position = i
+    it.packed = false
+  end
+end
+
 puts "Seeded: #{demo.email} / password123"
-puts "Trips: #{Trip.count}, Trails: #{Trail.count}"
+puts "Trips: #{Trip.count}, Trails: #{Trail.count}, Checklist items: #{ChecklistItem.count}"

@@ -1,0 +1,2 @@
+<%= turbo_stream.replace @item, partial: "checklist_items/checklist_item", locals: { checklist_item: @item } %>
+<%= turbo_stream.update "checklist-progress", partial: "trips/checklist_progress", locals: { trip: @trip } %>

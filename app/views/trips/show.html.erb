@@ -38,15 +38,11 @@
       </div>
 
       <div class="flex flex-wrap gap-2 shrink-0">
-        <% if @trip.pwa_plan_url.present? %>
-          <%= link_to @trip.pwa_plan_url, target: "_blank", rel: "noopener", class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-500/10 text-teal-200 border border-teal-500/30 text-sm hover:bg-teal-500/20 transition-colors" do %>
-            <%= icon :sparkles, class: "w-4 h-4" %> Plan
-          <% end %>
+        <%= link_to plan_trip_path(@trip), class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-500/10 text-teal-200 border border-teal-500/30 text-sm hover:bg-teal-500/20 transition-colors" do %>
+          <%= icon :sparkles, class: "w-4 h-4" %> Plan
         <% end %>
-        <% if @trip.pwa_packing_url.present? %>
-          <%= link_to @trip.pwa_packing_url, target: "_blank", rel: "noopener", class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-200 border border-emerald-500/30 text-sm hover:bg-emerald-500/20 transition-colors" do %>
-            <%= icon :check, class: "w-4 h-4" %> Checklist
-          <% end %>
+        <%= link_to checklist_trip_path(@trip), class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-200 border border-emerald-500/30 text-sm hover:bg-emerald-500/20 transition-colors" do %>
+          <%= icon :check, class: "w-4 h-4" %> Checklist
         <% end %>
         <% if is_owner %>
           <%= link_to edit_trip_path(@trip), class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 text-slate-200 text-sm hover:border-amber-500/50 hover:bg-slate-800/50 transition-colors" do %>

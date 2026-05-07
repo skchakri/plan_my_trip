@@ -1,0 +1,23 @@
+<%# Each row is a Turbo-driven toggle. The hidden form posts a single field
+    and Turbo replaces this <li> with the freshly-rendered partial. %>
+<li id="<%= dom_id(checklist_item) %>" class="group flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-slate-800/40 transition-colors <%= 'opacity-60' if checklist_item.packed %>" data-controller="local-check" data-local-check-id-value="<%= checklist_item.id %>">
+  <%= form_with model: checklist_item, url: trip_checklist_item_path(checklist_item.trip, checklist_item), method: :patch, class: "shrink-0", data: { turbo_frame: "_top" } do |f| %>
+    <%= f.hidden_field :packed, value: !checklist_item.packed %>
+    <button type="submit" aria-label="Toggle packed" class="w-5 h-5 rounded border-2 <%= checklist_item.packed ? 'bg-emerald-500 border-emerald-500' : 'bg-slate-800 border-slate-600 hover:border-amber-400' %> flex items-center justify-center transition-colors cursor-pointer">
+      <% if checklist_item.packed %>
+        <svg viewBox="0 0 24 24" fill="none" stroke="#0a0e1a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+      <% end %>
+    </button>
+  <% end %>
+
+  <div class="min-w-0 flex-1">
+    <p class="text-sm leading-snug <%= checklist_item.packed ? 'line-through text-slate-500' : 'text-slate-100' %>"><%= checklist_item.title %></p>
+    <% if checklist_item.person.present? %>
+      <p class="text-[11px] text-slate-500 mt-0.5"><%= checklist_item.person %></p>
+    <% end %>
+  </div>
+
+  <%= button_to trip_checklist_item_path(checklist_item.trip, checklist_item), method: :delete, form: { data: { turbo_confirm: "Remove this item?" } }, class: "shrink-0 opacity-0 group-hover:opacity-100 text-rose-400 hover:text-rose-300 p-1 rounded transition-opacity cursor-pointer", aria: { label: "Remove" } do %>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+  <% end %>
+</li>

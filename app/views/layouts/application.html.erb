@@ -16,6 +16,7 @@
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="icon" href="/icon.png" type="image/png">
     <link rel="apple-touch-icon" href="/icon.png">
+    <link rel="manifest" href="<%= pwa_manifest_path(format: :json) %>">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -23,6 +24,16 @@
 
     <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
+
+    <script>
+      // Register the PWA service worker for offline support
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("<%= pwa_service_worker_path(format: :js) %>", { scope: "/" })
+            .catch((err) => console.warn("[pmt] SW registration failed:", err));
+        });
+      }
+    </script>
 
     <style>
       :root { --font-sans: 'Inter', system-ui, sans-serif; --font-display: 'Fraunces', Georgia, serif; }
