@@ -3,10 +3,11 @@
 // page has been visited it stays available offline. Asset files are
 // cached on first request and refreshed in the background.
 
-const VERSION = "v3";
+const VERSION = "v4";
 const RUNTIME_CACHE = `pmt-runtime-${VERSION}`;
 const ASSET_CACHE   = `pmt-assets-${VERSION}`;
 const PAGE_CACHE    = `pmt-pages-${VERSION}`;
+const MAP_CACHE     = `pmt-maps-${VERSION}`;
 
 const APP_SHELL = [
   "/",
@@ -26,12 +27,17 @@ self.addEventListener("activate", (event) => {
     caches.keys().then((keys) =>
       Promise.all(
         keys
-          .filter((k) => ![RUNTIME_CACHE, ASSET_CACHE, PAGE_CACHE].includes(k))
+          .filter((k) => ![RUNTIME_CACHE, ASSET_CACHE, PAGE_CACHE, MAP_CACHE].includes(k))
           .map((k) => caches.delete(k))
       )
     ).then(() => self.clients.claim())
   );
 });
+
+function isMapTile(url) {
+  return url.host === "tile.openstreetmap.org"
+      || url.host.endsWith(".tile.openstreetmap.org");
+}
 
 function isAsset(url) {
   return /\.(?:js|css|svg|png|jpg|jpeg|gif|webp|ico|woff2?)$/i.test(url.pathname)
@@ -62,6 +68,12 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  if (isMapTile(url)) {
+    // Map tiles are immutable — once fetched, always serve from cache.
+    event.respondWith(cacheFirst(req, MAP_CACHE));
+    return;
+  }
+
   if (isAsset(url)) {
     event.respondWith(staleWhileRevalidate(req, ASSET_CACHE));
     return;
@@ -72,6 +84,67 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 });
+
+// Pre-cache a list of URLs (currently OSM map tiles) when the page asks
+// the SW to "Save maps offline". Replies on the MessageChannel port with
+// progress + a final done/error message.
+self.addEventListener("message", (event) => {
+  const data = event.data || {};
+  const port = event.ports && event.ports[0];
+  if (data.type !== "PRECACHE" || !Array.isArray(data.urls)) return;
+
+  event.waitUntil((async () => {
+    try {
+      const cache = await caches.open(MAP_CACHE);
+      const urls = data.urls;
+      const total = urls.length;
+      let cached = 0;
+      // Throttle to avoid hammering the OSM tile server. 6-wide pool is
+      // well within the OSM Foundation's "no bulk download" guidance for
+      // a personal trip's worth of tiles (~70 tiles for a 4-day trip).
+      const concurrency = 6;
+      let idx = 0;
+      const workers = Array.from({ length: concurrency }, async () => {
+        while (idx < urls.length) {
+          const myIdx = idx++;
+          const url = urls[myIdx];
+          try {
+            const existing = await cache.match(url);
+            if (existing) {
+              cached++;
+            } else {
+              const res = await fetch(url, { mode: "no-cors" });
+              await cache.put(url, res);
+              cached++;
+            }
+          } catch (e) {
+            // skip — partial success is fine
+          }
+          if (port) port.postMessage({ type: "PRECACHE_PROGRESS", cached, total });
+        }
+      });
+      await Promise.all(workers);
+      if (port) port.postMessage({ type: "PRECACHE_DONE", cached, total });
+    } catch (err) {
+      if (port) port.postMessage({ type: "PRECACHE_ERROR", error: String(err) });
+    }
+  })());
+});
+
+async function cacheFirst(req, cacheName) {
+  const cache = await caches.open(cacheName);
+  const cached = await cache.match(req);
+  if (cached) return cached;
+  try {
+    const res = await fetch(req, { mode: "no-cors" });
+    if (res) cache.put(req, res.clone()).catch(() => {});
+    return res;
+  } catch (e) {
+    // Offline + uncached — let the broken-image render rather than
+    // synthesizing a fake PNG. The page itself is still usable.
+    return new Response("", { status: 504, headers: { "Content-Type": "image/png" } });
+  }
+}
 
 async function staleWhileRevalidate(req, cacheName) {
   const cache = await caches.open(cacheName);

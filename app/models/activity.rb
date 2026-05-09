@@ -27,6 +27,37 @@ class Activity < ApplicationRecord
     trip.checklist_items.where(scope: "activity", activity_label: title)
   end
 
+  # 2x2 OpenStreetMap tile grid centered on the activity, with the pin's
+  # fractional position inside that 2x(grid)x(grid) image. Used by the plan
+  # view to render an offline-cacheable map thumbnail (see service worker).
+  # Returns nil when the activity has no lat/lng.
+  def map_tiles(zoom: 14, grid: 2)
+    return nil unless latitude && longitude
+
+    lat_rad = latitude.to_f * Math::PI / 180.0
+    n = 2.0**zoom
+    x_frac = (longitude.to_f + 180.0) / 360.0 * n
+    y_frac = (1.0 - Math.log(Math.tan(lat_rad) + 1.0 / Math.cos(lat_rad)) / Math::PI) / 2.0 * n
+    x_origin = (x_frac - grid / 2.0).floor
+    y_origin = (y_frac - grid / 2.0).floor
+
+    tiles = []
+    grid.times do |dy|
+      grid.times do |dx|
+        tx = x_origin + dx
+        ty = y_origin + dy
+        tiles << "https://tile.openstreetmap.org/#{zoom}/#{tx}/#{ty}.png"
+      end
+    end
+
+    {
+      tiles: tiles,
+      grid: grid,
+      pin_x_pct: (x_frac - x_origin) / grid * 100.0,
+      pin_y_pct: (y_frac - y_origin) / grid * 100.0
+    }
+  end
+
   def packed_count
     checklist_items.where(packed: true).count
   end

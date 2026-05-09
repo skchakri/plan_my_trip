@@ -55,6 +55,7 @@ class TripsController < ApplicationController
     authorize @trip, :show?
     @days = @trip.trip_days.ordered.includes(:activities)
     @rendered_body = render_markdown(@trip.body)
+    @reading_scenes = build_reading_scenes(@trip, @days)
   end
 
   # GET /trips/:id/checklist — sectioned checklist (Before trip / By day / By activity)
@@ -114,4 +115,49 @@ class TripsController < ApplicationController
     )
   end
 
+  # Flat list of "scenes" the reading-mode modal walks through. Each scene
+  # has the photo, OSM tile array, and the text-to-speak for that step.
+  def build_reading_scenes(trip, days)
+    scenes = []
+
+    if trip.excitement_pitch.present?
+      scenes << {
+        type: "intro",
+        eyebrow: "Final plan",
+        title: trip.title_for(current_user),
+        text: trip.excitement_pitch,
+        photo: nil, tiles: []
+      }
+    end
+
+    days.each_with_index do |day, di|
+      scenes << {
+        type: "day",
+        eyebrow: "Day #{di + 1}#{day.theme.present? ? " · #{day.theme}" : ''}",
+        title: day.title,
+        text: [day.summary.to_s, day.activities.map { |a| "#{a.time_label} #{a.title}" }.join(", then ")].reject(&:blank?).join(". "),
+        photo: nil,
+        tiles: []
+      }
+
+      day.activities.each do |a|
+        map = a.map_tiles
+        scenes << {
+          type: "activity",
+          eyebrow: "Day #{di + 1}#{a.time_label.present? ? " · #{a.time_label}" : ''}",
+          title: a.title,
+          location: a.location_name,
+          address: a.address,
+          photo: a.photo_url.presence,
+          tiles: map ? map[:tiles] : [],
+          pin_x_pct: map ? map[:pin_x_pct].round(2) : 50,
+          pin_y_pct: map ? map[:pin_y_pct].round(2) : 50,
+          maps_link: a.maps_link,
+          text: [a.location_name, a.famous_for.presence, a.notes.to_s.gsub(/[*_`]/, ' ')].compact.reject(&:blank?).join('. ')
+        }
+      end
+    end
+
+    scenes
+  end
 end

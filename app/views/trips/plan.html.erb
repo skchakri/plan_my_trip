@@ -38,18 +38,99 @@
   <% end %>
 </header>
 
-<%# Trip-level controls: Read whole plan + Drive co-pilot %>
-<div class="mb-5 flex flex-wrap gap-2">
-  <button type="button"
-          data-controller="tts"
-          data-tts-target-selector-value="#plan-readable"
-          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-amber-500/15 text-amber-200 border border-amber-500/30 hover:bg-amber-500/25">
-    <%= icon :sparkles, class: "w-4 h-4" %>
-    <span data-tts-label data-play-label="Read the whole plan" data-stop-label="Stop reading">Read the whole plan</span>
-  </button>
-  <%= link_to copilot_trip_path(@trip), class: "inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-slate-800 border border-slate-700 hover:border-amber-500/50 text-slate-100" do %>
-    <%= icon :car, class: "w-4 h-4 text-amber-400" %> Drive co-pilot
-  <% end %>
+<%# Trip-level controls: Read whole plan (modal) + Drive co-pilot + Save maps offline %>
+<%
+  map_tile_urls = @days.flat_map { |d| d.activities.map { |a| a.map_tiles&.dig(:tiles) }.compact }.flatten.uniq
+%>
+<div data-controller="reading-mode" data-reading-mode-scenes-value="<%= @reading_scenes.to_json %>">
+  <div class="mb-5 flex flex-wrap gap-2">
+    <button type="button"
+            data-action="reading-mode#open"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-amber-500/15 text-amber-200 border border-amber-500/30 hover:bg-amber-500/25">
+      <%= icon :sparkles, class: "w-4 h-4" %>
+      <span>Read the whole plan</span>
+    </button>
+    <%= link_to copilot_trip_path(@trip), class: "inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-slate-800 border border-slate-700 hover:border-amber-500/50 text-slate-100" do %>
+      <%= icon :car, class: "w-4 h-4 text-amber-400" %> Drive co-pilot
+    <% end %>
+    <% if map_tile_urls.any? %>
+      <button type="button"
+              data-controller="offline-maps"
+              data-action="offline-maps#cache"
+              data-offline-maps-urls-value="<%= map_tile_urls.to_json %>"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-teal-500/15 text-teal-200 border border-teal-500/30 hover:bg-teal-500/25 disabled:opacity-60 disabled:cursor-not-allowed">
+        <%= icon :download, class: "w-4 h-4" %>
+        <span data-offline-maps-target="status">Save maps offline (<%= map_tile_urls.size %>)</span>
+      </button>
+    <% end %>
+  </div>
+
+  <%# Reading-mode modal — hidden until #open is called %>
+  <div data-reading-mode-target="modal"
+       data-action="click->reading-mode#backdropClose"
+       class="hidden fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-3 sm:p-6"
+       role="dialog" aria-modal="true" aria-label="Reading the plan">
+    <div class="relative w-full max-w-5xl max-h-full overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 to-slate-950 shadow-2xl flex flex-col">
+      <%# Header %>
+      <header class="flex items-center justify-between gap-3 px-5 sm:px-6 py-3 border-b border-slate-800">
+        <div class="min-w-0 flex items-center gap-2">
+          <%= icon :sparkles, class: "w-4 h-4 text-amber-400 shrink-0" %>
+          <span class="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-semibold truncate">Reading the plan</span>
+          <span class="text-xs text-slate-500 tabular-nums shrink-0" data-reading-mode-target="progress">1 / 1</span>
+        </div>
+        <button type="button" data-action="reading-mode#close"
+                class="text-slate-400 hover:text-white p-1 rounded transition-colors cursor-pointer" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </header>
+
+      <%# Body — photo + map side-by-side on desktop, stacked on mobile %>
+      <div class="flex-1 overflow-y-auto">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-0">
+          <div class="md:col-span-3 relative bg-slate-800 aspect-video md:aspect-auto md:min-h-[320px] flex items-center justify-center">
+            <img data-reading-mode-target="photo" alt="" class="hidden absolute inset-0 w-full h-full object-cover">
+            <div data-reading-mode-target="photoFallback" class="text-slate-600">
+              <%= icon :sparkles, class: "w-16 h-16" %>
+            </div>
+          </div>
+          <div class="md:col-span-2 relative bg-slate-800 aspect-square md:aspect-auto md:min-h-[320px] border-t md:border-t-0 md:border-l border-slate-800">
+            <div data-reading-mode-target="mapGrid" class="absolute inset-0 grid grid-cols-2 grid-rows-2"></div>
+            <span data-reading-mode-target="mapPin" class="hidden absolute -translate-x-1/2 -translate-y-full text-rose-500 drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">
+              <%= icon :map_pin, class: "w-8 h-8", stroke_width: 2 %>
+            </span>
+            <span class="absolute bottom-0 right-0 px-1.5 py-0.5 text-[10px] bg-black/60 text-white/80 rounded-tl">© OpenStreetMap</span>
+            <a data-reading-mode-target="mapsLink" target="_blank" rel="noopener" class="hidden absolute top-2 right-2 inline-flex items-center gap-1 px-2 py-1 text-[11px] rounded-md bg-slate-900/80 backdrop-blur text-slate-200 border border-slate-700 hover:border-amber-500/50">
+              <%= icon :external_link, class: "w-3 h-3" %> Open Maps
+            </a>
+          </div>
+        </div>
+
+        <div class="px-5 sm:px-6 py-5">
+          <p class="text-[11px] uppercase tracking-[0.18em] text-amber-300 font-semibold mb-1" data-reading-mode-target="eyebrow"></p>
+          <h2 class="font-display text-2xl sm:text-3xl font-semibold tracking-tight text-slate-50 leading-tight" data-reading-mode-target="title"></h2>
+          <p class="text-sm text-slate-400 mt-1" data-reading-mode-target="subtitle"></p>
+          <p class="text-base text-slate-200 mt-4 leading-relaxed" data-reading-mode-target="text"></p>
+        </div>
+      </div>
+
+      <%# Footer controls %>
+      <footer class="flex items-center justify-between gap-3 px-4 sm:px-6 py-3 border-t border-slate-800 bg-slate-950/60">
+        <button type="button" data-action="reading-mode#prev"
+                class="inline-flex items-center gap-1 px-3 py-2 rounded-lg border border-slate-700 bg-slate-900 text-slate-200 text-sm hover:border-amber-500/50 cursor-pointer">
+          <%= icon :arrow_left, class: "w-4 h-4" %> Prev
+        </button>
+        <button type="button" data-action="reading-mode#togglePlay"
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 text-slate-950 text-sm font-semibold hover:bg-amber-400 cursor-pointer">
+          <%= icon :sparkles, class: "w-4 h-4" %>
+          <span data-reading-mode-target="playPauseLabel">Pause</span>
+        </button>
+        <button type="button" data-action="reading-mode#next"
+                class="inline-flex items-center gap-1 px-3 py-2 rounded-lg border border-slate-700 bg-slate-900 text-slate-200 text-sm hover:border-amber-500/50 cursor-pointer">
+          Next <%= icon :arrow_right, class: "w-4 h-4" %>
+        </button>
+      </footer>
+    </div>
+  </div>
 </div>
 
 <% if @trip.excitement_pitch.present? %>
@@ -125,15 +206,35 @@
             <% day.activities.each do |activity| %>
               <li class="p-5 sm:p-6">
                 <div class="flex flex-col sm:flex-row gap-4">
-                  <% if activity.photo_url.present? %>
-                    <div class="shrink-0 w-full sm:w-44 sm:h-32 h-44 rounded-xl overflow-hidden bg-slate-800 relative">
-                      <img loading="lazy" src="<%= activity.photo_url %>" alt="<%= activity.location_name.presence || activity.title %>" class="w-full h-full object-cover">
-                    </div>
-                  <% else %>
-                    <div class="shrink-0 w-full sm:w-44 sm:h-32 h-32 rounded-xl bg-gradient-to-br from-slate-800 to-slate-700 flex items-center justify-center text-slate-500" aria-hidden="true">
-                      <%= icon :map_pin, class: "w-8 h-8" %>
-                    </div>
-                  <% end %>
+                  <% map = activity.map_tiles %>
+                  <div class="shrink-0 w-full sm:w-44 flex flex-col gap-2">
+                    <% if activity.photo_url.present? %>
+                      <div class="w-full sm:h-32 h-44 rounded-xl overflow-hidden bg-slate-800 relative">
+                        <img loading="lazy" src="<%= activity.photo_url %>" alt="<%= activity.location_name.presence || activity.title %>" class="w-full h-full object-cover">
+                      </div>
+                    <% end %>
+                    <% if map %>
+                      <%# 2x2 OSM tile grid; pin overlay at the activity's
+                          fractional position. Cached by the SW so the
+                          plan is map-rich offline once visited online. %>
+                      <div class="relative w-full aspect-square rounded-xl overflow-hidden bg-slate-800 border border-slate-700/60" role="img" aria-label="Map of <%= activity.location_name.presence || activity.title %>">
+                        <div class="absolute inset-0 grid grid-cols-2 grid-rows-2">
+                          <% map[:tiles].each do |tile_url| %>
+                            <img loading="lazy" src="<%= tile_url %>" alt="" class="w-full h-full object-cover" referrerpolicy="no-referrer">
+                          <% end %>
+                        </div>
+                        <span class="absolute -translate-x-1/2 -translate-y-full text-rose-500 drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]"
+                              style="left: <%= map[:pin_x_pct].round(2) %>%; top: <%= map[:pin_y_pct].round(2) %>%;">
+                          <%= icon :map_pin, class: "w-7 h-7", stroke_width: 2 %>
+                        </span>
+                        <span class="absolute bottom-0 right-0 px-1 py-0.5 text-[9px] bg-black/60 text-white/80 rounded-tl">© OpenStreetMap</span>
+                      </div>
+                    <% elsif activity.photo_url.blank? %>
+                      <div class="w-full sm:h-32 h-32 rounded-xl bg-gradient-to-br from-slate-800 to-slate-700 flex items-center justify-center text-slate-500" aria-hidden="true">
+                        <%= icon :map_pin, class: "w-8 h-8" %>
+                      </div>
+                    <% end %>
+                  </div>
 
                   <div class="min-w-0 flex-1">
                     <div class="flex items-baseline gap-2 flex-wrap">
