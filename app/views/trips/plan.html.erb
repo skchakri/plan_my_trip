@@ -38,6 +38,27 @@
   <% end %>
 </header>
 
+<%# Trip-level controls: Read whole plan + Drive co-pilot %>
+<div class="mb-5 flex flex-wrap gap-2">
+  <button type="button"
+          data-controller="tts"
+          data-tts-target-selector-value="#plan-readable"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-amber-500/15 text-amber-200 border border-amber-500/30 hover:bg-amber-500/25">
+    <%= icon :sparkles, class: "w-4 h-4" %>
+    <span data-tts-label data-play-label="Read the whole plan" data-stop-label="Stop reading">Read the whole plan</span>
+  </button>
+  <%= link_to copilot_trip_path(@trip), class: "inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-slate-800 border border-slate-700 hover:border-amber-500/50 text-slate-100" do %>
+    <%= icon :car, class: "w-4 h-4 text-amber-400" %> Drive co-pilot
+  <% end %>
+</div>
+
+<% if @trip.excitement_pitch.present? %>
+  <div class="mb-5 rounded-xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 to-transparent p-4">
+    <p class="text-[11px] uppercase tracking-widest text-amber-300 font-semibold mb-1">Why you'll love this trip</p>
+    <p class="text-slate-100 leading-relaxed"><%= @trip.excitement_pitch %></p>
+  </div>
+<% end %>
+
 <% if @trip.pwa_plan_url.present? %>
   <div class="mb-5 rounded-xl border border-teal-500/30 bg-teal-500/5 p-4 flex items-start gap-3">
     <span class="shrink-0 mt-0.5 text-teal-300"><%= icon :external_link, class: "w-4 h-4" %></span>
@@ -47,6 +68,9 @@
     </div>
   </div>
 <% end %>
+
+<%# This wrapper holds everything the "Read the whole plan" button speaks. %>
+<div id="plan-readable">
 
 <% if @days.empty? %>
   <div class="rounded-2xl border border-dashed border-slate-700/70 bg-slate-900/30 p-8 text-center mb-6">
@@ -72,15 +96,27 @@
          day_items = day.checklist_items.to_a %>
       <article id="day-<%= day.id %>" data-accent="<%= day.accent %>" class="rounded-2xl border accent-border bg-slate-900/40 overflow-hidden">
         <header class="px-5 sm:px-6 pt-5 pb-4 accent-bg">
-          <p class="text-[11px] uppercase tracking-[0.18em] accent-text font-semibold mb-1 accent-dot">
-            Day <%= idx + 1 %><% if day.theme.present? %> · <%= day.theme %><% end %>
-          </p>
-          <h2 class="font-display text-2xl font-semibold tracking-tight">
-            <% if day.date %><span class="text-slate-300 font-normal"><%= day.date.strftime("%A %b %-d") %> — </span><% end %><%= day.title %>
-          </h2>
-          <% if day.summary.present? %>
-            <p class="text-sm text-slate-300 mt-2"><%= day.summary %></p>
-          <% end %>
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <p class="text-[11px] uppercase tracking-[0.18em] accent-text font-semibold mb-1 accent-dot">
+                Day <%= idx + 1 %><% if day.theme.present? %> · <%= day.theme %><% end %>
+              </p>
+              <h2 class="font-display text-2xl font-semibold tracking-tight">
+                <% if day.date %><span class="text-slate-300 font-normal"><%= day.date.strftime("%A %b %-d") %> — </span><% end %><%= day.title %>
+              </h2>
+              <% if day.summary.present? %>
+                <p class="text-sm text-slate-300 mt-2"><%= day.summary %></p>
+              <% end %>
+            </div>
+            <% read_text = "Day #{idx + 1}, #{day.title}.#{day.summary.present? ? " #{day.summary}" : ""} #{day.activities.map { |a| [a.time_label, a.title, a.famous_for.presence || a.notes.to_s.split('.').first].compact.join('. ') }.join(' Then, ')}" %>
+            <button type="button"
+                    data-controller="tts"
+                    data-tts-text-value="<%= read_text %>"
+                    class="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md border border-slate-700 bg-slate-900/60 text-slate-200 text-xs hover:border-amber-500/50">
+              <%= icon :sparkles, class: "w-3.5 h-3.5 text-amber-400" %>
+              <span data-tts-label data-play-label="Read day" data-stop-label="Stop">Read day</span>
+            </button>
+          </div>
         </header>
 
         <%# Activities %>
@@ -117,8 +153,24 @@
                     <% if activity.address.present? %>
                       <p class="text-xs text-slate-500 mt-0.5"><%= activity.address %></p>
                     <% end %>
+                    <% if activity.famous_for.present? %>
+                      <p class="text-sm text-amber-200/90 mt-2 leading-relaxed inline-flex items-start gap-1.5">
+                        <%= icon :sparkles, class: "w-4 h-4 mt-0.5 shrink-0" %>
+                        <span><span class="font-semibold">Famous for:</span> <%= activity.famous_for %></span>
+                      </p>
+                    <% end %>
                     <% if activity.notes.present? %>
                       <div class="text-sm text-slate-300 mt-2 leading-relaxed prose-invert"><%= render_markdown(activity.notes) %></div>
+                    <% end %>
+                    <% activity_read_text = [activity.title, activity.location_name, activity.famous_for.presence, activity.notes.to_s.gsub(/[*_`]/, ' ')].compact.reject(&:blank?).join('. ') %>
+                    <% if activity_read_text.present? %>
+                      <button type="button"
+                              data-controller="tts"
+                              data-tts-text-value="<%= activity_read_text %>"
+                              class="mt-2 inline-flex items-center gap-1 px-2.5 py-1 rounded-md border border-slate-700 bg-slate-900/60 text-slate-300 text-xs hover:border-amber-500/50 hover:text-amber-200">
+                        <%= icon :sparkles, class: "w-3.5 h-3.5 text-amber-400" %>
+                        <span data-tts-label data-play-label="Read aloud" data-stop-label="Stop">Read aloud</span>
+                      </button>
                     <% end %>
 
                     <%# Action buttons: Maps / Uber / Call %>
@@ -221,6 +273,7 @@
     <% end %>
   </div>
 <% end %>
+</div><%# /plan-readable %>
 
 <%# Free-form markdown notes (fallback) %>
 <% if @rendered_body.present? %>

@@ -1,7 +1,7 @@
 class TripsController < ApplicationController
   include MarkdownHelper
 
-  before_action :set_trip, only: %i[show edit update destroy rename plan checklist]
+  before_action :set_trip, only: %i[show edit update destroy rename plan checklist copilot copilot_question]
 
   def index
     @trips = policy_scope(Trip).ordered.includes(:owner)
@@ -75,6 +75,20 @@ class TripsController < ApplicationController
 
     @day_options = @trip.checklist_items.for_day.distinct.pluck(:day_label).compact.sort
     @activity_options = @trip.checklist_items.for_activity.distinct.pluck(:activity_label).compact.sort
+  end
+
+  # GET /trips/:id/copilot — driving-time engagement screen (pick-a-traveler, then play)
+  def copilot
+    authorize @trip, :show?
+    @people = @trip.people.ordered
+  end
+
+  # GET /trips/:id/copilot_question?person_id=X — pulls a question for the picked person
+  def copilot_question
+    authorize @trip, :show?
+    @person = @trip.people.find(params[:person_id])
+    @question = TriviaPool.pick_for(@person)
+    @playlist = RoadTripPlaylists.for_person(@person)
   end
 
   # PATCH /trips/:id/rename — per-user title via membership.custom_title

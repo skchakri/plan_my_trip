@@ -1,0 +1,110 @@
+<% content_for :title, "Question for #{@person.name}" %>
+
+<div class="mb-5">
+  <%= link_to copilot_trip_path(@trip), class: "inline-flex items-center gap-1 text-sm text-slate-400 hover:text-amber-300 transition-colors" do %>
+    <%= icon :arrow_left, class: "w-4 h-4" %> Other travelers
+  <% end %>
+</div>
+
+<header class="mb-5 text-center">
+  <p class="text-[11px] uppercase tracking-[0.18em] text-amber-300 font-medium mb-1.5">For <%= @person.name %></p>
+  <h1 class="font-display text-2xl sm:text-3xl font-semibold tracking-tight leading-snug" id="copilot-question-text">
+    <%= @question[:q] %>
+  </h1>
+</header>
+
+<%# Read-the-question button %>
+<div class="flex justify-center mb-6">
+  <button type="button"
+          data-controller="tts"
+          data-tts-text-value="<%= "Question for #{@person.name}. #{@question[:q]}. Options: #{@question[:options].each_with_index.map { |o,i| "#{('A'.ord + i).chr}, #{o}." }.join(' ')}" %>"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-slate-700 bg-slate-900/50 hover:border-amber-500/50 text-slate-200">
+    <%= icon :sparkles, class: "w-4 h-4 text-amber-400" %>
+    <span data-tts-label data-play-label="Read the question" data-stop-label="Stop">Read the question</span>
+  </button>
+</div>
+
+<%# Multi-choice options. Pure HTML/JS — clicking reveals correctness, then unveils playlist. %>
+<div class="space-y-2.5 max-w-md mx-auto" id="copilot-options">
+  <% @question[:options].each_with_index do |opt, i| %>
+    <button type="button"
+            data-correct="<%= i == @question[:answer] %>"
+            data-letter="<%= ('A'.ord + i).chr %>"
+            class="copilot-opt w-full text-left rounded-xl border border-slate-700 bg-slate-900/60 hover:border-amber-500/50 hover:bg-slate-900 px-4 py-3 flex items-center gap-3 transition-all">
+      <span class="w-7 h-7 shrink-0 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center font-mono text-amber-200 font-semibold"><%= ('A'.ord + i).chr %></span>
+      <span class="text-slate-100"><%= opt %></span>
+    </button>
+  <% end %>
+</div>
+
+<%# Reveal area — populated by inline script after click %>
+<div id="copilot-reveal" class="hidden mt-6 max-w-md mx-auto rounded-2xl p-5 border" data-correct-answer-text="<%= @question[:options][@question[:answer]] %>" data-fun-fact="<%= @question[:fun_fact] %>">
+  <p id="copilot-reveal-headline" class="font-display text-2xl font-semibold mb-2"></p>
+  <p id="copilot-fun-fact" class="text-sm text-slate-300 leading-relaxed"></p>
+
+  <div class="mt-4 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4">
+    <p class="text-[11px] uppercase tracking-widest text-emerald-300 font-semibold mb-1">Reward — playlist for <%= @person.name %></p>
+    <p class="font-medium text-emerald-100 mb-2"><%= @playlist.label %></p>
+    <div class="flex flex-wrap gap-2">
+      <%= link_to RoadTripPlaylists.spotify_url(@playlist.spotify), target: "_blank", rel: "noopener", class: "inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-emerald-500 text-slate-950 font-semibold hover:bg-emerald-400" do %>
+        Open in Spotify <%= icon :external_link, class: "w-3 h-3" %>
+      <% end %>
+      <%= link_to RoadTripPlaylists.youtube_url(@playlist.youtube), target: "_blank", rel: "noopener", class: "inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-slate-700 bg-slate-900 text-slate-200 hover:border-amber-500/50" do %>
+        Open in YouTube <%= icon :external_link, class: "w-3 h-3" %>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="mt-4 flex flex-wrap gap-2">
+    <%= link_to copilot_question_trip_path(@trip, person_id: @person.id), class: "px-3 py-1.5 text-sm rounded-lg bg-amber-500 text-slate-950 font-semibold hover:bg-amber-400" do %>
+      Another question for <%= @person.name %>
+    <% end %>
+    <%= link_to copilot_trip_path(@trip), class: "px-3 py-1.5 text-sm rounded-lg border border-slate-700 text-slate-200 hover:border-amber-500/50" do %>
+      Pick another traveler
+    <% end %>
+  </div>
+</div>
+
+<script>
+  (() => {
+    const opts = document.querySelectorAll(".copilot-opt");
+    const reveal = document.getElementById("copilot-reveal");
+    const headline = document.getElementById("copilot-reveal-headline");
+    const factEl   = document.getElementById("copilot-fun-fact");
+    const correct = reveal.dataset.correctAnswerText;
+    const fact    = reveal.dataset.funFact;
+
+    opts.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const isCorrect = btn.dataset.correct === "true";
+        opts.forEach((o) => { o.disabled = true; o.classList.add("opacity-60"); });
+        btn.classList.remove("opacity-60");
+        if (isCorrect) {
+          btn.classList.remove("border-slate-700");
+          btn.classList.add("border-emerald-500", "bg-emerald-500/10");
+          headline.textContent = "Correct! 🎉";
+          headline.className   = "font-display text-2xl font-semibold mb-2 text-emerald-300";
+          reveal.classList.add("border-emerald-500/30", "bg-emerald-500/5");
+        } else {
+          btn.classList.remove("border-slate-700");
+          btn.classList.add("border-rose-500", "bg-rose-500/10");
+          headline.textContent = `Not quite — the answer was ${correct}.`;
+          headline.className   = "font-display text-2xl font-semibold mb-2 text-rose-300";
+          reveal.classList.add("border-rose-500/30", "bg-rose-500/5");
+        }
+        factEl.textContent = fact || "";
+        reveal.classList.remove("hidden");
+        reveal.scrollIntoView({ behavior: "smooth", block: "start" });
+
+        // Speak the verdict + reward
+        if ("speechSynthesis" in window) {
+          const phrase = isCorrect
+            ? `Correct! Great job, here's a song for you.`
+            : `Not quite. The answer was ${correct}. Here's a song anyway.`;
+          window.speechSynthesis.cancel();
+          window.speechSynthesis.speak(new SpeechSynthesisUtterance(phrase));
+        }
+      });
+    });
+  })();
+</script>

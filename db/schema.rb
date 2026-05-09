@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_08_235749) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_09_000237) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -46,6 +46,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_08_235749) do
   create_table "activities", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "address"
     t.datetime "created_at", null: false
+    t.text "famous_for"
     t.string "group_label"
     t.string "location_name"
     t.string "maps_url"
@@ -77,6 +78,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_08_235749) do
     t.index ["trip_id", "position"], name: "index_checklist_items_on_trip_id_and_position"
     t.index ["trip_id", "scope"], name: "index_checklist_items_on_trip_id_and_scope"
     t.index ["trip_id"], name: "index_checklist_items_on_trip_id"
+  end
+
+  create_table "people", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.integer "age"
+    t.datetime "created_at", null: false
+    t.string "interests", default: [], null: false, array: true
+    t.string "name", null: false
+    t.integer "position", default: 0, null: false
+    t.uuid "trip_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["trip_id", "position"], name: "index_people_on_trip_id_and_position"
+    t.index ["trip_id"], name: "index_people_on_trip_id"
   end
 
   create_table "trails", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -143,6 +156,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_08_235749) do
     t.string "destination"
     t.datetime "discarded_at"
     t.date "end_date"
+    t.text "excitement_pitch"
     t.string "origin"
     t.uuid "owner_id", null: false
     t.string "pwa_packing_url"
@@ -174,6 +188,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_08_235749) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "activities", "trip_days"
   add_foreign_key "checklist_items", "trips"
+  add_foreign_key "people", "trips"
   add_foreign_key "trails", "trips"
   add_foreign_key "trip_days", "trips"
   add_foreign_key "trip_invitations", "trips"

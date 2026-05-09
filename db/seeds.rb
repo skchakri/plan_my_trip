@@ -13,13 +13,18 @@ vegas_trip = Trip.find_or_create_by!(owner: demo, title: "Vegas trip — May 7-1
   t.body = vegas_body
   t.pwa_plan_url = "/vegas-trip-4days.html"
   t.pwa_packing_url = "/vegas-packing.html"
+  t.excitement_pitch = "Four days, six people, three icons of the American West: a 16K-pixel dome that wraps you in The Wizard of Oz, a glass bridge cantilevered over the Grand Canyon, and the most over-the-top Strip in America. Heat, lights, fountains, and a 900-mile minivan adventure tying it all together."
 end
 
-# Backfill PWA links if the trip already existed before these columns
+# Backfill PWA links + excitement pitch if the trip pre-existed
 vegas_trip.update_columns(
   pwa_plan_url: "/vegas-trip-4days.html",
   pwa_packing_url: "/vegas-packing.html"
 ) if vegas_trip.pwa_plan_url.blank?
+
+vegas_trip.update_column(:excitement_pitch,
+  "Four days, six people, three icons of the American West: a 16K-pixel dome that wraps you in The Wizard of Oz, a glass bridge cantilevered over the Grand Canyon, and the most over-the-top Strip in America. Heat, lights, fountains, and a 900-mile minivan adventure tying it all together."
+) if vegas_trip.excitement_pitch.blank?
 
 [
   { name: "Calico Tanks Trail (Red Rock Canyon)",
@@ -222,5 +227,39 @@ vegas_days.each_with_index do |day_data, day_idx|
   end
 end
 
+people = [
+  { name: "Kalyan",  age: 42,  interests: %w[travel cars history geography] },
+  { name: "Sneha",   age: 41,  interests: %w[food art photography movies] },
+  { name: "Aarav",   age: 11,  interests: %w[math space superhero video_games] },
+  { name: "Diya",    age: 8,   interests: %w[disney animals dinosaurs movies_kids] },
+  { name: "Mom",     age: 68,  interests: %w[cooking gardening movies books] },
+  { name: "Dad",     age: 70,  interests: %w[history sports cars geography] }
+]
+people.each_with_index do |attrs, i|
+  vegas_trip.people.find_or_create_by!(name: attrs[:name]) do |p|
+    p.age       = attrs[:age]
+    p.interests = attrs[:interests]
+    p.position  = i
+  end
+end
+
+famous_for = {
+  "Sphere — Wizard of Oz (Fri 2 PM)"         => "The world's largest spherical structure — 366 ft tall, with a 16K-resolution interior LED screen that wraps the entire venue. The Wizard of Oz reimagining premiered in 2025 with new generative AI scenes.",
+  "Bellagio Conservatory (Group B)"           => "A 14,000 sq ft botanical garden inside the Bellagio with seasonal displays that change five times a year. Free to walk through, and one of the few quiet escapes on the Strip.",
+  "Forum Shops at Caesars (Group B)"          => "A high-end mall styled as ancient Rome, with a painted sky that shifts from dawn to dusk every hour. Home to the talking-statue Fall of Atlantis show.",
+  "Spy Ninjas HQ (Group A)"                   => "A massive entertainment park inspired by the Spy Ninjas YouTube series — obstacle courses, ziplines, axe throwing, and an arcade. One of the highest-rated kid attractions in Vegas.",
+  "Pat Tillman Bridge photo stop (Hoover Dam)" => "The Mike O'Callaghan–Pat Tillman Memorial Bridge, the second-highest bridge in the US — 890 ft above the Colorado River with a postcard view of Hoover Dam below.",
+  "Grand Canyon Skywalk (Sat 10 AM)"          => "A horseshoe-shaped glass bridge that extends 70 feet beyond the canyon rim, 4,000 ft above the Colorado River. Engineered to hold 70 fully loaded 747s — and built on Hualapai tribal land.",
+  "Sky View Restaurant"                       => "Buffet-style dining on the canyon edge at Eagle Point — included with the Hualapai Legacy Gold pass.",
+  "Bellagio Fountains (evening)"              => "1,200 fountains synchronized to music, dancing 460 feet into the air. Free shows every 15 minutes after 8 PM.",
+  "Pool + Bellagio fountains"                 => "1,200 fountains synchronized to music, dancing 460 feet into the air. Free shows every 15 minutes after 8 PM.",
+  "Eataly — Park MGM (Group B)"               => "Italian celebrity-chef food hall with 7+ counter restaurants under one roof. The Vegas outpost is the largest Eataly in the US.",
+  "Lunch at Eataly — Park MGM (Group B)"      => "Italian celebrity-chef food hall with 7+ counter restaurants under one roof. The Vegas outpost is the largest Eataly in the US."
+}
+Activity.find_each do |a|
+  next unless famous_for[a.title].present?
+  a.update!(famous_for: famous_for[a.title]) if a.famous_for.blank?
+end
+
 puts "Seeded: #{demo.email} / password123"
-puts "Trips: #{Trip.count}, Trails: #{Trail.count}, Checklist items: #{ChecklistItem.count}, Days: #{TripDay.count}, Activities: #{Activity.count}"
+puts "Trips: #{Trip.count}, Trails: #{Trail.count}, Checklist items: #{ChecklistItem.count}, Days: #{TripDay.count}, Activities: #{Activity.count}, Travelers: #{Person.count}"

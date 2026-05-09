@@ -9,6 +9,9 @@ class Trip < ApplicationRecord
   has_many :invitations, class_name: "TripInvitation", dependent: :destroy
   has_many :checklist_items, dependent: :destroy
   has_many :trip_days, -> { ordered }, dependent: :destroy
+  has_many :people, -> { ordered }, dependent: :destroy
+
+  has_many_attached :documents
 
   validates :title, presence: true
   validate :end_after_start

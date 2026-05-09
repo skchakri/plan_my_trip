@@ -140,8 +140,104 @@
   </section>
 <% end %>
 
+<!-- Travelers -->
+<section class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 sm:p-7 mt-6">
+  <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+    <h2 class="font-display text-xl font-semibold flex items-center gap-2">
+      <%= icon :users, class: "w-5 h-5 text-amber-400/80" %> Travelers
+      <span class="text-xs text-slate-500 font-sans font-normal">drives the co-pilot game on long stretches</span>
+    </h2>
+  </div>
+
+  <% if @trip.people.any? %>
+    <ul class="space-y-2 mb-4">
+      <% @trip.people.ordered.each do |p| %>
+        <li class="flex items-center justify-between gap-3 bg-slate-800/30 border border-slate-700/50 rounded-xl px-4 py-2.5">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="shrink-0 w-9 h-9 rounded-full bg-gradient-to-br from-amber-500/20 to-amber-500/5 border border-amber-500/30 flex items-center justify-center text-amber-200 text-sm font-semibold"><%= p.initials %></div>
+            <div class="min-w-0">
+              <p class="font-medium text-slate-100 truncate"><%= p.name %><% if p.age.present? %><span class="text-slate-500 font-normal"> · age <%= p.age %></span><% end %></p>
+              <% if p.interests_label %>
+                <p class="text-xs text-slate-400 truncate"><%= p.interests_label %></p>
+              <% end %>
+            </div>
+          </div>
+          <% if is_owner %>
+            <%= button_to trip_person_path(@trip, p), method: :delete, form: { data: { turbo_confirm: "Remove #{p.name}?" } }, class: "text-xs text-rose-400 hover:text-rose-300 px-2 py-1 rounded hover:bg-rose-500/10 transition-colors" do %>
+              Remove
+            <% end %>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+
+  <% if is_owner %>
+    <details class="rounded-xl border border-slate-800 bg-slate-900/30">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-medium text-slate-300">
+        <span class="inline-flex items-center gap-2"><%= icon :plus, class: "w-4 h-4" %> Add a traveler</span>
+      </summary>
+      <%= form_with url: trip_people_path(@trip), method: :post, html: { class: "px-4 pb-4 space-y-3" } do |f| %>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <%= text_field_tag "person[name]", nil, required: true, placeholder: "Name", class: "rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none" %>
+          <%= number_field_tag "person[age]", nil, placeholder: "Age (optional)", class: "rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none" %>
+          <%= submit_tag "Add", class: "px-4 py-2 bg-amber-500 text-slate-950 rounded-lg font-semibold text-sm hover:bg-amber-400 cursor-pointer" %>
+        </div>
+        <div>
+          <p class="text-xs uppercase tracking-widest text-slate-500 font-semibold mb-1.5">Interests (tap to toggle)</p>
+          <div class="flex flex-wrap gap-1.5">
+            <% Person::INTERESTS.each do |tag| %>
+              <label class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md border border-slate-700 bg-slate-800/40 text-xs text-slate-300 hover:border-amber-500/50 cursor-pointer has-checked:bg-amber-500/15 has-checked:border-amber-500/50 has-checked:text-amber-200">
+                <%= check_box_tag "person[interests][]", tag, false, class: "sr-only" %>
+                <%= tag.tr("_", " ") %>
+              </label>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </details>
+  <% end %>
+
+  <% if @trip.people.any? %>
+    <%= link_to copilot_trip_path(@trip), class: "mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 text-slate-950 font-semibold text-sm hover:bg-amber-400" do %>
+      <%= icon :sparkles, class: "w-4 h-4" %> Open the drive co-pilot
+    <% end %>
+  <% end %>
+</section>
+
 <!-- Bookings -->
 <%= render "bookings", booking: @booking %>
+
+<!-- Trip documents (hotel, car, flight confirmations) -->
+<section class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 sm:p-7 mt-6">
+  <h2 class="font-display text-xl font-semibold flex items-center gap-2 mb-3">
+    <%= icon :external_link, class: "w-5 h-5 text-amber-400/80" %> Trip documents
+    <span class="text-xs text-slate-500 font-sans font-normal">hotel · car · flight · insurance</span>
+  </h2>
+  <% if @trip.documents.attached? %>
+    <ul class="space-y-1.5 mb-4">
+      <% @trip.documents.each do |doc| %>
+        <li class="flex items-center justify-between gap-2 rounded-md bg-slate-800/40 border border-slate-700/40 px-3 py-2">
+          <%= link_to rails_blob_path(doc, disposition: "inline"), target: "_blank", rel: "noopener", class: "min-w-0 flex items-center gap-2 text-sm text-slate-200 hover:text-amber-200 truncate" do %>
+            <span class="shrink-0 text-slate-500"><%= icon :external_link, class: "w-3.5 h-3.5" %></span>
+            <span class="truncate"><%= doc.filename %></span>
+            <span class="shrink-0 text-[11px] text-slate-500">· <%= number_to_human_size(doc.byte_size) %></span>
+          <% end %>
+          <% if is_owner %>
+            <%= button_to trip_document_path(@trip, doc), method: :delete, form: { data: { turbo_confirm: "Remove #{doc.filename}?" } }, class: "shrink-0 text-rose-400 hover:text-rose-300 p-1 rounded transition-colors cursor-pointer", aria: { label: "Remove" } do %>
+              <%= icon :trash, class: "w-3.5 h-3.5" %>
+            <% end %>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+  <%= form_with url: trip_documents_path(@trip), method: :post, multipart: true, html: { class: "flex items-center gap-2", data: { turbo: false } } do %>
+    <%= file_field_tag "trip[documents][]", multiple: true, accept: "image/*,application/pdf,.ics,.txt", class: "block w-full text-xs text-slate-300 file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:bg-amber-500/15 file:text-amber-200 hover:file:bg-amber-500/25 file:cursor-pointer cursor-pointer" %>
+    <%= submit_tag "Upload", class: "shrink-0 px-3 py-1.5 bg-amber-500 text-slate-950 rounded-md text-xs font-semibold hover:bg-amber-400 cursor-pointer" %>
+  <% end %>
+  <p class="text-[11px] text-slate-500 mt-1.5">PDF, image, .ics, or .txt — hotel reservations, car rental, flight tickets, etc.</p>
+</section>
 
 <!-- Owner-only: members + pending invitations + delete -->
 <% if is_owner %>

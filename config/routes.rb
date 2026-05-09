@@ -8,10 +8,14 @@ Rails.application.routes.draw do
     resources :activities, only: [] do
       resources :documents, only: [ :create, :destroy ], controller: "activity_documents"
     end
+    resources :people, only: [ :create, :destroy ]
+    resources :documents, only: [ :create, :destroy ], controller: "trip_documents"
     member do
       patch :rename
       get :plan
       get :checklist
+      get :copilot
+      get :copilot_question
     end
   end
 
