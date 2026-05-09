@@ -284,5 +284,59 @@ Activity.find_each do |a|
   a.update!(famous_for: famous_for[a.title]) if a.famous_for.blank?
 end
 
+# Rich tour-guide narration. Written to be spoken aloud by the "guide"
+# voice in the podcast-mode reading flow — short, punchy sentences,
+# proper nouns and dates that listeners can latch onto, and a hook at
+# the front so it doesn't open with a number.
+guide_scripts = {
+  "Sphere — Wizard of Oz (Fri 2 PM)" => <<~SCRIPT.strip,
+    You're about to step inside the largest spherical building on Earth. The Sphere stands 366 feet tall and 516 feet wide — that's bigger than the Statue of Liberty, wrapped in a curve. It opened in September 2023, just east of the Strip, and cost about 2.3 billion dollars to build. Inside, the screen wraps almost all the way around you. It's 160,000 square feet of LED at 16K resolution — the highest-resolution display ever built. The Wizard of Oz reimagining you're about to see uses generative AI to extend every original 1939 frame into the full curved view. So when Dorothy looks out at Kansas, you see Kansas. When she steps into Oz, you're standing in Oz. The sound system has 167,000 speakers, and the seats vibrate with the score. Pro tip: the higher rows feel the wraparound effect more strongly than the floor.
+  SCRIPT
+  "Bellagio Conservatory (Group B)" => <<~SCRIPT.strip,
+    The Bellagio Conservatory is one of the best-kept free secrets in Las Vegas. It's a 14,000 square foot botanical garden tucked just past the lobby, and it's been open since the hotel itself debuted in 1998. The displays change five times a year — for spring, summer, fall, the holidays, and Lunar New Year. A team of more than 120 horticulturalists builds each one from scratch, working through the night so the changeover is invisible to guests. Many of the centerpiece sculptures are mechanized — giant flowers that bloom on a timer, butterflies that move, water features built around real living plants. Look up: that 50-foot ceiling is hand-blown glass by Dale Chihuly, the same artist who did the lobby's Fiori di Como. It's free, it's quiet, and it's a beautiful way to start the day before the Strip wakes up.
+  SCRIPT
+  "Forum Shops at Caesars (Group B)" => <<~SCRIPT.strip,
+    The Forum Shops opened in 1992 and are still one of the highest-grossing malls per square foot in the world. The whole place is themed as ancient Rome — marble columns, fountains, and statues — and the ceiling is painted to look like the Mediterranean sky. Watch it for a few minutes and you'll see it cycle from dawn to dusk on a one-hour loop, the whole thing painted by hand when the mall was built. Don't miss the Fall of Atlantis fountain near the back — animatronic statues of Atlas and his children come to life every hour, with fire and water effects. Kids love it, parents either love it or laugh at it. There's also a spiral escalator here, one of only a handful in the world. And if your feet are tired, the Cheesecake Factory just past the entrance has the original soaring two-story Roman dining room.
+  SCRIPT
+  "Spy Ninjas HQ (Group A)" => <<~SCRIPT.strip,
+    Spy Ninjas HQ opened in 2022, built around the Spy Ninjas YouTube series — Chad Wild Clay and Vy Qwaint's channel that has over 30 million subscribers. The facility is around 30,000 square feet and was designed by the cast themselves. The kids will go through five training rooms — laser maze, ninja obstacle course, axe throwing, escape rooms, and a final mission. Each one earns them a colored belt, and they get a real Spy Ninjas dog tag at the end. The arcade is included with admission, so let them burn off the rest of the energy there. The whole place is built for ages five through fifteen, and they make a point of pacing it so siblings of different ages can stay together. Tip: book the early time slot — the lighting and music are full intensity, and it gets loud later in the day.
+  SCRIPT
+  "Pat Tillman Bridge photo stop (Hoover Dam)" => <<~SCRIPT.strip,
+    What you're looking at is two engineering marvels stacked on top of each other. Down in the canyon is Hoover Dam — built between 1931 and 1936, during the Great Depression, when the country desperately needed jobs. It's 726 feet tall, made from 4.4 million cubic yards of concrete, and at the time it was finished it was the tallest dam in the world. It tamed the Colorado River, created Lake Mead, and brought reliable electricity and water to seven states. Ninety-six workers died building it. Above it is the Mike O'Callaghan–Pat Tillman Memorial Bridge, finished in 2010 to take traffic off the dam itself. It's the second-highest bridge in the United States — 890 feet above the river. It's named for two Arizonans: Mike O'Callaghan, a former Nevada governor, and Pat Tillman, the NFL player who left a multi-million-dollar contract after 9/11 to enlist as an Army Ranger, and was killed in Afghanistan in 2004. The walkway over the bridge gives you the only safe view of the dam from the front. Step out, take a minute, and look at what people built here.
+  SCRIPT
+  "Grand Canyon Skywalk (Sat 10 AM)" => <<~SCRIPT.strip,
+    The Skywalk opened on March 20th, 2007, on the rim of the Grand Canyon at Eagle Point. It's a horseshoe-shaped glass bridge that extends 70 feet out over the canyon — and the floor beneath your feet is four inches of clear, layered glass. Below that is 4,000 feet of nothing. It was engineered to hold 70 fully loaded Boeing 747s, and to flex without breaking through an 8-magnitude earthquake from 50 miles away. This is Hualapai land — the Hualapai Tribe, whose name means "people of the tall pines," own and operate the entire site. The Skywalk was their idea, championed by tribal businessman David Jin, as a way to create lasting jobs on the reservation. You'll be asked to leave phones and cameras in a locker before you step onto the bridge — it's not about secrecy, it's about not dropping a phone four thousand feet onto a national treasure. Hualapai photographers will take pictures for you. Take your shoes off if it's allowed — the booties they hand you are quieter, and the whole thing feels less surreal in socks.
+  SCRIPT
+  "Sky View Restaurant" => <<~SCRIPT.strip,
+    Sky View sits right on the canyon rim at Eagle Point, with floor-to-ceiling windows that look out at the same view you just walked over. It's buffet-style and it's included if you bought the Hualapai Legacy Gold pass. The food is comfort-style with a Native American twist — fry bread is the thing to try if you've never had it. It's a quick lunch, but the seats by the windows are first-come-first-served, so move with intent.
+  SCRIPT
+  "Lunch at Eataly — Park MGM (Group B)" => <<~SCRIPT.strip,
+    Eataly was founded in Turin, Italy in 2007 by Oscar Farinetti, with the idea that high-quality Italian food should be both eaten and bought in the same place. The Vegas location, inside Park MGM, is the largest Eataly in the United States — about 40,000 square feet. Inside there are seven sit-down counters: pasta, pizza, seafood, butcher, salumi, fresh mozzarella made on the spot, and a gelato bar. The trick is to split up — get pasta from one counter, pizza from another, and meet at a table. The mozzarella di bufala is flown in from Naples three times a week. The pizza is wood-fired Neapolitan style. And if you're a coffee person, the espresso bar by the front uses Lavazza beans pulled the way they do it in Milan — quick, hot, and small.
+  SCRIPT
+  "Bellagio Fountains (evening)" => <<~SCRIPT.strip,
+    The Bellagio Fountains have been running since the hotel opened in 1998. There are over 1,200 individual fountains in an eight-and-a-half-acre lake, and they shoot water up to 460 feet in the air — taller than the original Bellagio tower itself. They're choreographed to a rotating playlist of about 35 songs, from Sinatra to opera to Whitney Houston to Tiësto. After 8 PM the shows run every 15 minutes; before 8, every 30. Best viewing spots: the curved railing right in front of the hotel, the bridge to Bally's, or — if you want a quieter view — the upper terrace at the Eiffel Tower restaurant across the street. The fountains are free. They've been one of the most-watched outdoor performances on Earth for over 25 years.
+  SCRIPT
+  "Pool + Bellagio fountains" => <<~SCRIPT.strip,
+    The Bellagio Fountains have been running since the hotel opened in 1998. Over 1,200 fountains in an eight-and-a-half-acre lake, shooting water up to 460 feet in the air — taller than the original Bellagio tower itself. They're choreographed to a rotating playlist, about 35 songs, from Sinatra to opera to Whitney Houston. After 8 PM the shows run every 15 minutes. Watch from the railing in front of the hotel, or the bridge over to Bally's. They're free, and they've been one of the most-watched outdoor performances on Earth for more than 25 years.
+  SCRIPT
+  "Regroup at Sphere" => <<~SCRIPT.strip,
+    Quick logistics break. The Sphere is at the Venetian, just east of the Strip across Sands Avenue. The walk from the Venetian's parking is about ten minutes through an indoor connector, so plan extra time. Bathrooms are on every level of the venue, but the lines after the show are long — go before. And the venue has timed entry, so once everyone's regrouped, head straight to the doors.
+  SCRIPT
+  "Lunch + gas — Arshel's Café" => <<~SCRIPT.strip,
+    Arshel's Café has been on the corner of Beaver, Utah since 1973. It's a roadside diner, family-run, and one of the last classic stops on the I-15 corridor between Salt Lake and Vegas. The chicken-fried steak is what they're known for, and the homemade scones are the size of your face. Beaver itself is a small town founded in 1856 by Mormon pioneers — Butch Cassidy was born here in 1866. Quick stop: gas, food, stretch, and back on the road.
+  SCRIPT
+  "Lunch in St. George — Black Bear Diner" => <<~SCRIPT.strip,
+    Black Bear Diner started as a single roadside spot in Mount Shasta, California in 1995, and now there are over 150 of them across the West. The St. George location is a popular last-stop on the way north out of the Mojave. The portions are huge — a half-order is usually plenty. The cinnamon roll French toast is a road-trip classic. Quick stop: eat, fuel up if needed, and we're back on I-15 toward home.
+  SCRIPT
+  "Arrive in Vegas — check in + Smith's grocery run" => <<~SCRIPT.strip
+    Welcome to Las Vegas. The valley you're driving into has been inhabited for at least ten thousand years — the name "Las Vegas" is Spanish for "the meadows," and it was given to the area in 1829 by a Mexican scout named Rafael Rivera who found freshwater springs here. The city itself was founded on May 15th, 1905, when railroad land was auctioned off near today's Fremont Street. After check-in, the closest Smith's grocery is about a five-minute drive. Stock up on water, breakfast stuff, snacks for the kids, and anything you'd rather not pay strip prices for.
+  SCRIPT
+}
+Activity.find_each do |a|
+  script = guide_scripts[a.title]
+  next if script.blank?
+  a.update!(guide_script: script) if a.guide_script.blank?
+end
+
 puts "Seeded: #{demo.email} / password123"
 puts "Trips: #{Trip.count}, Trails: #{Trail.count}, Checklist items: #{ChecklistItem.count}, Days: #{TripDay.count}, Activities: #{Activity.count}, Travelers: #{Person.count}"
