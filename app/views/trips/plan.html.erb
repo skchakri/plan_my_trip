@@ -135,6 +135,44 @@
                       <% end %>
                     </div>
 
+                    <%# Inline activity documents (tickets, confirmations, etc.) %>
+                    <% docs = activity.documents.attached? ? activity.documents : [] %>
+                    <details class="mt-3 rounded-lg border border-slate-700/50 bg-slate-800/30" <%= 'open'.html_safe if docs.any? %>>
+                      <summary class="cursor-pointer px-3 py-2 text-xs flex items-center justify-between gap-2 text-slate-300">
+                        <span class="inline-flex items-center gap-1.5">
+                          <%= icon :external_link, class: "w-3.5 h-3.5 text-amber-400" %>
+                          Documents <% if docs.any? %><span class="text-slate-500 font-normal">· <%= docs.size %></span><% end %>
+                        </span>
+                        <span class="text-[11px] text-slate-500">tickets · confirmations</span>
+                      </summary>
+                      <div class="px-3 pb-3 space-y-2">
+                        <% if docs.any? %>
+                          <ul class="space-y-1.5">
+                            <% docs.each do |doc| %>
+                              <li class="flex items-center justify-between gap-2 rounded-md bg-slate-900/60 border border-slate-700/40 px-2.5 py-1.5">
+                                <%= link_to rails_blob_path(doc, disposition: "inline"), target: "_blank", rel: "noopener", class: "min-w-0 flex items-center gap-2 text-sm text-slate-200 hover:text-amber-200 truncate" do %>
+                                  <span class="shrink-0 text-slate-500"><%= icon :external_link, class: "w-3.5 h-3.5" %></span>
+                                  <span class="truncate"><%= doc.filename %></span>
+                                  <span class="shrink-0 text-[11px] text-slate-500">· <%= number_to_human_size(doc.byte_size) %></span>
+                                <% end %>
+                                <%= button_to trip_activity_document_path(@trip, activity, doc), method: :delete, form: { data: { turbo_confirm: "Remove #{doc.filename}?" } }, class: "shrink-0 text-rose-400 hover:text-rose-300 p-1 rounded transition-colors cursor-pointer", aria: { label: "Remove" } do %>
+                                  <%= icon :trash, class: "w-3.5 h-3.5" %>
+                                <% end %>
+                              </li>
+                            <% end %>
+                          </ul>
+                        <% else %>
+                          <p class="text-xs text-slate-500 italic">No documents attached yet — upload tickets, confirmations, or anything else you'd want on your phone for this stop.</p>
+                        <% end %>
+
+                        <%= form_with url: trip_activity_documents_path(@trip, activity), method: :post, multipart: true, html: { class: "flex items-center gap-2 mt-2", data: { turbo: false } } do |f| %>
+                          <%= file_field_tag "activity[documents][]", multiple: true, accept: "image/*,application/pdf,.ics,.txt", class: "block w-full text-xs text-slate-300 file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:bg-amber-500/15 file:text-amber-200 hover:file:bg-amber-500/25 file:cursor-pointer cursor-pointer" %>
+                          <%= submit_tag "Upload", class: "shrink-0 px-3 py-1.5 bg-amber-500 text-slate-950 rounded-md text-xs font-semibold hover:bg-amber-400 cursor-pointer" %>
+                        <% end %>
+                        <p class="text-[11px] text-slate-500">PDF, image, .ics, or .txt — up to <%= number_to_human_size(Activity::MAX_DOCUMENT_BYTES) %> per file.</p>
+                      </div>
+                    </details>
+
                     <%# Inline activity checklist %>
                     <% activity_items = activity.checklist_items.to_a %>
                     <% if activity_items.any? %>

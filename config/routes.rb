@@ -5,6 +5,9 @@ Rails.application.routes.draw do
     resources :shares, only: [ :new, :create, :destroy ], controller: "trip_shares"
     resources :invitations, only: [ :destroy ], controller: "trip_invitations"
     resources :checklist_items, only: [ :create, :update, :destroy ]
+    resources :activities, only: [] do
+      resources :documents, only: [ :create, :destroy ], controller: "activity_documents"
+    end
     member do
       patch :rename
       get :plan

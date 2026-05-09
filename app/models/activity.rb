@@ -1,8 +1,15 @@
 class Activity < ApplicationRecord
+  MAX_DOCUMENT_BYTES = 15.megabytes
+
   belongs_to :trip_day
   has_one :trip, through: :trip_day
 
+  has_many_attached :documents do |attachable|
+    attachable.variant :preview, resize_to_limit: [ 600, 600 ]
+  end
+
   validates :title, presence: true
+  validate :documents_within_size_limit
 
   def maps_link
     return maps_url if maps_url.present?
@@ -22,5 +29,14 @@ class Activity < ApplicationRecord
 
   def packed_count
     checklist_items.where(packed: true).count
+  end
+
+  private
+
+  def documents_within_size_limit
+    documents.each do |doc|
+      next unless doc.byte_size && doc.byte_size > MAX_DOCUMENT_BYTES
+      errors.add(:documents, "#{doc.filename} is #{ActiveSupport::NumberHelper.number_to_human_size(doc.byte_size)}, max is #{ActiveSupport::NumberHelper.number_to_human_size(MAX_DOCUMENT_BYTES)}")
+    end
   end
 end
