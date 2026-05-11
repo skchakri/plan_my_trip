@@ -1,5 +1,8 @@
 Rails.application.routes.draw do
-  devise_for :users, controllers: { registrations: "users/registrations" }
+  devise_for :users, controllers: {
+    registrations: "users/registrations",
+    sessions:      "users/sessions"
+  }
 
   resources :trips do
     resources :shares, only: [ :new, :create, :destroy ], controller: "trip_shares"
@@ -30,5 +33,10 @@ Rails.application.routes.draw do
   get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
   get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
-  root "trips#index"
+  # Marketing site
+  get  "about", to: "pages#about", as: :about
+  get  "blog",  to: "blog#index", as: :blog_index
+  get  "blog/:slug", to: "blog#show", as: :blog, constraints: { slug: %r{[^/]+} }
+
+  root "pages#landing"
 end

@@ -1,37 +1,92 @@
-<% content_for :title, "Sign up" %>
-<div class="max-w-sm mx-auto">
-  <h1 class="text-2xl font-semibold mb-6">Create your account</h1>
+<% content_for :title, "Sign up · Plan My Trip" %>
 
-  <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { class: "space-y-4" }) do |f| %>
-    <%= render "devise/shared/error_messages", resource: resource %>
+<div class="relative min-h-screen flex">
+  <%# Left brand panel (hidden on mobile) %>
+  <aside class="hidden lg:flex relative w-1/2 xl:w-[55%] overflow-hidden">
+    <img src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1400&q=80" alt="" class="absolute inset-0 w-full h-full object-cover">
+    <div class="absolute inset-0 bg-gradient-to-br from-slate-950/85 via-slate-950/60 to-slate-950/85"></div>
+    <div class="absolute inset-0 aurora opacity-60"></div>
+    <div class="relative z-10 flex flex-col justify-between p-10 xl:p-14 w-full">
+      <%= link_to root_path, class: "flex items-center gap-2.5 self-start" do %>
+        <%= image_tag "/icon.svg", alt: "", width: 32, height: 32, class: "rounded-lg shadow-lg shadow-amber-500/20" %>
+        <span class="text-[15px] font-semibold tracking-tight bg-gradient-to-r from-amber-200 to-amber-400 bg-clip-text text-transparent">Plan My Trip</span>
+      <% end %>
 
-    <div>
-      <%= f.label :name, class: "block text-sm font-medium text-slate-300 mb-1" %>
-      <%= f.text_field :name, autofocus: true, required: true, class: "w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 focus:border-amber-500 focus:outline-none" %>
+      <div class="max-w-md">
+        <p class="text-[11px] uppercase tracking-[0.18em] text-amber-300 font-semibold mb-3">What you get</p>
+        <h2 class="font-display text-3xl xl:text-4xl font-semibold tracking-tight leading-tight text-slate-50">A trip planner built for the drive.</h2>
+        <ul class="mt-6 space-y-3 text-slate-200">
+          <% [
+            ["Day-by-day plans with photos, maps, and famous-for blurbs"],
+            ["Two-voice podcast narration with tour-guide scripts"],
+            ["Drive co-pilot trivia + playlist rewards"],
+            ["Offline-first PWA — works in tunnels and dead zones"],
+            ["Share with your crew via email magic link"]
+          ].each do |item| %>
+            <li class="flex items-start gap-2.5 text-sm">
+              <span class="shrink-0 mt-0.5 inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-300">
+                <%= icon :check, class: "w-3 h-3", stroke_width: 2.5 %>
+              </span>
+              <span><%= item.first %></span>
+            </li>
+          <% end %>
+        </ul>
+        <p class="mt-6 text-xs text-slate-500">100% free, no credit card, no ads.</p>
+      </div>
     </div>
+  </aside>
 
-    <div>
-      <%= f.label :email, class: "block text-sm font-medium text-slate-300 mb-1" %>
-      <%= f.email_field :email, autocomplete: "email", required: true, class: "w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 focus:border-amber-500 focus:outline-none" %>
-    </div>
-
-    <div>
-      <%= f.label :password, class: "block text-sm font-medium text-slate-300 mb-1" %>
-      <%= f.password_field :password, autocomplete: "new-password", required: true, class: "w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 focus:border-amber-500 focus:outline-none" %>
-      <% if @minimum_password_length %>
-        <p class="text-xs text-slate-500 mt-1"><%= @minimum_password_length %> characters minimum</p>
+  <%# Right form panel %>
+  <div class="relative flex-1 flex items-center justify-center px-4 sm:px-8 py-12 bg-slate-950">
+    <div class="lg:hidden absolute top-6 left-6">
+      <%= link_to root_path, class: "flex items-center gap-2.5" do %>
+        <%= image_tag "/icon.svg", alt: "", width: 28, height: 28, class: "rounded-lg shadow-lg shadow-amber-500/20" %>
+        <span class="text-sm font-semibold tracking-tight bg-gradient-to-r from-amber-200 to-amber-400 bg-clip-text text-transparent">Plan My Trip</span>
       <% end %>
     </div>
 
-    <div>
-      <%= f.label :password_confirmation, "Confirm password", class: "block text-sm font-medium text-slate-300 mb-1" %>
-      <%= f.password_field :password_confirmation, autocomplete: "new-password", required: true, class: "w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 focus:border-amber-500 focus:outline-none" %>
+    <div class="w-full max-w-md">
+      <p class="text-[11px] uppercase tracking-[0.18em] text-amber-300 font-semibold">Start free</p>
+      <h1 class="font-display text-3xl sm:text-4xl font-semibold tracking-tight mt-2">Create your account.</h1>
+      <p class="text-sm text-slate-400 mt-2">Already a member? <%= link_to "Sign in", new_user_session_path, class: "text-amber-300 hover:text-amber-200 font-medium" %>.</p>
+
+      <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { class: "mt-8 space-y-5" }) do |f| %>
+        <% if resource.errors.any? %>
+          <div role="alert" class="rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-200 px-3.5 py-2.5 text-sm">
+            <p class="font-medium mb-1"><%= pluralize(resource.errors.count, "error") %> stopped sign up:</p>
+            <ul class="list-disc pl-5 space-y-0.5 text-xs">
+              <% resource.errors.full_messages.each do |msg| %><li><%= msg %></li><% end %>
+            </ul>
+          </div>
+        <% end %>
+
+        <div>
+          <%= f.label :name, "Your name", class: "block text-sm font-medium text-slate-200 mb-1.5" %>
+          <%= f.text_field :name, autofocus: true, required: true, placeholder: "Kalyan Setti", class: "w-full rounded-lg bg-slate-900 border border-slate-700 px-3.5 py-2.5 text-slate-100 placeholder:text-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/40 focus:outline-none transition-colors" %>
+        </div>
+
+        <div>
+          <%= f.label :email, class: "block text-sm font-medium text-slate-200 mb-1.5" %>
+          <%= f.email_field :email, autocomplete: "email", required: true, placeholder: "you@example.com", class: "w-full rounded-lg bg-slate-900 border border-slate-700 px-3.5 py-2.5 text-slate-100 placeholder:text-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/40 focus:outline-none transition-colors" %>
+        </div>
+
+        <div>
+          <%= f.label :password, class: "block text-sm font-medium text-slate-200 mb-1.5" %>
+          <%= f.password_field :password, autocomplete: "new-password", required: true, placeholder: "Choose a strong password", class: "w-full rounded-lg bg-slate-900 border border-slate-700 px-3.5 py-2.5 text-slate-100 placeholder:text-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/40 focus:outline-none transition-colors" %>
+          <% if @minimum_password_length %>
+            <p class="text-xs text-slate-500 mt-1.5"><%= @minimum_password_length %> characters minimum</p>
+          <% end %>
+        </div>
+
+        <div>
+          <%= f.label :password_confirmation, "Confirm password", class: "block text-sm font-medium text-slate-200 mb-1.5" %>
+          <%= f.password_field :password_confirmation, autocomplete: "new-password", required: true, placeholder: "Type it again", class: "w-full rounded-lg bg-slate-900 border border-slate-700 px-3.5 py-2.5 text-slate-100 placeholder:text-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/40 focus:outline-none transition-colors" %>
+        </div>
+
+        <%= f.submit "Create account", class: "w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-lg font-semibold shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40 transition-all cursor-pointer" %>
+
+        <p class="text-xs text-slate-500 text-center">By signing up, you're agreeing to be road-trip-ready. That's it. No fine print.</p>
+      <% end %>
     </div>
-
-    <%= f.submit "Sign up", class: "w-full px-4 py-2 bg-amber-500 text-slate-900 rounded-md font-medium hover:bg-amber-400 cursor-pointer" %>
-  <% end %>
-
-  <div class="mt-6 text-sm text-slate-400 text-center">
-    <%= render "devise/shared/links" %>
   </div>
 </div>

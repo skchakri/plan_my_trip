@@ -17,7 +17,7 @@ class ApplicationController < ActionController::Base
       session.delete(:invitation_email)
       invitation_path(token)
     else
-      super
+      stored_location_for(resource) || trips_path
     end
   end
 

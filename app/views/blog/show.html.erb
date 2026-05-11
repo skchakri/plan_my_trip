@@ -1,0 +1,64 @@
+<% content_for :title, "#{@post.title} · Plan My Trip" %>
+<% content_for :description, @post.excerpt if @post.excerpt.present? %>
+
+<%# Hero cover with overlaid title %>
+<section class="relative">
+  <div class="absolute inset-0 overflow-hidden">
+    <% if @post.cover.present? %>
+      <img src="<%= @post.cover %>" alt="" loading="eager" class="absolute inset-0 w-full h-full object-cover opacity-40">
+    <% end %>
+    <div class="absolute inset-0 bg-gradient-to-b from-slate-950/60 via-slate-950/85 to-slate-950"></div>
+  </div>
+  <div class="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-10 sm:pt-40 sm:pb-14">
+    <%= link_to blog_index_path, class: "inline-flex items-center gap-1 text-sm text-slate-400 hover:text-amber-300 transition-colors mb-6" do %>
+      <%= icon :arrow_left, class: "w-4 h-4" %> Back to the blog
+    <% end %>
+    <% if @post.tag.present? %>
+      <p class="text-[11px] uppercase tracking-[0.18em] text-amber-300 font-semibold mb-3"><%= @post.tag %></p>
+    <% end %>
+    <h1 class="font-display text-3xl sm:text-5xl font-semibold tracking-tight leading-[1.1]"><%= @post.title %></h1>
+    <% if @post.excerpt.present? %>
+      <p class="mt-5 text-lg text-slate-300 leading-relaxed"><%= @post.excerpt %></p>
+    <% end %>
+    <div class="mt-6 flex items-center gap-3 text-sm text-slate-400">
+      <% if @post.author.present? %><span class="font-medium text-slate-200"><%= @post.author %></span><span aria-hidden="true" class="text-slate-700">·</span><% end %>
+      <% if @post.published_on.present? %><time datetime="<%= @post.published_on.iso8601 %>"><%= @post.published_on.strftime("%B %-d, %Y") %></time><% end %>
+      <% if @post.reading_minutes.present? %><span aria-hidden="true" class="text-slate-700">·</span><span><%= @post.reading_minutes %> min read</span><% end %>
+    </div>
+  </div>
+</section>
+
+<section class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+  <article class="prose-invert max-w-none text-base sm:text-lg leading-relaxed">
+    <%= render_markdown(@post.body) %>
+  </article>
+</section>
+
+<% if @related.any? %>
+  <section class="border-t border-slate-800/70 bg-slate-950/60">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <p class="text-[11px] uppercase tracking-[0.18em] text-amber-300 font-semibold mb-2">Keep reading</p>
+      <h2 class="font-display text-2xl sm:text-3xl font-semibold tracking-tight mb-8">More from the road</h2>
+      <div class="grid gap-5 sm:grid-cols-2">
+        <% @related.each do |p| %>
+          <%= link_to blog_path(p), class: "group rounded-2xl overflow-hidden border border-slate-800 bg-slate-900/40 hover:border-amber-500/40 transition-colors flex" do %>
+            <div class="relative w-28 sm:w-36 shrink-0 bg-slate-800 overflow-hidden">
+              <% if p.cover.present? %>
+                <img src="<%= p.cover %>" alt="" loading="lazy" class="absolute inset-0 w-full h-full object-cover">
+              <% end %>
+            </div>
+            <div class="p-4 flex-1 min-w-0">
+              <% if p.tag.present? %>
+                <p class="text-[10px] uppercase tracking-widest text-amber-300 font-semibold mb-1"><%= p.tag %></p>
+              <% end %>
+              <h3 class="font-display text-base font-semibold tracking-tight leading-snug line-clamp-2 group-hover:text-amber-100 transition-colors"><%= p.title %></h3>
+              <% if p.published_on.present? %>
+                <p class="text-xs text-slate-500 mt-2"><%= p.published_on.strftime("%b %-d, %Y") %></p>
+              <% end %>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  </section>
+<% end %>

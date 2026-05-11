@@ -1,4 +1,6 @@
 class Users::RegistrationsController < Devise::RegistrationsController
+  layout "auth", only: [ :new, :create ]
+
   def new
     super do |resource|
       if (email = session[:invitation_email]).present? && resource.email.blank?

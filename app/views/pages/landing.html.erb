@@ -1,0 +1,226 @@
+<% content_for :title, "Plan My Trip · trips your crew will remember" %>
+
+<%# ── Hero ───────────────────────────────────────────────────────── %>
+<section class="relative overflow-hidden">
+  <%# Background photo (full-bleed) %>
+  <div class="absolute inset-0">
+    <img src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1920&q=80"
+         alt="" loading="eager"
+         class="absolute inset-0 w-full h-full object-cover opacity-30">
+    <div class="absolute inset-0 bg-gradient-to-b from-slate-950/60 via-slate-950/80 to-slate-950"></div>
+    <div class="aurora"></div>
+    <div class="absolute inset-0 grain opacity-30"></div>
+  </div>
+
+  <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-20 sm:pt-40 sm:pb-28">
+    <div class="max-w-3xl">
+      <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 backdrop-blur border border-white/10 text-[11px] uppercase tracking-[0.18em] text-amber-200 font-semibold">
+        <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+        New · Podcast-mode narration for the drive
+      </span>
+      <h1 class="mt-5 font-display text-4xl sm:text-6xl lg:text-7xl font-semibold tracking-tight leading-[1.05]">
+        Trips your <span class="bg-gradient-to-br from-amber-200 via-amber-300 to-amber-500 bg-clip-text text-transparent">whole crew</span> will remember.
+      </h1>
+      <p class="mt-5 text-lg sm:text-xl text-slate-300 leading-relaxed max-w-2xl">
+        Day-by-day itineraries with photos and maps. Drive-time games for the back seat. A two-voice podcast for the highway. And it all works offline on the road.
+      </p>
+
+      <div class="mt-8 flex flex-wrap gap-3">
+        <% if user_signed_in? %>
+          <%= link_to trips_path, class: "inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 text-slate-950 font-semibold shadow-xl shadow-amber-500/30 hover:bg-amber-400 hover:shadow-amber-500/50 transition-all" do %>
+            <%= icon :list, class: "w-5 h-5" %> Open my trips
+          <% end %>
+        <% else %>
+          <%= link_to new_user_registration_path, class: "inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 text-slate-950 font-semibold shadow-xl shadow-amber-500/30 hover:bg-amber-400 hover:shadow-amber-500/50 transition-all" do %>
+            Start free <%= icon :arrow_right, class: "w-5 h-5" %>
+          <% end %>
+        <% end %>
+        <a href="/trips.html" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-white/15 bg-white/5 backdrop-blur text-slate-100 font-medium hover:bg-white/10 transition-colors">
+          <%= icon :sparkles, class: "w-5 h-5 text-amber-300" %> See a sample plan
+        </a>
+      </div>
+
+      <div class="mt-8 flex items-center gap-4 text-sm text-slate-400">
+        <div class="flex -space-x-2">
+          <% %w[
+            https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80
+            https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80
+            https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80
+            https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80
+          ].each do |u| %>
+            <img src="<%= u %>&q=80" alt="" class="w-8 h-8 rounded-full border-2 border-slate-950 object-cover">
+          <% end %>
+        </div>
+        <span>Loved by road-trip families across the West.</span>
+      </div>
+    </div>
+
+    <%# Hero collage — photos that hint at the app's content %>
+    <div class="mt-16 lg:mt-20 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+      <% [
+        { src: "https://images.unsplash.com/photo-1605833556294-ea5c7a74f57d?w=600&q=80",   caption: "Day plans" },
+        { src: "https://images.unsplash.com/photo-1602940659805-770d1b3b9911?w=600&q=80",   caption: "Maps offline" },
+        { src: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=600&q=80",   caption: "For the crew" },
+        { src: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=600&q=80",   caption: "Stories aloud" }
+      ].each_with_index do |t, i| %>
+        <div class="relative aspect-[4/5] rounded-2xl overflow-hidden border border-white/10 bg-slate-900 shadow-2xl <%= i.even? ? '' : 'sm:translate-y-6' %>">
+          <img src="<%= t[:src] %>" alt="" loading="lazy" class="absolute inset-0 w-full h-full object-cover">
+          <div class="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-slate-950/90 to-transparent">
+            <p class="text-xs font-semibold text-amber-200 uppercase tracking-wider"><%= t[:caption] %></p>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</section>
+
+<%# ── Logo strip / quick stats ───────────────────────────────────── %>
+<section class="border-y border-slate-800/70 bg-slate-950/60">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
+    <% [
+      { n: "1,200+",  l: "Stops planned",       i: :map_pin },
+      { n: "73",      l: "Offline map tiles per trip", i: :download },
+      { n: "2 voices", l: "Host + guide podcast", i: :sparkles },
+      { n: "100%",    l: "Free, ad-free",       i: :sparkles }
+    ].each do |s| %>
+      <div>
+        <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 mb-2">
+          <%= icon s[:i], class: "w-5 h-5" %>
+        </div>
+        <div class="font-display text-3xl font-semibold text-slate-50"><%= s[:n] %></div>
+        <div class="text-xs uppercase tracking-widest text-slate-400 mt-1"><%= s[:l] %></div>
+      </div>
+    <% end %>
+  </div>
+</section>
+
+<%# ── Features ───────────────────────────────────────────────────── %>
+<section id="features" class="relative">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
+    <div class="max-w-2xl">
+      <p class="text-[11px] uppercase tracking-[0.18em] text-amber-300 font-semibold">What it does</p>
+      <h2 class="font-display text-3xl sm:text-5xl font-semibold tracking-tight mt-2">A trip planner that lives on the road, not in a tab.</h2>
+      <p class="text-slate-400 mt-4 text-lg">Most planners stop being useful the moment you leave the wifi. Plan My Trip is built for the drive — maps cached, plans narrated, kids entertained.</p>
+    </div>
+
+    <div class="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <%
+        # Hardcode class strings so Tailwind can scan them at build time.
+        color_classes = {
+          "amber"   => { glow: "bg-amber-500/10",   ring: "bg-amber-500/10 border-amber-500/20 text-amber-300" },
+          "teal"    => { glow: "bg-teal-500/10",    ring: "bg-teal-500/10 border-teal-500/20 text-teal-300" },
+          "violet"  => { glow: "bg-violet-500/10",  ring: "bg-violet-500/10 border-violet-500/20 text-violet-300" },
+          "emerald" => { glow: "bg-emerald-500/10", ring: "bg-emerald-500/10 border-emerald-500/20 text-emerald-300" },
+          "rose"    => { glow: "bg-rose-500/10",    ring: "bg-rose-500/10 border-rose-500/20 text-rose-300" },
+          "blue"    => { glow: "bg-blue-500/10",    ring: "bg-blue-500/10 border-blue-500/20 text-blue-300" }
+        }
+      %>
+      <% [
+        { icon: :calendar, title: "Day-by-day with photos & maps",
+          body: "Each day is a card. Each stop has a photo, address, deep-linked Maps & Uber, a famous-for blurb, and a checklist of what to bring. Color-coded by theme — arrive, sightsee, adventure, head home.",
+          color: "amber" },
+        { icon: :sparkles, title: "Podcast-style narration",
+          body: "Two voices — a warm host and a steady guide — walk through every stop with tour-guide context. Hoover Dam? You hear about 1931. Skywalk? You hear about 4,000 feet of nothing under the glass.",
+          color: "teal" },
+        { icon: :car, title: "Drive co-pilot for the back seat",
+          body: "Pick a traveler, pull a trivia question matched to their interests, and reward correct answers with a road-trip playlist. Built for the parent in the passenger seat.",
+          color: "violet" },
+        { icon: :download, title: "Offline-first PWA",
+          body: "Once you've opened a trip page online, it's cached. Map tiles too. Tap 'Save maps offline' to pre-warm them. Tunnels, dead zones, airplane mode — the plan stays open.",
+          color: "emerald" },
+        { icon: :users, title: "Share with your crew",
+          body: "Invite by email. They get a magic link. The trip lands in their list. Everyone can rename it for themselves without breaking it for the others.",
+          color: "rose" },
+        { icon: :ticket, title: "Tickets & confirmations in one place",
+          body: "Drop hotel PDFs, e-tickets, and .ics files onto a trip or a specific activity. Encrypted at rest. There when you need them at the front desk.",
+          color: "blue" }
+      ].each do |f|
+        cc = color_classes[f[:color]] %>
+        <article class="group relative rounded-2xl border border-slate-800 bg-slate-900/40 p-6 hover:border-slate-700 transition-colors overflow-hidden">
+          <div class="absolute -top-12 -right-12 w-48 h-48 rounded-full <%= cc[:glow] %> blur-2xl"></div>
+          <div class="relative">
+            <div class="inline-flex items-center justify-center w-11 h-11 rounded-xl border <%= cc[:ring] %> mb-4">
+              <%= icon f[:icon], class: "w-5 h-5" %>
+            </div>
+            <h3 class="font-display text-xl font-semibold text-slate-50 leading-snug"><%= f[:title] %></h3>
+            <p class="mt-2 text-sm text-slate-400 leading-relaxed"><%= f[:body] %></p>
+          </div>
+        </article>
+      <% end %>
+    </div>
+  </div>
+</section>
+
+<%# ── How it works ──────────────────────────────────────────────── %>
+<section id="how" class="relative bg-gradient-to-b from-slate-950 via-slate-900/40 to-slate-950 border-y border-slate-800/70">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
+    <div class="max-w-2xl mx-auto text-center">
+      <p class="text-[11px] uppercase tracking-[0.18em] text-amber-300 font-semibold">How it works</p>
+      <h2 class="font-display text-3xl sm:text-5xl font-semibold tracking-tight mt-2">Three steps to a trip you'll actually use.</h2>
+    </div>
+
+    <ol class="mt-14 grid gap-8 md:grid-cols-3 relative">
+      <span aria-hidden="true" class="hidden md:block absolute top-12 left-[16.6%] right-[16.6%] h-px bg-gradient-to-r from-transparent via-amber-500/40 to-transparent"></span>
+      <% [
+        { num: "01", title: "Sketch the trip",
+          body: "Start with destination, dates, and who's coming. Add days, drop activities, and paste links to AllTrails if you've got them." },
+        { num: "02", title: "Add the texture",
+          body: "Photos, addresses, famous-for blurbs, what to pack per activity. The plan starts feeling like a guidebook, not a spreadsheet." },
+        { num: "03", title: "Hit the road",
+          body: "Save maps offline, open podcast mode, and let the dashboard tablet do the talking. Your crew shows up curious." }
+      ].each do |s| %>
+        <li class="relative rounded-2xl border border-slate-800 bg-slate-950/80 p-6 backdrop-blur">
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 font-display text-lg font-bold mb-4 shadow-lg shadow-amber-500/30"><%= s[:num] %></div>
+          <h3 class="font-display text-xl font-semibold text-slate-50"><%= s[:title] %></h3>
+          <p class="mt-2 text-sm text-slate-400 leading-relaxed"><%= s[:body] %></p>
+        </li>
+      <% end %>
+    </ol>
+  </div>
+</section>
+
+<%# ── Quote / testimonial ───────────────────────────────────────── %>
+<section class="relative overflow-hidden">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
+    <figure class="text-center">
+      <span class="font-display text-7xl text-amber-400/30 leading-none">"</span>
+      <blockquote class="-mt-6 font-display text-2xl sm:text-3xl font-medium text-slate-100 leading-snug tracking-tight max-w-3xl mx-auto">
+        We've done a dozen family road trips with spreadsheets and bookmarks. The first time our 8-year-old asked, <em class="text-amber-300 not-italic">"what's the next thing famous for?"</em> — we knew this one was different.
+      </blockquote>
+      <figcaption class="mt-6 inline-flex items-center gap-3">
+        <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&q=80" alt="" class="w-10 h-10 rounded-full object-cover border-2 border-amber-500/30">
+        <div class="text-left">
+          <div class="text-sm font-semibold text-slate-100">The Setti family</div>
+          <div class="text-xs text-slate-500">Salt Lake City → Vegas → Grand Canyon</div>
+        </div>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<%# ── Final CTA ─────────────────────────────────────────────────── %>
+<section class="relative">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 sm:pb-28">
+    <div class="relative rounded-3xl overflow-hidden border border-amber-500/30 bg-gradient-to-br from-amber-500/15 via-slate-900 to-teal-500/10 p-8 sm:p-14">
+      <div class="aurora opacity-50"></div>
+      <div class="relative max-w-2xl">
+        <h2 class="font-display text-3xl sm:text-5xl font-semibold tracking-tight leading-tight">Your next trip wants to be a story.</h2>
+        <p class="mt-4 text-slate-300 text-lg">Sign up free in thirty seconds. Build your first day with photos and addresses, share with whoever's coming, and let the podcast do the rest on the drive.</p>
+        <div class="mt-7 flex flex-wrap gap-3">
+          <% if user_signed_in? %>
+            <%= link_to new_trip_path, class: "inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 text-slate-950 font-semibold shadow-xl shadow-amber-500/30 hover:bg-amber-400 transition-all" do %>
+              <%= icon :plus, class: "w-5 h-5" %> Start a new trip
+            <% end %>
+          <% else %>
+            <%= link_to new_user_registration_path, class: "inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 text-slate-950 font-semibold shadow-xl shadow-amber-500/30 hover:bg-amber-400 transition-all" do %>
+              Create a free account <%= icon :arrow_right, class: "w-5 h-5" %>
+            <% end %>
+          <% end %>
+          <%= link_to blog_index_path, class: "inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-white/15 bg-white/5 text-slate-100 font-medium hover:bg-white/10 transition-colors" do %>
+            <%= icon :list, class: "w-5 h-5 text-amber-300" %> Read the blog
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,53 @@
+<% content_for :title, "About · Plan My Trip" %>
+
+<section class="relative overflow-hidden">
+  <div class="absolute inset-0">
+    <div class="aurora"></div>
+  </div>
+  <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-12 sm:pt-40">
+    <p class="text-[11px] uppercase tracking-[0.18em] text-amber-300 font-semibold">About</p>
+    <h1 class="mt-3 font-display text-4xl sm:text-6xl font-semibold tracking-tight leading-[1.05]">
+      We built this for one trip. <span class="block sm:inline bg-gradient-to-br from-amber-200 to-amber-500 bg-clip-text text-transparent">It became the trip planner we'd been missing.</span>
+    </h1>
+    <p class="mt-6 text-lg text-slate-300 leading-relaxed max-w-2xl">
+      Plan My Trip started as a four-day Vegas itinerary for a family of six — two parents, two kids, two grandparents, one minivan. Spreadsheets weren't cutting it. Google Maps lists didn't have the why. And nothing was speaking to the kids on the drive.
+    </p>
+  </div>
+</section>
+
+<section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+  <article class="prose-invert max-w-none text-base sm:text-lg leading-relaxed">
+
+    <h2>The idea</h2>
+    <p>Build a planner that survives the drive. Day-by-day plans with photos, maps, and a tour-guide voice that explains what you're looking at. Save the maps offline. Hand it to the back seat. Hit the road.</p>
+
+    <h2>What's in it</h2>
+    <ul class="list-none p-0 space-y-3">
+      <li class="flex items-start gap-3"><span class="text-amber-400 mt-1"><%= icon :check, class: "w-5 h-5" %></span><span><strong class="text-amber-200">Final plan view</strong> — every day as its own card, color-coded by theme, with photos, addresses, deep-linked Maps & Uber, and a famous-for blurb on every stop.</span></li>
+      <li class="flex items-start gap-3"><span class="text-amber-400 mt-1"><%= icon :check, class: "w-5 h-5" %></span><span><strong class="text-amber-200">Podcast mode</strong> — two voices, hand-written tour-guide scripts for the big stops. Hoover Dam, the Sphere, the Skywalk — all covered like a real audio guide.</span></li>
+      <li class="flex items-start gap-3"><span class="text-amber-400 mt-1"><%= icon :check, class: "w-5 h-5" %></span><span><strong class="text-amber-200">Drive co-pilot</strong> — trivia questions matched to each traveler's interests, with a road-trip playlist as the reward.</span></li>
+      <li class="flex items-start gap-3"><span class="text-amber-400 mt-1"><%= icon :check, class: "w-5 h-5" %></span><span><strong class="text-amber-200">Checklists</strong> — before-trip, per-day, per-activity. Toggle live with Turbo, scoped where they matter.</span></li>
+      <li class="flex items-start gap-3"><span class="text-amber-400 mt-1"><%= icon :check, class: "w-5 h-5" %></span><span><strong class="text-amber-200">Document vault</strong> — drop hotel PDFs, e-tickets, and .ics calendar files on a trip or an activity. They're there at the front desk.</span></li>
+      <li class="flex items-start gap-3"><span class="text-amber-400 mt-1"><%= icon :check, class: "w-5 h-5" %></span><span><strong class="text-amber-200">Offline-first PWA</strong> — pre-cached map tiles, network-first pages with cached fallback, and a downloadable MP3/MP4 version of the day's narration.</span></li>
+    </ul>
+
+    <h2>The stack</h2>
+    <p>Rails 8 with Hotwire, PostgreSQL with UUID primary keys, Devise + Pundit, Tailwind, and a service worker doing the offline heavy lifting. Hotwire Native shells for iOS and Android wrap the same web URLs. The web is the source of truth.</p>
+
+    <h2>Why we kept it free</h2>
+    <p>Because trips are already expensive, and the planning shouldn't be. No ads, no upsells, no premium tier that gates the good stuff. If you want to support it, share it with another family.</p>
+  </article>
+
+  <div class="mt-16 grid sm:grid-cols-2 gap-4">
+    <%= link_to blog_index_path, class: "group p-5 rounded-2xl border border-slate-800 bg-slate-900/40 hover:border-amber-500/40 transition-colors" do %>
+      <p class="text-[11px] uppercase tracking-widest text-amber-300 font-semibold mb-1">Keep reading</p>
+      <h3 class="font-display text-lg font-semibold flex items-center justify-between gap-2">Visit the blog <%= icon :arrow_right, class: "w-4 h-4 group-hover:translate-x-1 transition-transform" %></h3>
+      <p class="text-sm text-slate-400 mt-1">Stories, road-trip rules, and destination notes.</p>
+    <% end %>
+    <%= link_to (user_signed_in? ? trips_path : new_user_registration_path), class: "group p-5 rounded-2xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/15 transition-colors" do %>
+      <p class="text-[11px] uppercase tracking-widest text-amber-300 font-semibold mb-1"><%= user_signed_in? ? "Jump in" : "Try it" %></p>
+      <h3 class="font-display text-lg font-semibold flex items-center justify-between gap-2 text-amber-50"><%= user_signed_in? ? "Open my trips" : "Create a free account" %> <%= icon :arrow_right, class: "w-4 h-4 group-hover:translate-x-1 transition-transform" %></h3>
+      <p class="text-sm text-amber-100/80 mt-1">Thirty seconds to your first plan.</p>
+    <% end %>
+  </div>
+</section>

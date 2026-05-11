@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+  <head>
+    <title><%= content_for(:title) || "Plan My Trip" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+    <meta name="theme-color" content="#0a0e1a">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= yield :head %>
+
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
+
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+
+    <style>
+      :root { --font-sans: 'Inter', system-ui, sans-serif; --font-display: 'Fraunces', Georgia, serif; }
+      html, body { font-family: var(--font-sans); }
+      .font-display { font-family: var(--font-display); letter-spacing: -0.02em; }
+      *:focus-visible { outline: 2px solid #f0b870; outline-offset: 2px; border-radius: 6px; }
+      input:focus-visible, select:focus-visible, textarea:focus-visible { outline: none; }
+
+      .aurora { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+      .aurora::before, .aurora::after {
+        content: ""; position: absolute; border-radius: 9999px; filter: blur(80px); opacity: 0.55;
+        animation: drift 18s ease-in-out infinite alternate;
+      }
+      .aurora::before { width: 520px; height: 520px; background: radial-gradient(circle, rgba(232,160,79,.55), transparent 60%); top: -120px; left: -80px; }
+      .aurora::after  { width: 620px; height: 620px; background: radial-gradient(circle, rgba(93,195,184,.45), transparent 60%); bottom: -120px; right: -120px; animation-delay: -6s; }
+      @keyframes drift { from { transform: translate3d(0,0,0); } to { transform: translate3d(40px, -30px, 0); } }
+      @media (prefers-reduced-motion: reduce) { .aurora::before, .aurora::after { animation: none; } }
+    </style>
+  </head>
+
+  <body class="bg-slate-950 text-slate-100 antialiased min-h-full">
+    <% if notice.present? %>
+      <div class="fixed top-4 inset-x-0 z-40 px-4 flex justify-center pointer-events-none">
+        <div role="status" class="pointer-events-auto rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-100 backdrop-blur px-4 py-2.5 text-sm shadow-xl"><%= notice %></div>
+      </div>
+    <% end %>
+    <% if alert.present? %>
+      <div class="fixed top-4 inset-x-0 z-40 px-4 flex justify-center pointer-events-none">
+        <div role="alert" class="pointer-events-auto rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-100 backdrop-blur px-4 py-2.5 text-sm shadow-xl"><%= alert %></div>
+      </div>
+    <% end %>
+
+    <%= yield %>
+  </body>
+</html>
