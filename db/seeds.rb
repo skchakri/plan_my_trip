@@ -340,3 +340,13 @@ end
 
 puts "Seeded: #{demo.email} / password123"
 puts "Trips: #{Trip.count}, Trails: #{Trail.count}, Checklist items: #{ChecklistItem.count}, Days: #{TripDay.count}, Activities: #{Activity.count}, Travelers: #{Person.count}"
+
+puts "\nSeeding AI prompts…"
+load Rails.root.join("db/seed_ai_prompts.rb").to_s
+
+if (admin = User.find_by(email: "skchakri@gmail.com"))
+  admin.update_column(:admin, true) unless admin.admin?
+  puts "Admin user: #{admin.email}"
+else
+  puts "(skchakri@gmail.com not registered yet — sign up then re-run db:seed to be promoted to admin.)"
+end

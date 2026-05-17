@@ -66,6 +66,30 @@
     </div>
   </fieldset>
 
+  <fieldset class="rounded-2xl border border-amber-500/20 bg-amber-500/[0.03] p-5 sm:p-6 space-y-4"
+            data-controller="nested-form">
+    <legend class="px-2 text-xs uppercase tracking-widest text-amber-300 font-semibold">Travelers · names + interests</legend>
+    <p class="text-xs text-slate-400 leading-relaxed">Used by the podcast intro/outro and the Drive co-pilot game. Pick a few interests for each person — the co-pilot picks trivia and playlists from those.</p>
+
+    <div data-nested-form-target="container" class="space-y-3">
+      <%= f.fields_for :people do |pf| %>
+        <%= render "trips/person_fields", pf: pf, input_classes: input_classes, label_classes: label_classes %>
+      <% end %>
+    </div>
+
+    <template data-nested-form-target="template">
+      <%= f.fields_for :people, Person.new, child_index: "NEW_RECORD" do |pf| %>
+        <%= render "trips/person_fields", pf: pf, input_classes: input_classes, label_classes: label_classes %>
+      <% end %>
+    </template>
+
+    <button type="button"
+            data-action="nested-form#add"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-amber-500/15 text-amber-200 border border-amber-500/30 hover:bg-amber-500/25 cursor-pointer">
+      <%= icon :plus, class: "w-4 h-4" %> Add another traveler
+    </button>
+  </fieldset>
+
   <fieldset class="rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.03] p-5 sm:p-6 space-y-4">
     <legend class="px-2 text-xs uppercase tracking-widest text-emerald-300 font-semibold">Trails · AllTrails</legend>
     <p class="text-xs text-slate-400 leading-relaxed">Paste an AllTrails URL for each hike. Trip members get one-tap "Open in AllTrails" — Pro features apply natively if they're signed in.</p>

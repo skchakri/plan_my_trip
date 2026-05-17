@@ -22,8 +22,8 @@
 
     <style>
       :root { --font-sans: 'Inter', system-ui, sans-serif; --font-display: 'Fraunces', Georgia, serif; }
-      html, body { font-family: var(--font-sans); font-feature-settings: 'cv11', 'ss01'; }
-      .font-display { font-family: var(--font-display); letter-spacing: -0.02em; }
+      html, body { font-family: var(--font-sans); font-feature-settings: 'cv11', 'ss01'; font-synthesis-weight: none; }
+      .font-display { font-family: var(--font-display); letter-spacing: -0.02em; font-synthesis-weight: none; }
       *:focus-visible { outline: 2px solid #f0b870; outline-offset: 2px; border-radius: 6px; }
       input:focus-visible, select:focus-visible, textarea:focus-visible { outline: none; }
 
@@ -47,29 +47,10 @@
   </head>
 
   <body class="bg-slate-950 text-slate-100 antialiased min-h-full flex flex-col">
-    <%# ── Top nav ──────────────────────────────────────────────── %>
+    <%# ── Top nav — `absolute` so it overlays the aurora hero. Same
+        contents as the in-app sticky header (shared partial). %>
     <header class="absolute top-0 inset-x-0 z-30">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between gap-4">
-        <%= link_to root_path, class: "flex items-center gap-2.5 group" do %>
-          <%= image_tag "/icon.svg", alt: "", width: 32, height: 32, class: "rounded-lg shadow-lg shadow-amber-500/20 group-hover:shadow-amber-500/40 transition-shadow" %>
-          <span class="text-[15px] font-semibold tracking-tight bg-gradient-to-r from-amber-200 to-amber-400 bg-clip-text text-transparent">Plan My Trip</span>
-        <% end %>
-
-        <nav class="flex items-center gap-1 text-sm">
-          <%= link_to "Blog",  blog_index_path, class: "hidden sm:inline-block px-3 py-1.5 rounded-md text-slate-300 hover:text-white hover:bg-white/5 transition-colors" %>
-          <%= link_to "About", about_path,      class: "hidden sm:inline-block px-3 py-1.5 rounded-md text-slate-300 hover:text-white hover:bg-white/5 transition-colors" %>
-          <% if user_signed_in? %>
-            <%= link_to trips_path, class: "ml-1 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-semibold text-sm shadow-lg shadow-amber-500/20 hover:bg-amber-400 hover:shadow-amber-500/40 transition-all" do %>
-              <%= icon :list, class: "w-4 h-4" %> Open my trips
-            <% end %>
-          <% else %>
-            <%= link_to "Sign in", new_user_session_path, class: "px-3 py-1.5 rounded-md text-slate-300 hover:text-white hover:bg-white/5 transition-colors" %>
-            <%= link_to new_user_registration_path, class: "ml-1 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-semibold text-sm shadow-lg shadow-amber-500/20 hover:bg-amber-400 hover:shadow-amber-500/40 transition-all" do %>
-              Start free <%= icon :arrow_right, class: "w-4 h-4" %>
-            <% end %>
-          <% end %>
-        </nav>
-      </div>
+      <%= render "layouts/site_nav" %>
     </header>
 
     <%# ── Flash ────────────────────────────────────────────────── %>
@@ -116,7 +97,7 @@
           <ul class="space-y-2 text-sm">
             <li><%= link_to "Blog",     blog_index_path, class: "text-slate-300 hover:text-amber-300" %></li>
             <li><%= link_to "About",    about_path,      class: "text-slate-300 hover:text-amber-300" %></li>
-            <li><a href="/trips.html" class="text-slate-300 hover:text-amber-300">Static itineraries</a></li>
+            <li><a href="/sample-trips.html" class="text-slate-300 hover:text-amber-300">Static itineraries</a></li>
           </ul>
         </div>
         <div>

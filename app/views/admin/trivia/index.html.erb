@@ -1,0 +1,86 @@
+<% content_for :title, "Trivia · Admin" %>
+
+<div class="mb-4">
+  <h1 class="font-display text-2xl font-semibold">Trivia questions</h1>
+  <p class="text-sm text-slate-400">DB-backed questions powering the Drive Co-Pilot road-trip game. Curated by interest tag; seeded from <code class="px-1 rounded bg-slate-800 text-slate-300">TriviaPool::SEED_POOL</code>, extended via AI + manual edits.</p>
+</div>
+
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+  <% [
+    ["Total",       @stats[:total]],
+    ["Global",      @stats[:global]],
+    ["Trip-scoped", @stats[:trip]],
+    ["Answered",    @stats[:answered]]
+  ].each do |label, value| %>
+    <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-3">
+      <p class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold"><%= label %></p>
+      <p class="font-display text-2xl font-semibold mt-1 tabular-nums"><%= value.to_i %></p>
+    </div>
+  <% end %>
+</div>
+
+<section class="mb-6">
+  <h2 class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-2">By source</h2>
+  <div class="flex flex-wrap gap-2 text-xs">
+    <% @sources.each do |source, count| %>
+      <span class="px-2 py-1 rounded-md bg-slate-900/60 border border-slate-700 text-slate-300">
+        <span class="uppercase tracking-widest text-slate-500"><%= source %></span>
+        <span class="ml-1 tabular-nums"><%= count %></span>
+      </span>
+    <% end %>
+  </div>
+</section>
+
+<section class="mb-6 rounded-xl border border-amber-500/30 bg-amber-500/[0.04] p-4">
+  <div class="flex items-start justify-between gap-3 flex-wrap">
+    <div>
+      <h2 class="text-sm font-semibold text-amber-200 inline-flex items-center gap-1.5">
+        <%= icon :sparkles, class: "w-4 h-4" %> Riddles
+      </h2>
+      <p class="text-xs text-slate-400 mt-1 max-w-lg leading-relaxed">
+        Generates 10 family-friendly riddles via the local Claude CLI subscription (no metered API usage). Duplicates are skipped.
+      </p>
+    </div>
+    <%= button_to generate_riddles_admin_trivia_path,
+                  method: :post,
+                  data: { turbo_confirm: "Generate a batch of 10 riddles via Claude CLI subscription?" },
+                  class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 text-xs font-semibold hover:bg-amber-400" do %>
+      Generate 10 riddles
+    <% end %>
+  </div>
+</section>
+
+<h2 class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-2">By tag</h2>
+
+<% if @tags.empty? %>
+  <p class="text-sm text-slate-500 italic">No questions in the DB yet. Run the seed task to load <code>TriviaPool::SEED_POOL</code>.</p>
+<% else %>
+  <div class="rounded-xl border border-slate-800 overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-slate-900/60 text-[10px] uppercase tracking-widest text-slate-500">
+        <tr>
+          <th class="text-left px-3 py-2">Tag</th>
+          <th class="text-right px-3 py-2">Questions</th>
+          <th class="text-left px-3 py-2">Preview</th>
+          <th class="px-3 py-2"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-800/60">
+        <% @tags.each do |tag, count|
+             preview = TriviaQuestion.kept.for_tag(tag).order(:created_at).first %>
+          <tr class="hover:bg-slate-900/40">
+            <td class="px-3 py-2">
+              <%= link_to tag.humanize, admin_trivium_path(tag), class: "text-amber-300 hover:text-amber-200 font-medium" %>
+              <div class="text-[11px] text-slate-500"><%= tag %></div>
+            </td>
+            <td class="px-3 py-2 text-right tabular-nums"><%= count %></td>
+            <td class="px-3 py-2 text-xs text-slate-400 truncate max-w-md"><%= preview&.question %></td>
+            <td class="px-3 py-2 text-right">
+              <%= link_to "view all", admin_trivium_path(tag), class: "text-xs text-slate-400 hover:text-amber-300" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>

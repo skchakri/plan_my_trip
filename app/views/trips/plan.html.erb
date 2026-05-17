@@ -3,7 +3,16 @@
 <%# Per-day accent colours via CSS variables — Tailwind won't compile dynamic classes,
     so we set --accent on each day card and the rules below pick that up. %>
 <% content_for :head do %>
+<%= stylesheet_link_tag "leaflet", "data-turbo-track": "reload" %>
 <style>
+  /* Leaflet dark-mode tweaks — match the slate palette of the app */
+  .leaflet-container { background: #0a0e1a; }
+  .leaflet-control-zoom a { background: rgba(15,23,42,.92); color: #e2e8f0; border: 1px solid rgba(71,85,105,.5); }
+  .leaflet-control-zoom a:hover { background: rgba(30,41,59,.95); color: #fde68a; }
+  .leaflet-control-attribution { background: rgba(15,23,42,.7); color: #94a3b8; font-size: 10px; }
+  .leaflet-control-attribution a { color: #fbbf24; }
+  .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: #f8fafc; }
+
   [data-accent="blue"]    { --accent: 108 163 232; --accent-soft: rgba(108,163,232,.12); --accent-strong: rgba(108,163,232,.30); }
   [data-accent="gold"]    { --accent: 232 160 79;  --accent-soft: rgba(232,160,79,.12);  --accent-strong: rgba(232,160,79,.30); }
   [data-accent="teal"]    { --accent: 93 195 184;  --accent-soft: rgba(93,195,184,.12);  --accent-strong: rgba(93,195,184,.30); }
@@ -41,17 +50,82 @@
 <%# Trip-level controls: Read whole plan (modal) + Drive co-pilot + Save maps offline %>
 <%
   map_tile_urls = @days.flat_map { |d| d.activities.map { |a| a.map_tiles&.dig(:tiles) }.compact }.flatten.uniq
+  activity_stops = @days.flat_map(&:activities).filter_map do |a|
+    next unless a.latitude.present? && a.longitude.present? && a.guide_script.to_s.strip.present?
+    {
+      id: a.id,
+      name: a.location_name.presence || a.title,
+      kind: "itinerary",
+      lat: a.latitude.to_f,
+      lng: a.longitude.to_f,
+      script: a.guide_script.to_s.strip,
+      image_url: a.hero_image_url.presence
+    }
+  end
+  landmark_stops = @trip.route_landmarks.filter_map do |l|
+    next if l.narration.to_s.strip.blank?
+    {
+      id: l.client_id,
+      name: l.name,
+      kind: l.kind.presence || "scenic",
+      lat: l.latitude.to_f,
+      lng: l.longitude.to_f,
+      script: l.narration.to_s.strip,
+      image_url: l.image_url.presence
+    }
+  end
+  # Layer the shared catalog onto the trip-scoped narrations: any
+  # marquee landmark within ~10 mi of the route gets read by the Drive
+  # Co-Pilot too. Name-dedup happens in Trip#nearby_global_landmarks.
+  global_landmark_stops = @trip.nearby_global_landmarks(radius_m: 16_000).filter_map do |l|
+    next if l.narration.to_s.strip.blank?
+    {
+      id: l.client_id,
+      name: l.name,
+      kind: l.kind.presence || "scenic",
+      lat: l.latitude.to_f,
+      lng: l.longitude.to_f,
+      script: l.narration.to_s.strip,
+      image_url: l.image_url.presence,
+      source: "global"
+    }
+  end
+  drive_stops = activity_stops + landmark_stops + global_landmark_stops
+
+  # Pins for the in-app interactive map (Leaflet). Includes every activity
+  # with coordinates regardless of guide_script — narration is optional here.
+  trip_map_pins = @days.flat_map do |d|
+    d.activities.filter_map do |a|
+      next unless a.latitude.present? && a.longitude.present?
+      {
+        lat: a.latitude.to_f,
+        lng: a.longitude.to_f,
+        name: a.location_name.presence || a.title,
+        kind: "itinerary",
+        mapsHref: a.maps_link
+      }
+    end
+  end
 %>
+<div data-controller="interactive-map">
 <div data-controller="reading-mode" data-reading-mode-scenes-value="<%= @reading_scenes.to_json %>">
   <div class="mb-5 flex flex-wrap gap-2">
-    <button type="button"
-            data-action="reading-mode#open"
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-amber-500/15 text-amber-200 border border-amber-500/30 hover:bg-amber-500/25">
-      <%= icon :sparkles, class: "w-4 h-4" %>
-      <span>Read the whole plan</span>
-    </button>
+    <div class="inline-flex items-stretch rounded-lg overflow-hidden border border-amber-500/30 bg-amber-500/15">
+      <button type="button"
+              data-action="reading-mode#open"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-amber-200 hover:bg-amber-500/25">
+        <%= icon :sparkles, class: "w-4 h-4" %>
+        <span>Read the whole plan</span>
+      </button>
+      <button type="button"
+              data-action="reading-mode#cycleSpeed"
+              class="px-2.5 py-1.5 text-xs font-semibold tabular-nums text-amber-200/90 border-l border-amber-500/30 hover:bg-amber-500/25 cursor-pointer"
+              aria-label="Change playback speed" title="Tap to cycle speed">
+        <span data-reading-mode-target="speedLabel">1×</span>
+      </button>
+    </div>
     <%= link_to copilot_trip_path(@trip), class: "inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-slate-800 border border-slate-700 hover:border-amber-500/50 text-slate-100" do %>
-      <%= icon :car, class: "w-4 h-4 text-amber-400" %> Drive co-pilot
+      <%= icon :sparkles, class: "w-4 h-4 text-amber-400" %> Road trivia
     <% end %>
     <% if map_tile_urls.any? %>
       <button type="button"
@@ -63,7 +137,101 @@
         <span data-offline-maps-target="status">Save maps offline (<%= map_tile_urls.size %>)</span>
       </button>
     <% end %>
+    <% if trip_map_pins.any? %>
+      <button type="button"
+              data-action="interactive-map#open"
+              data-interactive-map-pins-param="<%= trip_map_pins.to_json %>"
+              data-interactive-map-title-param="All stops · <%= @trip.title_for(current_user) %>"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-sky-500/15 text-sky-200 border border-sky-500/30 hover:bg-sky-500/25 cursor-pointer">
+        <%= icon :map_pin, class: "w-4 h-4" %>
+        <span>View map (<%= trip_map_pins.size %>)</span>
+      </button>
+    <% end %>
   </div>
+
+  <%# ---- Drive Co-Pilot (opt-in, geolocation narration) ---- %>
+  <% if drive_stops.any? %>
+    <div data-controller="drive-copilot"
+         data-drive-copilot-stops-value="<%= drive_stops.to_json %>"
+         data-drive-copilot-proximity-mi-value="3"
+         class="mb-5 rounded-2xl border border-amber-500/25 bg-gradient-to-br from-amber-500/[0.08] via-slate-900/40 to-slate-900/30 p-4 sm:p-5">
+      <div class="flex items-start justify-between gap-3 flex-wrap">
+        <div class="flex items-start gap-3 min-w-0">
+          <span class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 shrink-0">
+            <%= icon :car, class: "w-5 h-5" %>
+          </span>
+          <div class="min-w-0">
+            <p class="text-[11px] uppercase tracking-[0.18em] text-amber-300/90 font-semibold">Drive Co-Pilot · live</p>
+            <h3 class="font-display text-lg font-semibold text-slate-50 leading-tight">Narrate landmarks as you drive</h3>
+            <p class="text-xs sm:text-[13px] text-slate-400 mt-1 leading-relaxed max-w-2xl">
+              Uses your location to narrate <strong class="text-slate-200"><%= drive_stops.size %> spots</strong> as you drive
+              <% if landmark_stops.any? %>
+                (<%= activity_stops.size %> from your plan + <%= landmark_stops.size %> drive-by landmarks along the route)
+              <% end %>.
+              <span class="text-amber-200/80 font-medium">Passenger-only — never look at your phone while driving.</span>
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <button type="button"
+                  data-action="drive-copilot#enable"
+                  data-drive-copilot-target="enableButton"
+                  class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-amber-500 text-slate-950 font-semibold text-sm hover:bg-amber-400 shadow-lg shadow-amber-500/20 cursor-pointer">
+            <%= icon :sparkles, class: "w-4 h-4" %> Enable
+          </button>
+          <button type="button"
+                  data-action="drive-copilot#disable"
+                  data-drive-copilot-target="disableButton"
+                  hidden
+                  class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-rose-500/20 text-rose-200 border border-rose-500/40 font-semibold text-sm hover:bg-rose-500/30 cursor-pointer">
+            Stop
+          </button>
+        </div>
+      </div>
+
+      <div class="mt-4 pt-3 border-t border-amber-500/15 flex items-center justify-between gap-3 flex-wrap">
+        <p data-drive-copilot-target="status"
+           data-kind="info"
+           class="text-xs sm:text-[13px] text-slate-300 leading-snug flex-1 min-w-0
+                  data-[kind=error]:text-rose-300 data-[kind=warn]:text-amber-300 data-[kind=playing]:text-emerald-300"></p>
+      </div>
+    </div>
+
+    <%# Floating narration card — surfaces when speechSynthesis is speaking.
+        Fixed bottom-center, ~360px wide on mobile / 480px desktop. Image
+        first, name + kind chip, action row with skip. Card slides up via
+        CSS transition the controller toggles. %>
+    <div data-drive-copilot-target="narratingCard"
+         hidden
+         class="fixed inset-x-0 bottom-3 z-50 flex justify-center pointer-events-none px-3">
+      <div class="pointer-events-auto w-full max-w-md sm:max-w-lg rounded-2xl overflow-hidden border border-emerald-500/40 bg-slate-950/95 backdrop-blur shadow-2xl shadow-emerald-500/20 translate-y-3 opacity-0 transition-all duration-200
+                  data-[shown=true]:translate-y-0 data-[shown=true]:opacity-100"
+           data-drive-copilot-target="narratingCardInner">
+        <%# Image / gradient hero %>
+        <div data-drive-copilot-target="narratingImage"
+             class="relative aspect-[16/9] bg-cover bg-center bg-gradient-to-br from-slate-800 to-slate-900">
+          <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent"></div>
+          <%# Kind chip top-left, animated pulse top-right %>
+          <span data-drive-copilot-target="narratingKind"
+                class="absolute top-3 left-3 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] uppercase tracking-widest font-semibold bg-slate-950/70 backdrop-blur-sm border border-slate-700/60 text-amber-200/90"></span>
+          <span class="absolute top-3 right-3 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-widest font-semibold bg-emerald-500/20 backdrop-blur-sm border border-emerald-500/50 text-emerald-200">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse"></span> Narrating
+          </span>
+          <%# Name overlaid bottom-left of hero %>
+          <h3 data-drive-copilot-target="narratingName"
+              class="absolute left-4 right-4 bottom-3 font-display text-lg sm:text-xl font-semibold text-white leading-tight drop-shadow"></h3>
+        </div>
+        <%# Action row %>
+        <div class="px-4 py-2.5 flex items-center justify-between gap-3 border-t border-slate-800">
+          <p class="text-[11px] text-slate-500">Drive Co-Pilot · live narration</p>
+          <button type="button" data-action="drive-copilot#skipCurrent"
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium cursor-pointer">
+            Skip <%= icon :arrow_right, class: "w-3 h-3" %>
+          </button>
+        </div>
+      </div>
+    </div>
+  <% end %>
 
   <%# Reading-mode modal — hidden until #open is called %>
   <div data-reading-mode-target="modal"
@@ -84,10 +252,17 @@
             <span data-reading-mode-target="speakerLabel">Host</span>
           </span>
         </div>
-        <button type="button" data-action="reading-mode#close"
-                class="text-slate-400 hover:text-white p-1 rounded transition-colors cursor-pointer" aria-label="Close">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-        </button>
+        <div class="flex items-center gap-1.5 shrink-0">
+          <button type="button" data-action="reading-mode#cycleSpeed"
+                  class="inline-flex items-center px-2 py-0.5 rounded-md border border-slate-700 bg-slate-900/60 text-slate-200 text-xs font-semibold tabular-nums hover:border-amber-500/50 hover:text-amber-200 transition-colors cursor-pointer"
+                  aria-label="Change playback speed" title="Tap to cycle speed">
+            <span data-reading-mode-target="speedLabel">1×</span>
+          </button>
+          <button type="button" data-action="reading-mode#close"
+                  class="text-slate-400 hover:text-white p-1 rounded transition-colors cursor-pointer" aria-label="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
+        </div>
       </header>
 
       <%# Body — photo + map side-by-side on desktop, stacked on mobile %>
@@ -206,94 +381,201 @@
           </div>
         </header>
 
-        <%# Activities %>
+        <%# Activities — vertical timeline: time chip on left rail,
+            card on right with image hero + text + small map. %>
         <% if day.activities.any? %>
-          <ol class="divide-y divide-slate-800/60">
-            <% day.activities.each do |activity| %>
-              <li class="p-5 sm:p-6">
-                <div class="flex flex-col sm:flex-row gap-4">
+          <ol class="relative pl-12 sm:pl-16 pr-4 sm:pr-5 py-5 sm:py-6">
+            <%# Timeline rail — vertical line behind the time chips %>
+            <span aria-hidden="true" class="absolute left-[20px] sm:left-[28px] top-7 bottom-7 w-px bg-slate-700/60"></span>
+            <% day.activities.each_with_index do |activity, ai| %>
+              <li class="relative <%= 'mb-6 sm:mb-8' unless ai == day.activities.size - 1 %>">
+                <%# Time chip on the timeline rail %>
+                <span class="absolute left-[-44px] sm:left-[-56px] top-1 inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full accent-bg accent-border border-2 ring-4 ring-slate-950 shadow-lg shadow-black/40">
+                  <% if activity.time_label.present? %>
+                    <span class="text-[9px] sm:text-[10px] font-semibold tabular-nums accent-text leading-[1.15] text-center">
+                      <%= activity.time_label.gsub(/\s*(AM|PM)\b/i) { "<br>#{Regexp.last_match(1).upcase}" }.html_safe %>
+                    </span>
+                  <% else %>
+                    <span class="w-2 h-2 rounded-full accent-fg-bg"></span>
+                  <% end %>
+                </span>
+
+                <%# Card to the right of the rail %>
+                <div class="rounded-2xl border border-slate-800/80 bg-slate-900/50 overflow-hidden">
                   <% map = activity.map_tiles %>
-                  <div class="shrink-0 w-full sm:w-44 flex flex-col gap-2">
-                    <% if activity.photo_url.present? %>
-                      <div class="w-full sm:h-32 h-44 rounded-xl overflow-hidden bg-slate-800 relative">
-                        <img loading="lazy" src="<%= activity.photo_url %>" alt="<%= activity.location_name.presence || activity.title %>" class="w-full h-full object-cover">
-                      </div>
-                    <% end %>
-                    <% if map %>
-                      <%# 2x2 OSM tile grid; pin overlay at the activity's
-                          fractional position. Cached by the SW so the
-                          plan is map-rich offline once visited online. %>
-                      <div class="relative w-full aspect-square rounded-xl overflow-hidden bg-slate-800 border border-slate-700/60" role="img" aria-label="Map of <%= activity.location_name.presence || activity.title %>">
-                        <div class="absolute inset-0 grid grid-cols-2 grid-rows-2">
-                          <% map[:tiles].each do |tile_url| %>
-                            <img loading="lazy" src="<%= tile_url %>" alt="" class="w-full h-full object-cover" referrerpolicy="no-referrer">
+
+                  <%# Image hero on top — full-width banner with group label
+                      overlaid bottom-left and gradient fade to the body.
+                      Falls through to the shared Place's canonical image
+                      when this activity has no per-trip photo of its own. %>
+                  <% hero_url = activity.hero_image_url %>
+                  <% if hero_url.present? %>
+                    <div class="relative aspect-[16/9] sm:aspect-[21/9] bg-slate-800 overflow-hidden">
+                      <img loading="lazy" src="<%= hero_url %>" alt="<%= activity.location_name.presence || activity.title %>" class="w-full h-full object-cover" referrerpolicy="no-referrer">
+                      <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/10 to-transparent"></div>
+                      <% if activity.group_label.present? %>
+                        <span class="absolute top-3 left-3 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] uppercase tracking-widest font-semibold bg-slate-950/70 backdrop-blur-sm border border-slate-700/60 text-amber-200/90"><%= activity.group_label %></span>
+                      <% end %>
+                      <%# Photo upload overlay — top-right of the hero %>
+                      <%= form_with url: trip_activity_photos_path(@trip, activity), multipart: true, html: { class: "absolute top-3 right-3", data: { turbo: false } } do %>
+                        <label class="cursor-pointer inline-flex items-center gap-1 px-2 py-1 rounded-md bg-slate-950/70 border border-slate-700/60 text-amber-200/90 text-[10px] uppercase tracking-widest backdrop-blur-sm hover:border-amber-500/50 hover:text-amber-200 transition-colors">
+                          <%= icon :camera, class: "w-3.5 h-3.5" %>
+                          <span>Add photo</span>
+                          <%= file_field_tag "activity[photos][]", multiple: true, accept: "image/*", class: "sr-only", onchange: "this.form.requestSubmit()" %>
+                        </label>
+                      <% end %>
+                      <% if activity.location_name.present? %>
+                        <% loc_inner = capture do %>
+                          <%= icon :map_pin, class: "w-3.5 h-3.5 text-amber-300 shrink-0" %><span class="truncate"><%= activity.location_name %></span>
+                          <% if activity.place %><%= icon :arrow_right, class: "w-3 h-3 text-amber-300/70 shrink-0 opacity-0 group-hover/hero:opacity-100 transition-opacity" %><% end %>
+                        <% end %>
+                        <% if activity.place %>
+                          <%= link_to place_path(activity.place), class: "group/hero absolute bottom-3 left-3 right-3 text-xs sm:text-sm text-slate-100/90 font-medium drop-shadow inline-flex items-center gap-1.5 hover:text-amber-200 transition-colors" do %><%= loc_inner %><% end %>
+                        <% else %>
+                          <p class="absolute bottom-3 left-3 right-3 text-xs sm:text-sm text-slate-100/90 font-medium drop-shadow inline-flex items-center gap-1.5"><%= loc_inner %></p>
+                        <% end %>
+                      <% end %>
+                    </div>
+                  <% else %>
+                    <%# No hero image — show a small "Add photo" link in the corner instead %>
+                    <div class="flex justify-end px-4 sm:px-5 pt-3">
+                      <%= form_with url: trip_activity_photos_path(@trip, activity), multipart: true, html: { data: { turbo: false } } do %>
+                        <label class="cursor-pointer inline-flex items-center gap-1 px-2 py-1 rounded-md border border-slate-700/60 bg-slate-900/60 text-amber-200/90 text-[10px] uppercase tracking-widest hover:border-amber-500/50 hover:text-amber-200 transition-colors">
+                          <%= icon :camera, class: "w-3.5 h-3.5" %>
+                          <span>Add photo</span>
+                          <%= file_field_tag "activity[photos][]", multiple: true, accept: "image/*", class: "sr-only", onchange: "this.form.requestSubmit()" %>
+                        </label>
+                      <% end %>
+                    </div>
+                  <% end %>
+
+                  <%# Body: text on left, map on right (desktop) / stacked (mobile) %>
+                  <div class="grid grid-cols-1 sm:grid-cols-[1fr_180px] gap-4 sm:gap-5 px-4 sm:px-5 pt-4 sm:pt-5">
+                    <div class="min-w-0">
+                      <%# Eyebrow row — only when there's no photo (else
+                          group_label / location appear over the photo) %>
+                      <% if hero_url.blank? && (activity.group_label.present? || activity.time_label.present?) %>
+                        <div class="flex items-baseline gap-2 flex-wrap mb-1.5">
+                          <% if activity.group_label.present? %>
+                            <span class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold"><%= activity.group_label %></span>
                           <% end %>
                         </div>
-                        <span class="absolute -translate-x-1/2 -translate-y-full text-rose-500 drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]"
-                              style="left: <%= map[:pin_x_pct].round(2) %>%; top: <%= map[:pin_y_pct].round(2) %>%;">
-                          <%= icon :map_pin, class: "w-7 h-7", stroke_width: 2 %>
-                        </span>
-                        <span class="absolute bottom-0 right-0 px-1 py-0.5 text-[9px] bg-black/60 text-white/80 rounded-tl">© OpenStreetMap</span>
+                      <% end %>
+                      <% activity_read_text = [activity.title, activity.location_name, activity.famous_for.presence, activity.notes.to_s.gsub(/[*_`]/, ' ')].compact.reject(&:blank?).join('. ') %>
+                      <div class="flex items-start gap-2">
+                        <% if activity_read_text.present? %>
+                          <button type="button"
+                                  data-controller="tts"
+                                  data-tts-text-value="<%= activity_read_text %>"
+                                  aria-label="Read aloud"
+                                  title="Read aloud"
+                                  class="shrink-0 mt-0.5 inline-flex items-center justify-center w-9 h-9 rounded-full border border-slate-700 bg-slate-900/60 text-amber-300 hover:border-amber-500/50 hover:text-amber-200 transition-colors">
+                            <%= icon :volume_2, class: "w-4 h-4" %>
+                            <span class="sr-only" data-tts-label data-play-label="Read aloud" data-stop-label="Stop">Read aloud</span>
+                          </button>
+                        <% end %>
+                        <h3 class="min-w-0 flex-1 font-display text-lg sm:text-xl font-semibold text-slate-50 leading-tight"><%= activity.title %></h3>
+                        <% if (link = activity.uber_link) %>
+                          <%= link_to link, target: "_blank", rel: "noopener", aria: { label: "Open in Uber" }, title: "Open in Uber",
+                                class: "shrink-0 mt-0.5 inline-flex items-center justify-center w-9 h-9 rounded-full border border-slate-700 bg-slate-900/60 text-slate-300 hover:border-amber-500/50 hover:text-amber-200 transition-colors" do %>
+                            <%= icon :car, class: "w-4 h-4" %>
+                            <span class="sr-only">Open in Uber</span>
+                          <% end %>
+                        <% end %>
                       </div>
-                    <% elsif activity.photo_url.blank? %>
-                      <div class="w-full sm:h-32 h-32 rounded-xl bg-gradient-to-br from-slate-800 to-slate-700 flex items-center justify-center text-slate-500" aria-hidden="true">
-                        <%= icon :map_pin, class: "w-8 h-8" %>
+                      <% if hero_url.blank? && activity.location_name.present? %>
+                        <% if activity.place %>
+                          <%= link_to place_path(activity.place), class: "group inline-flex items-center gap-1 mt-1 text-sm text-slate-400 hover:text-amber-300 transition-colors" do %>
+                            <%= icon :map_pin, class: "w-3.5 h-3.5 text-slate-500 group-hover:text-amber-400" %><%= activity.location_name %>
+                            <%= icon :arrow_right, class: "w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" %>
+                          <% end %>
+                        <% else %>
+                          <p class="text-sm text-slate-400 inline-flex items-center gap-1 mt-1">
+                            <%= icon :map_pin, class: "w-3.5 h-3.5 text-slate-500" %><%= activity.location_name %>
+                          </p>
+                        <% end %>
+                      <% end %>
+                      <% if activity.address.present? %>
+                        <p class="text-xs text-slate-500 mt-0.5"><%= activity.address %></p>
+                      <% end %>
+                      <% if activity.famous_for.present? %>
+                        <p class="text-sm text-amber-200/90 mt-2.5 leading-relaxed inline-flex items-start gap-1.5">
+                          <%= icon :sparkles, class: "w-4 h-4 mt-0.5 shrink-0" %>
+                          <span><span class="font-semibold">Famous for:</span> <%= activity.famous_for %></span>
+                        </p>
+                      <% end %>
+                      <% if activity.notes.present? %>
+                        <div class="text-sm text-slate-300 mt-2.5 leading-relaxed prose-invert"><%= render_markdown(activity.notes) %></div>
+                      <% end %>
+                    </div>
+
+                    <%# Map column — to the right of text on desktop, below on mobile.
+                        Tap the thumbnail to open the interactive Leaflet map. %>
+                    <% if map %>
+                      <%
+                        day_pins = day.activities.filter_map { |a|
+                          next unless a.latitude.present? && a.longitude.present?
+                          {
+                            lat: a.latitude.to_f,
+                            lng: a.longitude.to_f,
+                            name: a.location_name.presence || a.title,
+                            kind: "itinerary",
+                            mapsHref: a.maps_link
+                          }
+                        }
+                        focus_pin = { lat: activity.latitude.to_f, lng: activity.longitude.to_f }
+                        modal_title = "Day #{idx + 1} · #{activity.location_name.presence || activity.title}"
+                      %>
+                      <div class="flex flex-col gap-2 self-start w-full sm:w-[180px]">
+                        <button type="button"
+                                data-action="interactive-map#open"
+                                data-interactive-map-pins-param="<%= day_pins.to_json %>"
+                                data-interactive-map-focus-param="<%= focus_pin.to_json %>"
+                                data-interactive-map-title-param="<%= modal_title %>"
+                                class="relative w-full aspect-square rounded-xl overflow-hidden bg-slate-800 border border-slate-700/60 cursor-pointer group hover:border-amber-500/50 transition-colors"
+                                aria-label="Open interactive map for <%= activity.location_name.presence || activity.title %>">
+                          <div class="absolute inset-0 grid grid-cols-2 grid-rows-2">
+                            <% map[:tiles].each do |tile_url| %>
+                              <img loading="lazy" src="<%= tile_url %>" alt="" class="w-full h-full object-cover" referrerpolicy="no-referrer">
+                            <% end %>
+                          </div>
+                          <span class="absolute -translate-x-1/2 -translate-y-full text-rose-500 drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] pointer-events-none"
+                                style="left: <%= map[:pin_x_pct].round(2) %>%; top: <%= map[:pin_y_pct].round(2) %>%;">
+                            <%= icon :map_pin, class: "w-7 h-7", stroke_width: 2 %>
+                          </span>
+                          <span class="absolute bottom-0 right-0 px-1 py-0.5 text-[9px] bg-black/60 text-white/80 rounded-tl pointer-events-none">© OpenStreetMap</span>
+                          <span class="absolute top-1.5 right-1.5 inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] rounded bg-slate-900/80 backdrop-blur-sm text-slate-200 border border-slate-700/60 group-hover:border-amber-500/50 group-hover:text-amber-200 pointer-events-none">
+                            <%= icon :map_pin, class: "w-3 h-3" %> Open
+                          </span>
+                        </button>
+                        <% if (link = activity.maps_link) %>
+                          <%= link_to link, target: "_blank", rel: "noopener",
+                                class: "inline-flex items-center justify-center gap-1.5 w-full text-xs px-3 py-1.5 rounded-md bg-slate-800 text-slate-200 border border-slate-700 hover:border-amber-500/50 hover:text-amber-200 transition-colors" do %>
+                            <%= icon :navigation, class: "w-3.5 h-3.5 text-amber-300" %>
+                            <span>Go</span>
+                            <%= icon :external_link, class: "w-3 h-3 opacity-60" %>
+                          <% end %>
+                        <% end %>
+                      </div>
+                    <% elsif hero_url.blank? %>
+                      <div class="flex flex-col gap-2 self-start w-full sm:w-[180px]">
+                        <div class="w-full aspect-square rounded-xl bg-gradient-to-br from-slate-800 to-slate-700 flex items-center justify-center text-slate-500" aria-hidden="true">
+                          <%= icon :map_pin, class: "w-8 h-8" %>
+                        </div>
+                        <% if (link = activity.maps_link) %>
+                          <%= link_to link, target: "_blank", rel: "noopener",
+                                class: "inline-flex items-center justify-center gap-1.5 w-full text-xs px-3 py-1.5 rounded-md bg-slate-800 text-slate-200 border border-slate-700 hover:border-amber-500/50 hover:text-amber-200 transition-colors" do %>
+                            <%= icon :navigation, class: "w-3.5 h-3.5 text-amber-300" %>
+                            <span>Go</span>
+                            <%= icon :external_link, class: "w-3 h-3 opacity-60" %>
+                          <% end %>
+                        <% end %>
                       </div>
                     <% end %>
                   </div>
 
-                  <div class="min-w-0 flex-1">
-                    <div class="flex items-baseline gap-2 flex-wrap">
-                      <% if activity.time_label.present? %>
-                        <span class="text-xs px-2 py-0.5 rounded accent-bg accent-text font-semibold tabular-nums"><%= activity.time_label %></span>
-                      <% end %>
-                      <% if activity.group_label.present? %>
-                        <span class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold"><%= activity.group_label %></span>
-                      <% end %>
-                    </div>
-                    <h3 class="font-semibold text-slate-50 mt-1 leading-snug"><%= activity.title %></h3>
-                    <% if activity.location_name.present? %>
-                      <p class="text-sm text-slate-400 inline-flex items-center gap-1 mt-0.5">
-                        <%= icon :map_pin, class: "w-3.5 h-3.5 text-slate-500" %><%= activity.location_name %>
-                      </p>
-                    <% end %>
-                    <% if activity.address.present? %>
-                      <p class="text-xs text-slate-500 mt-0.5"><%= activity.address %></p>
-                    <% end %>
-                    <% if activity.famous_for.present? %>
-                      <p class="text-sm text-amber-200/90 mt-2 leading-relaxed inline-flex items-start gap-1.5">
-                        <%= icon :sparkles, class: "w-4 h-4 mt-0.5 shrink-0" %>
-                        <span><span class="font-semibold">Famous for:</span> <%= activity.famous_for %></span>
-                      </p>
-                    <% end %>
-                    <% if activity.notes.present? %>
-                      <div class="text-sm text-slate-300 mt-2 leading-relaxed prose-invert"><%= render_markdown(activity.notes) %></div>
-                    <% end %>
-                    <% activity_read_text = [activity.title, activity.location_name, activity.famous_for.presence, activity.notes.to_s.gsub(/[*_`]/, ' ')].compact.reject(&:blank?).join('. ') %>
-                    <% if activity_read_text.present? %>
-                      <button type="button"
-                              data-controller="tts"
-                              data-tts-text-value="<%= activity_read_text %>"
-                              class="mt-2 inline-flex items-center gap-1 px-2.5 py-1 rounded-md border border-slate-700 bg-slate-900/60 text-slate-300 text-xs hover:border-amber-500/50 hover:text-amber-200">
-                        <%= icon :sparkles, class: "w-3.5 h-3.5 text-amber-400" %>
-                        <span data-tts-label data-play-label="Read aloud" data-stop-label="Stop">Read aloud</span>
-                      </button>
-                    <% end %>
-
-                    <%# Action buttons: Maps / Uber / Call %>
-                    <div class="flex flex-wrap gap-2 mt-3">
-                      <% if (link = activity.maps_link) %>
-                        <%= link_to link, target: "_blank", rel: "noopener", class: "inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-md bg-slate-800 text-slate-200 border border-slate-700 hover:border-amber-500/50 hover:text-amber-200 transition-colors" do %>
-                          <%= icon :map_pin, class: "w-3.5 h-3.5" %> Open in Maps <%= icon :external_link, class: "w-3 h-3" %>
-                        <% end %>
-                      <% end %>
-                      <% if (link = activity.uber_link) %>
-                        <%= link_to link, target: "_blank", rel: "noopener", class: "inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-md bg-slate-800 text-slate-200 border border-slate-700 hover:border-amber-500/50 hover:text-amber-200 transition-colors" do %>
-                          <%= icon :car, class: "w-3.5 h-3.5" %> Uber <%= icon :external_link, class: "w-3 h-3" %>
-                        <% end %>
-                      <% end %>
-                    </div>
-
+                  <%# Full-width footer: Documents + Activity checklist %>
+                  <div class="px-4 sm:px-5 pb-4 sm:pb-5 pt-4 space-y-3">
                     <%# Inline activity documents (tickets, confirmations, etc.) %>
                     <% docs = activity.documents.attached? ? activity.documents : [] %>
                     <details class="mt-3 rounded-lg border border-slate-700/50 bg-slate-800/30" <%= 'open'.html_safe if docs.any? %>>
@@ -397,3 +679,27 @@
     </article>
   </details>
 <% end %>
+
+<%# Interactive map modal (Leaflet). Hidden until a thumbnail or the
+    "View map" button calls interactive-map#open with pin params. %>
+<div data-interactive-map-target="modal"
+     hidden
+     data-action="click->interactive-map#closeOnBackdrop"
+     data-open="false"
+     class="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 opacity-0 transition-opacity duration-150 data-[open=true]:opacity-100"
+     role="dialog" aria-modal="true" aria-label="Map">
+  <div class="relative w-full max-w-5xl max-h-full overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl flex flex-col">
+    <header class="flex items-center justify-between gap-3 px-5 py-3 border-b border-slate-800">
+      <div class="min-w-0">
+        <p class="text-[11px] uppercase tracking-[0.18em] text-amber-300 font-semibold truncate" data-interactive-map-target="title">Map</p>
+        <p class="text-xs text-slate-400 truncate" data-interactive-map-target="subtitle"></p>
+      </div>
+      <button type="button" data-action="interactive-map#close"
+              class="text-slate-400 hover:text-white p-1 rounded transition-colors cursor-pointer" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </header>
+    <div data-interactive-map-target="mapEl" class="w-full h-[70vh] sm:h-[600px]"></div>
+  </div>
+</div>
+</div>

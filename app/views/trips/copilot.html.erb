@@ -11,7 +11,24 @@
     <%= icon :car, class: "w-3.5 h-3.5 text-amber-400" %> Drive co-pilot
   </p>
   <h1 class="font-display text-3xl sm:text-4xl font-semibold tracking-tight">Pick a traveler</h1>
-  <p class="text-sm text-slate-400 mt-2 max-w-md mx-auto">We'll ask them a question they'll love. Answer right and they pick the music.</p>
+  <p class="text-sm text-slate-400 mt-2 max-w-md mx-auto">
+    <% if @mode == "riddle" %>
+      Brain teasers anyone can play — no interests required. Answer right and they pick the music.
+    <% else %>
+      We'll ask them a question they'll love. Answer right and they pick the music.
+    <% end %>
+  </p>
+
+  <div class="inline-flex mt-4 rounded-xl border border-slate-700 bg-slate-900/60 p-1 text-sm">
+    <%= link_to copilot_trip_path(@trip),
+                class: "px-3 py-1.5 rounded-lg font-semibold transition-colors #{@mode == 'trivia' ? 'bg-amber-500 text-slate-950' : 'text-slate-300 hover:text-amber-300'}" do %>
+      Trivia
+    <% end %>
+    <%= link_to copilot_trip_path(@trip, mode: "riddle"),
+                class: "px-3 py-1.5 rounded-lg font-semibold transition-colors inline-flex items-center gap-1 #{@mode == 'riddle' ? 'bg-amber-500 text-slate-950' : 'text-slate-300 hover:text-amber-300'}" do %>
+      <%= icon :sparkles, class: "w-3.5 h-3.5" %> Riddles
+    <% end %>
+  </div>
 </header>
 
 <% if @people.empty? %>
@@ -23,7 +40,7 @@
 <% else %>
   <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
     <% @people.each do |p| %>
-      <%= link_to copilot_question_trip_path(@trip, person_id: p.id), class: "group rounded-2xl border border-slate-800 bg-slate-900/60 hover:border-amber-500/50 p-5 text-center transition-all" do %>
+      <%= link_to copilot_question_trip_path(@trip, person_id: p.id, mode: (@mode == "riddle" ? "riddle" : nil)), class: "group rounded-2xl border border-slate-800 bg-slate-900/60 hover:border-amber-500/50 p-5 text-center transition-all" do %>
         <div class="mx-auto w-14 h-14 rounded-full bg-gradient-to-br from-amber-500/20 to-amber-500/5 border border-amber-500/30 flex items-center justify-center text-amber-200 font-semibold text-lg group-hover:scale-105 transition-transform">
           <%= p.initials %>
         </div>

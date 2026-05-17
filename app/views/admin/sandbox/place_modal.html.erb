@@ -1,0 +1,112 @@
+<%= turbo_frame_tag "sandbox-place-modal" do %>
+  <%# Wrapped in a data-controller hook so the parent place-modal Stimulus
+      controller (on show.html.erb) can detect the new content and open the
+      modal. The opener listens for turbo:frame-load on the outer frame. %>
+  <article class="relative">
+    <%# Close affordance: clicking the button dispatches a custom event the
+        modal controller listens for. Also clears the frame so reopening the
+        same place re-fetches (in case the row was updated). %>
+    <button type="button"
+            data-action="place-modal#close"
+            aria-label="Close"
+            class="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-slate-900/80 border border-slate-700 text-slate-300 hover:text-amber-200 hover:border-amber-500/50 flex items-center justify-center text-lg leading-none cursor-pointer">×</button>
+
+    <% if @place.image_url.present? %>
+      <div class="rounded-t-xl overflow-hidden bg-slate-900">
+        <img src="<%= @place.image_url %>" alt="<%= @place.name %>" referrerpolicy="no-referrer"
+             class="w-full aspect-[16/9] object-cover">
+      </div>
+    <% else %>
+      <div class="rounded-t-xl bg-gradient-to-br from-slate-800 to-slate-900 aspect-[16/9] flex items-center justify-center text-slate-700 text-5xl">◌</div>
+    <% end %>
+
+    <div class="p-5 space-y-4">
+      <div class="flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          <h2 class="font-display text-xl font-semibold text-slate-50"><%= @place.name %></h2>
+          <% if @place.canonical_name.present? && @place.canonical_name != @place.name %>
+            <p class="text-xs text-slate-400 mt-0.5"><%= @place.canonical_name %></p>
+          <% end %>
+          <div class="flex flex-wrap items-center gap-1.5 mt-2 text-[10px] uppercase tracking-widest font-semibold">
+            <% if @place.kind.present? %>
+              <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300"><%= @place.kind %></span>
+            <% end %>
+            <% if @place.tier.present? %>
+              <span class="px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300"><%= @place.tier %></span>
+            <% end %>
+            <% if @place.verified %>
+              <span class="px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300">verified</span>
+            <% end %>
+            <% if @place.usage_count.to_i > 0 %>
+              <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-400"><%= @place.usage_count %> trips</span>
+            <% end %>
+          </div>
+        </div>
+        <%= link_to admin_place_path(@place), target: "_top",
+              class: "shrink-0 text-xs px-2.5 py-1.5 rounded-md bg-amber-500 text-slate-950 font-semibold hover:bg-amber-400" do %>
+          Full page →
+        <% end %>
+      </div>
+
+      <% if @place.famous_for.present? %>
+        <div class="rounded-lg border border-amber-500/20 bg-amber-500/[0.04] p-3">
+          <p class="text-[10px] uppercase tracking-widest text-amber-300 font-semibold mb-1">Famous for</p>
+          <p class="text-sm text-amber-100/90 leading-relaxed"><%= @place.famous_for %></p>
+        </div>
+      <% end %>
+
+      <% if @place.description.present? %>
+        <div class="rounded-lg border border-slate-800 bg-slate-950/50 p-3">
+          <p class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-1">About</p>
+          <p class="text-sm text-slate-200 leading-relaxed whitespace-pre-line"><%= @place.description %></p>
+        </div>
+      <% end %>
+
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+        <% [
+          [ "Latitude",  @place.latitude&.to_f&.round(5) ],
+          [ "Longitude", @place.longitude&.to_f&.round(5) ],
+          [ "Region",    @place.region ],
+          [ "Image src", @place.image_source ]
+        ].each do |label, value| %>
+          <div class="rounded-md border border-slate-800 bg-slate-950/40 px-2 py-1.5">
+            <p class="text-[9px] uppercase tracking-widest text-slate-500 font-semibold"><%= label %></p>
+            <p class="text-slate-200 font-mono text-[11px] truncate"><%= value || "—" %></p>
+          </div>
+        <% end %>
+      </div>
+
+      <% if @place.latitude && @place.longitude %>
+        <% maps_q = URI.encode_www_form_component("#{@place.name} #{@place.latitude},#{@place.longitude}") %>
+        <div class="flex flex-wrap gap-2 text-xs">
+          <a href="https://www.google.com/maps/search/?api=1&query=<%= maps_q %>" target="_blank" rel="noopener"
+             class="px-2.5 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200">Open in Google Maps ↗</a>
+          <a href="https://www.openstreetmap.org/?mlat=<%= @place.latitude %>&mlon=<%= @place.longitude %>#map=14/<%= @place.latitude %>/<%= @place.longitude %>"
+             target="_blank" rel="noopener"
+             class="px-2.5 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200">OpenStreetMap ↗</a>
+        </div>
+      <% end %>
+
+      <% if @recent_activities.any? %>
+        <div>
+          <p class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-2">Used in trips (<%= @recent_activities.size %>)</p>
+          <ul class="divide-y divide-slate-800/60 rounded-lg border border-slate-800 overflow-hidden">
+            <% @recent_activities.each do |a| %>
+              <li class="flex items-center justify-between gap-3 px-3 py-2 text-sm">
+                <div class="min-w-0">
+                  <p class="text-slate-200 truncate"><%= a.title %></p>
+                  <p class="text-[11px] text-slate-500 truncate"><%= a.trip_day.trip.title %> · <%= a.trip_day.date&.strftime("%b %-d, %Y") %></p>
+                </div>
+                <span class="text-[11px] text-slate-500 whitespace-nowrap"><%= time_ago_in_words(a.created_at) %> ago</span>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <% if @place.image_attribution.present? %>
+        <p class="text-[10px] text-slate-500"><%= @place.image_attribution %></p>
+      <% end %>
+    </div>
+  </article>
+<% end %>

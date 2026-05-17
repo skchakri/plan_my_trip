@@ -1,0 +1,60 @@
+<% content_for :title, @prompt.slug %>
+
+<%= link_to "← Prompts", admin_ai_prompts_path, class: "text-xs text-slate-400 hover:text-slate-200" %>
+
+<div class="flex items-start justify-between gap-4 mt-2 mb-5">
+  <div class="min-w-0">
+    <h1 class="font-display text-2xl font-semibold"><%= @prompt.slug %></h1>
+    <p class="text-sm text-slate-400 mt-1"><%= @prompt.name %></p>
+    <% if @prompt.description.present? %>
+      <p class="text-sm text-slate-300 mt-2 leading-relaxed"><%= @prompt.description %></p>
+    <% end %>
+  </div>
+  <div class="flex items-center gap-2 shrink-0">
+    <%= link_to "Edit", edit_admin_ai_prompt_path(@prompt), class: "px-3 py-1.5 rounded-md bg-slate-800 border border-slate-700 text-sm hover:border-amber-500/50" %>
+    <%= button_to "Delete", admin_ai_prompt_path(@prompt), method: :delete, data: { turbo_confirm: "Delete #{@prompt.slug}?" }, class: "px-3 py-1.5 rounded-md bg-rose-500/15 border border-rose-500/30 text-rose-200 text-sm hover:bg-rose-500/25 cursor-pointer" %>
+  </div>
+</div>
+
+<div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
+  <% [
+    [ "Provider", @prompt.provider ],
+    [ "Model", @prompt.model ],
+    [ "Kind", @prompt.kind ],
+    [ "Max tokens", @prompt.max_tokens || "—" ],
+    [ "Active", @prompt.active ? "on" : "off" ]
+  ].each do |label, value| %>
+    <div class="rounded-lg border border-slate-800 bg-slate-900/40 p-2.5">
+      <p class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold"><%= label %></p>
+      <p class="text-sm text-slate-100 mt-0.5"><%= value %></p>
+    </div>
+  <% end %>
+</div>
+
+<section class="mb-6 space-y-4">
+  <div>
+    <p class="text-[11px] uppercase tracking-widest text-slate-400 font-semibold mb-1.5">System template</p>
+    <pre class="rounded-lg bg-slate-900/60 border border-slate-800 p-3 text-xs leading-relaxed text-slate-300 whitespace-pre-wrap font-mono overflow-x-auto"><%= @prompt.system_template %></pre>
+  </div>
+  <div>
+    <p class="text-[11px] uppercase tracking-widest text-slate-400 font-semibold mb-1.5">User template <span class="text-slate-600">(ERB)</span></p>
+    <pre class="rounded-lg bg-slate-900/60 border border-slate-800 p-3 text-xs leading-relaxed text-slate-300 whitespace-pre-wrap font-mono overflow-x-auto"><%= @prompt.user_template %></pre>
+  </div>
+</section>
+
+<section class="mb-6 rounded-xl border border-amber-500/20 bg-amber-500/[0.04] p-4">
+  <p class="text-[11px] uppercase tracking-widest text-amber-300 font-semibold mb-2">Test run</p>
+  <%= form_with url: test_run_admin_ai_prompt_path(@prompt), method: :post, class: "space-y-2" do |f| %>
+    <%= text_area_tag :variables, "{}", rows: 4, class: "w-full rounded-lg bg-slate-900/60 border border-slate-800 px-3 py-2 text-xs font-mono text-slate-100 focus:border-amber-500 focus:outline-none", placeholder: '{"destination":"Sedona","name":"Cathedral Rock"}' %>
+    <p class="text-xs text-slate-500">Variables as JSON. Required keys depend on what the user template references.</p>
+    <%= submit_tag "Run prompt now", class: "px-3 py-1.5 rounded-md bg-amber-500 text-slate-950 text-sm font-semibold hover:bg-amber-400 cursor-pointer" %>
+  <% end %>
+</section>
+
+<section>
+  <div class="flex items-center justify-between mb-3">
+    <p class="text-[11px] uppercase tracking-widest text-slate-400 font-semibold">Recent calls</p>
+    <%= link_to "All calls →", admin_ai_calls_path(slug: @prompt.slug), class: "text-xs text-amber-300 hover:text-amber-200" %>
+  </div>
+  <%= render "admin/ai_calls/table", calls: @recent_calls %>
+</section>

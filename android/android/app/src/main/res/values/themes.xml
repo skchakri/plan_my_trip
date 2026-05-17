@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.PlanMyTrip" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#0a0e1a</item>
+        <item name="colorPrimaryDark">#0a0e1a</item>
+        <item name="colorAccent">#f59e0b</item>
+        <item name="android:statusBarColor">#0a0e1a</item>
+    </style>
+</resources>

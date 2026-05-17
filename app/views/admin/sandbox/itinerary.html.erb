@@ -1,0 +1,18 @@
+<%= turbo_frame_tag "sandbox-itinerary" do %>
+  <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
+    <%= render "block_header", title: "Markdown itinerary", result: @result %>
+    <% markdown = @result[:value].to_s %>
+    <% if markdown.blank? %>
+      <p class="text-sm text-slate-500 italic">No itinerary returned. Check that <code class="text-amber-300">itinerary_builder.v1</code> is active.</p>
+    <% else %>
+      <div class="prose prose-invert max-w-none text-sm leading-relaxed text-slate-200 [&_h2]:font-display [&_h2]:text-amber-200 [&_h2]:mt-4 [&_h2]:mb-2 [&_ul]:list-disc [&_ul]:pl-5">
+        <%= render_markdown(markdown) %>
+      </div>
+
+      <details class="mt-4 group">
+        <summary class="cursor-pointer text-xs text-amber-300 hover:text-amber-200 select-none">Raw markdown →</summary>
+        <pre class="mt-2 rounded-lg bg-slate-950 border border-slate-800 p-3 text-[11px] leading-relaxed text-slate-300 font-mono whitespace-pre-wrap"><%= markdown %></pre>
+      </details>
+    <% end %>
+  </div>
+<% end %>

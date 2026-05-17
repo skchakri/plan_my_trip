@@ -1,0 +1,16 @@
+<% content_for :title, "AI calls" %>
+
+<h1 class="font-display text-2xl font-semibold mb-4">AI calls</h1>
+
+<%= form_with url: admin_ai_calls_path, method: :get, class: "mb-4 flex flex-wrap gap-2 items-end" do %>
+  <% [ [ :slug, "Slug" ], [ :provider, "Provider" ], [ :status, "Status" ], [ :q, "Search prompt/response" ] ].each do |name, label| %>
+    <div>
+      <%= label_tag name, label, class: "block text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-1" %>
+      <%= text_field_tag name, params[name], class: "rounded-md bg-slate-900/60 border border-slate-700 px-2.5 py-1.5 text-sm text-slate-100 focus:border-amber-500 focus:outline-none" %>
+    </div>
+  <% end %>
+  <%= submit_tag "Filter", class: "px-3 py-1.5 rounded-md bg-slate-800 border border-slate-700 text-sm hover:border-amber-500/50 cursor-pointer" %>
+  <%= link_to "Reset", admin_ai_calls_path, class: "px-3 py-1.5 text-sm text-slate-400 hover:text-slate-200" %>
+<% end %>
+
+<%= render "table", calls: @calls %>

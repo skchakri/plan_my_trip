@@ -1,18 +1,27 @@
 class Person < ApplicationRecord
-  # Curated interest tags. Only these are matched against the trivia and
-  # playlist pools — keeping the list closed prevents typos.
-  INTERESTS = %w[
-    math science space animals dinosaurs sports music movies movies_kids
-    history geography art food cars books video_games disney superhero
-    travel cooking gardening photography
-  ].freeze
-
   belongs_to :trip
+  has_many :trivia_responses, dependent: :destroy
 
   validates :name, presence: true
-  validate :interests_in_catalog
+
+  before_validation :compact_interests
 
   scope :ordered, -> { order(position: :asc, created_at: :asc) }
+
+  # Returns { "kalyan" => ["sports","art",...], "mani" => [...] } from all
+  # kept-trip Person rows owned by `user`. Used to pre-fill interests when
+  # the user adds the same traveler to a future trip — most recent wins.
+  def self.known_interests_for(user)
+    return {} unless user
+    joins(:trip)
+      .where(trips: { owner_id: user.id, discarded_at: nil })
+      .order(:updated_at)
+      .each_with_object({}) do |p, acc|
+      key = p.name.to_s.downcase.strip
+      next if key.blank?
+      acc[key] = Array(p.interests)
+    end
+  end
 
   def initials
     name.to_s.split(/\s+/).first(2).map { |w| w[0] }.join.upcase
@@ -25,8 +34,7 @@ class Person < ApplicationRecord
 
   private
 
-  def interests_in_catalog
-    bad = interests.to_a.reject { |i| INTERESTS.include?(i) }
-    errors.add(:interests, "include unknown tags: #{bad.join(', ')}") if bad.any?
+  def compact_interests
+    self.interests = Array(interests).map { |i| i.to_s.strip }.reject(&:blank?).uniq
   end
 end

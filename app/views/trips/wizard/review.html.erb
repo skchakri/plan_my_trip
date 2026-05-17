@@ -1,0 +1,123 @@
+<% content_for :title, "Plan a trip — review" %>
+<% people = Array(@draft["people"]) %>
+<% highlights = Array(@selected_highlights) %>
+<% start_d = (Date.parse(@draft["start_date"]) rescue nil) %>
+<% end_d   = (Date.parse(@draft["end_date"])   rescue nil) %>
+<% days    = (start_d && end_d) ? (end_d - start_d).to_i + 1 : nil %>
+
+<div class="mb-6">
+  <%= link_to wizard_highlights_path, class: "inline-flex items-center gap-1 text-sm text-slate-400 hover:text-amber-300 transition-colors" do %>
+    <%= icon :arrow_left, class: "w-4 h-4" %> Highlights
+  <% end %>
+  <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500 font-medium mt-3">Plan a trip · step 4 of 4</p>
+  <h1 class="font-display text-3xl sm:text-4xl font-semibold tracking-tight">Review &amp; create</h1>
+  <p class="text-sm text-slate-400 mt-1.5">We'll draft the day-by-day itinerary using your travelers' interests and the highlights you picked. You can edit anything after.</p>
+</div>
+
+<%= render "trips/wizard/progress", step: 4 %>
+
+<div class="space-y-4">
+  <%# Trip summary %>
+  <section class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 sm:p-6">
+    <div class="flex items-start justify-between gap-3 mb-3">
+      <h2 class="font-display text-lg font-semibold text-slate-100 flex items-center gap-2">
+        <%= icon :map_pin, class: "w-4 h-4 text-amber-300" %> Trip
+      </h2>
+      <%= link_to "Edit", wizard_destination_path, class: "text-xs uppercase tracking-widest text-amber-300 hover:text-amber-200" %>
+    </div>
+    <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+      <div><dt class="text-slate-500 text-[11px] uppercase tracking-widest">Title</dt><dd class="text-slate-100"><%= @draft["title"].presence || "(auto)" %></dd></div>
+      <div><dt class="text-slate-500 text-[11px] uppercase tracking-widest">Destination</dt><dd class="text-slate-100"><%= @draft["destination"] %></dd></div>
+      <% if @draft["origin"].present? %>
+        <div><dt class="text-slate-500 text-[11px] uppercase tracking-widest">Origin</dt><dd class="text-slate-100"><%= @draft["origin"] %></dd></div>
+      <% end %>
+      <div>
+        <dt class="text-slate-500 text-[11px] uppercase tracking-widest">Dates</dt>
+        <dd class="text-slate-100">
+          <% if start_d && end_d %>
+            <%= start_d.strftime("%b %-d") %> – <%= end_d.strftime("%b %-d, %Y") %> · <%= pluralize(days, "day") %>
+          <% end %>
+        </dd>
+      </div>
+    </dl>
+  </section>
+
+  <%# Travelers %>
+  <section class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 sm:p-6">
+    <div class="flex items-start justify-between gap-3 mb-3">
+      <h2 class="font-display text-lg font-semibold text-slate-100 flex items-center gap-2">
+        <%= icon :users, class: "w-4 h-4 text-amber-300" %> Travelers <span class="text-slate-500 text-sm font-normal">· <%= people.size %></span>
+      </h2>
+      <%= link_to "Edit", wizard_travelers_path, class: "text-xs uppercase tracking-widest text-amber-300 hover:text-amber-200" %>
+    </div>
+    <ul class="space-y-2">
+      <% people.each do |p| %>
+        <li class="rounded-xl bg-slate-900/60 border border-slate-700/50 px-3.5 py-2.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+          <span class="font-medium text-slate-100"><%= p["name"] %></span>
+          <% if p["age"].present? %><span class="text-xs text-slate-500">age <%= p["age"] %></span><% end %>
+          <% if Array(p["interests"]).any? %>
+            <span class="flex flex-wrap gap-1">
+              <% Array(p["interests"]).first(6).each do |tag| %>
+                <span class="inline-flex items-center px-1.5 py-0.5 rounded-md bg-amber-500/10 text-amber-200 border border-amber-500/20 text-[10px]"><%= tag.tr("_", " ") %></span>
+              <% end %>
+              <% if Array(p["interests"]).size > 6 %>
+                <span class="text-[10px] text-slate-500">+<%= Array(p["interests"]).size - 6 %></span>
+              <% end %>
+            </span>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  </section>
+
+  <%# Highlights %>
+  <section class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 sm:p-6">
+    <div class="flex items-start justify-between gap-3 mb-3">
+      <h2 class="font-display text-lg font-semibold text-slate-100 flex items-center gap-2">
+        <%= icon :sparkles, class: "w-4 h-4 text-amber-300" %> Highlights <span class="text-slate-500 text-sm font-normal">· <%= highlights.size %></span>
+      </h2>
+      <%= link_to "Edit", wizard_highlights_path, class: "text-xs uppercase tracking-widest text-amber-300 hover:text-amber-200" %>
+    </div>
+    <% if highlights.empty? %>
+      <p class="text-sm text-slate-400">No highlights selected — we'll seed an empty plan you can fill in.</p>
+    <% else %>
+      <ul class="flex flex-wrap gap-2">
+        <% highlights.each do |h| %>
+          <li class="inline-flex items-center gap-2 rounded-full bg-slate-800/80 border border-slate-700 pl-1 pr-3 py-1 text-sm">
+            <% if h.image_url.present? %>
+              <img src="<%= h.image_url %>" alt="" class="w-6 h-6 rounded-full object-cover" referrerpolicy="no-referrer">
+            <% else %>
+              <span class="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center text-slate-500"><%= icon :map_pin, class: "w-3 h-3" %></span>
+            <% end %>
+            <span class="text-slate-200"><%= h.name %></span>
+          </li>
+        <% end %>
+      </ul>
+    <% end %>
+  </section>
+
+  <%# Generate-plan note + actions %>
+  <div class="rounded-2xl border border-amber-500/20 bg-amber-500/[0.04] p-5 sm:p-6">
+    <div class="flex items-start gap-3 mb-4">
+      <span class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 shrink-0">
+        <%= icon :sparkles, class: "w-5 h-5" %>
+      </span>
+      <div>
+        <h3 class="font-display text-base font-semibold text-amber-100">Draft the itinerary</h3>
+        <p class="text-xs text-amber-100/70 mt-0.5 leading-relaxed">We'll write a day-by-day markdown plan tailored to your travelers and the highlights you picked. Takes about 10-30 seconds. You'll land on the trip page when it's ready.</p>
+      </div>
+    </div>
+
+    <%= form_with url: wizard_create_path, method: :post do |f| %>
+      <%= f.submit "Create my trip", class: "w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-lg bg-amber-500 text-slate-950 font-semibold shadow-lg shadow-amber-500/20 hover:bg-amber-400 transition-colors cursor-pointer",
+                   data: { turbo_submits_with: "Drafting your plan…", disable_with: "Drafting your plan…" } %>
+    <% end %>
+  </div>
+
+  <div class="text-center pt-2">
+    <%= button_to "Reset wizard", wizard_reset_path, method: :delete,
+        class: "text-xs uppercase tracking-widest text-slate-500 hover:text-rose-300 cursor-pointer bg-transparent border-0 p-0",
+        form: { class: "inline" },
+        data: { turbo_confirm: "Discard this wizard draft and start over?" } %>
+  </div>
+</div>

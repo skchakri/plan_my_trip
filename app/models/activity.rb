@@ -1,15 +1,41 @@
 class Activity < ApplicationRecord
   MAX_DOCUMENT_BYTES = 15.megabytes
+  MAX_PHOTO_BYTES = 10.megabytes
 
   belongs_to :trip_day
+  belongs_to :place, optional: true
   has_one :trip, through: :trip_day
+
+  # User-uploaded photos of this stop. First attachment wins as the hero
+  # so a trip member can override the Wikipedia/place image with a real
+  # photo they took.
+  has_many_attached :photos do |attachable|
+    attachable.variant :thumb, resize_to_limit: [ 800, 800 ]
+  end
 
   has_many_attached :documents do |attachable|
     attachable.variant :preview, resize_to_limit: [ 600, 600 ]
   end
 
+  # Visual hero: a user-uploaded photo wins, then the per-activity
+  # photo_url (admin override), then the shared Place image so two
+  # trips visiting the same spot reuse one canonical photo.
+  def hero_image_url
+    if photos.attached?
+      Rails.application.routes.url_helpers.rails_blob_path(photos.first, only_path: true)
+    else
+      photo_url.presence || place&.image_url
+    end
+  end
+
+  def hero_image_attribution
+    return nil if photos.attached? || photo_url.present?
+    place&.image_attribution
+  end
+
   validates :title, presence: true
   validate :documents_within_size_limit
+  validate :photos_within_size_limit
 
   def maps_link
     return maps_url if maps_url.present?
@@ -68,6 +94,13 @@ class Activity < ApplicationRecord
     documents.each do |doc|
       next unless doc.byte_size && doc.byte_size > MAX_DOCUMENT_BYTES
       errors.add(:documents, "#{doc.filename} is #{ActiveSupport::NumberHelper.number_to_human_size(doc.byte_size)}, max is #{ActiveSupport::NumberHelper.number_to_human_size(MAX_DOCUMENT_BYTES)}")
+    end
+  end
+
+  def photos_within_size_limit
+    photos.each do |photo|
+      next unless photo.byte_size && photo.byte_size > MAX_PHOTO_BYTES
+      errors.add(:photos, "#{photo.filename} is #{ActiveSupport::NumberHelper.number_to_human_size(photo.byte_size)}, max is #{ActiveSupport::NumberHelper.number_to_human_size(MAX_PHOTO_BYTES)}")
     end
   end
 end

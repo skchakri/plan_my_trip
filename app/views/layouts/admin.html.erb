@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html class="h-full" lang="en">
+  <head>
+    <title><%= content_for(:title) || "Admin · Plan My Trip" %></title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="apple-touch-icon" href="/icon.png">
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+  <body class="bg-slate-950 text-slate-100 min-h-full antialiased">
+    <header class="border-b border-slate-800 bg-slate-900/60 backdrop-blur sticky top-0 z-30">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-4">
+          <%= link_to admin_root_path, class: "flex items-center gap-2 text-sm font-semibold" do %>
+            <%= image_tag "/icon.svg", alt: "Plan My Trip", width: 28, height: 28, class: "rounded-md" %>
+            <span class="hidden sm:inline bg-gradient-to-r from-amber-200 to-amber-400 bg-clip-text text-transparent">Admin · Plan My Trip</span>
+          <% end %>
+          <nav class="flex items-center gap-1 text-sm">
+            <%= link_to "Dashboard", admin_root_path,       class: "px-2.5 py-1.5 rounded-md text-slate-300 hover:bg-white/5 #{'bg-white/5 text-white' if controller_name == 'dashboard'}" %>
+            <%= link_to "Places",    admin_places_path,     class: "px-2.5 py-1.5 rounded-md text-slate-300 hover:bg-white/5 #{'bg-white/5 text-white' if controller_name == 'places'}" %>
+            <%= link_to "Landmarks", admin_landmarks_path,  class: "px-2.5 py-1.5 rounded-md text-slate-300 hover:bg-white/5 #{'bg-white/5 text-white' if controller_name == 'landmarks'}" %>
+            <%= link_to "Trivia",    admin_trivia_path,     class: "px-2.5 py-1.5 rounded-md text-slate-300 hover:bg-white/5 #{'bg-white/5 text-white' if controller_name == 'trivia'}" %>
+            <%= link_to "Users",     admin_users_path,      class: "px-2.5 py-1.5 rounded-md text-slate-300 hover:bg-white/5 #{'bg-white/5 text-white' if controller_name == 'users'}" %>
+            <%= link_to "Prompts",   admin_ai_prompts_path, class: "px-2.5 py-1.5 rounded-md text-slate-300 hover:bg-white/5 #{'bg-white/5 text-white' if controller_name == 'ai_prompts'}" %>
+            <%= link_to "Calls",     admin_ai_calls_path,   class: "px-2.5 py-1.5 rounded-md text-slate-300 hover:bg-white/5 #{'bg-white/5 text-white' if controller_name == 'ai_calls'}" %>
+            <%= link_to "Sandbox",   admin_sandbox_path,    class: "px-2.5 py-1.5 rounded-md text-slate-300 hover:bg-white/5 #{'bg-white/5 text-white' if controller_name == 'sandbox'}" %>
+          </nav>
+        </div>
+        <div class="flex items-center gap-2 text-xs">
+          <%= link_to "← Back to app", trips_path, class: "px-2.5 py-1.5 rounded-md text-slate-300 hover:bg-white/5" %>
+          <span class="text-slate-500 hidden sm:inline"><%= current_user&.email %></span>
+        </div>
+      </div>
+    </header>
+
+    <% if notice.present? %>
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-4">
+        <div role="status" class="rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-100 px-3 py-2 text-sm"><%= notice %></div>
+      </div>
+    <% end %>
+    <% if alert.present? %>
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-4">
+        <div role="alert" class="rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-100 px-3 py-2 text-sm"><%= alert %></div>
+      </div>
+    <% end %>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <%= yield %>
+    </main>
+  </body>
+</html>

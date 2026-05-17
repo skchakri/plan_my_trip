@@ -1,0 +1,16 @@
+<%# Shared header for every sandbox block. Shows the block title, the
+    actual service latency, cache hit/miss, and the cache key (for nuking
+    a single block's cache via Rails console if you need to re-run). %>
+<div class="flex items-center justify-between gap-3 mb-3">
+  <h3 class="font-display text-base font-semibold text-amber-200"><%= title %></h3>
+  <div class="flex items-center gap-2 text-[10px] uppercase tracking-widest font-semibold">
+    <% if result[:cache_hit] %>
+      <span class="px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300">cached</span>
+    <% else %>
+      <span class="px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300">fresh</span>
+    <% end %>
+    <% if result[:latency_ms] %>
+      <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 tabular-nums"><%= result[:latency_ms] %>ms</span>
+    <% end %>
+  </div>
+</div>

@@ -1,0 +1,29 @@
+<%= turbo_frame_tag "sandbox-route" do %>
+  <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
+    <%= render "block_header", title: "Drive-by landmarks (#{Array(@result[:value]).size})", result: @result %>
+    <% landmarks = Array(@result[:value]) %>
+    <% if landmarks.empty? %>
+      <p class="text-sm text-slate-500 italic">No drive-by landmarks. <code class="text-amber-300">route_landmarks.v1</code> may not be active, or the model returned nothing for this route.</p>
+    <% else %>
+      <ul class="space-y-2">
+        <% landmarks.each do |l| %>
+          <li class="flex gap-3 rounded-lg border border-slate-800 bg-slate-950/60 p-2.5">
+            <% if l["image_url"].present? %>
+              <img src="<%= l["image_url"] %>" alt="<%= l["name"] %>" class="w-16 h-16 object-cover rounded shrink-0">
+            <% else %>
+              <div class="w-16 h-16 bg-slate-900 rounded shrink-0 flex items-center justify-center text-slate-700 text-xl">◌</div>
+            <% end %>
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <p class="text-sm font-semibold text-slate-100"><%= l["name"] %></p>
+                <span class="text-[9px] px-1 py-0.5 rounded bg-slate-800 text-slate-400 uppercase tracking-widest"><%= l["kind"] %></span>
+                <span class="text-[10px] text-slate-500 font-mono"><%= "%.4f, %.4f" % [ l["lat"], l["lng"] ] %></span>
+              </div>
+              <p class="text-xs text-slate-400 mt-1 leading-relaxed line-clamp-3"><%= l["narration"] %></p>
+            </div>
+          </li>
+        <% end %>
+      </ul>
+    <% end %>
+  </div>
+<% end %>

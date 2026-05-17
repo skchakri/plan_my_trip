@@ -1,0 +1,68 @@
+<%
+  # Per-row interests memory: parent passes @known_traveler_interests, a
+  # hash of { lowercase-name => [interests] } pulled from this user's
+  # prior trips. The Stimulus controller pre-fills chips when the name
+  # field matches a known entry and the chips area is empty.
+  known_json = (local_assigns[:known_traveler_interests] || @known_traveler_interests || {}).to_json
+  interests_name = "#{pf.object_name}[interests][]"
+  current_interests = Array(pf.object.interests).reject(&:blank?)
+%>
+<div class="traveler-row rounded-xl bg-slate-900/60 border border-slate-700/50 p-3.5 space-y-3"
+     data-controller="interests-input"
+     data-interests-input-name-value="<%= interests_name %>"
+     data-interests-input-known-value="<%= known_json %>">
+  <div class="grid grid-cols-1 sm:grid-cols-[1fr_100px] gap-2">
+    <div>
+      <%= pf.label :name, class: "sr-only" %>
+      <%= pf.text_field :name,
+            placeholder: "Name (e.g. Mani)",
+            class: input_classes + " text-sm",
+            data: { interests_input_target: "nameField", action: "change->interests-input#nameChanged blur->interests-input#nameChanged" } %>
+    </div>
+    <div>
+      <%= pf.label :age, class: "sr-only" %>
+      <%= pf.number_field :age, min: 0, max: 120, placeholder: "Age", class: input_classes + " text-sm" %>
+    </div>
+  </div>
+
+  <div>
+    <p class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-1.5">Personal interests</p>
+    <%# Hidden empty value ensures Rails clears interests when none are
+        present (otherwise the param key wouldn't appear at all). %>
+    <%= hidden_field_tag interests_name, "", data: { interests_input_target: "emptyMarker" } %>
+    <div class="flex flex-wrap items-center gap-1.5 rounded-lg bg-slate-800/40 border border-slate-700 px-2 py-1.5 focus-within:border-amber-500/60"
+         data-interests-input-target="chips">
+      <% current_interests.each do |tag| %>
+        <span data-interests-input-target="chip" data-value="<%= tag %>"
+              class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs bg-amber-500/20 border border-amber-500/50 text-amber-200">
+          <%= hidden_field_tag interests_name, tag %>
+          <%= tag %>
+          <button type="button"
+                  data-action="interests-input#removeChip"
+                  aria-label="Remove <%= tag %>"
+                  class="text-amber-200/70 hover:text-rose-300 ml-0.5 cursor-pointer leading-none">×</button>
+        </span>
+      <% end %>
+      <input type="text"
+             data-interests-input-target="newInput"
+             data-action="keydown->interests-input#keydown blur->interests-input#commit"
+             placeholder="<%= current_interests.any? ? 'add another…' : 'sports, art, photography…' %>"
+             class="flex-1 min-w-[10ch] bg-transparent border-0 px-1 py-0.5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-0">
+    </div>
+    <p class="text-[10px] text-slate-500 mt-1">Press Enter or comma to add. Saved for this person — pre-fills on your next trip.</p>
+  </div>
+
+  <% if pf.object.persisted? %>
+    <label class="inline-flex items-center gap-2 text-xs text-rose-400 cursor-pointer">
+      <%= pf.check_box :_destroy, class: "rounded bg-slate-800 border-slate-600" %>
+      Remove this traveler
+    </label>
+  <% else %>
+    <%= pf.hidden_field :_destroy, value: "0", data: { nested_form_target: "destroyInput" } %>
+    <button type="button"
+            data-action="nested-form#remove"
+            class="text-xs text-slate-500 hover:text-rose-300 cursor-pointer">
+      Remove this row
+    </button>
+  <% end %>
+</div>

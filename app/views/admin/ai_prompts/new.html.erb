@@ -1,0 +1,6 @@
+<% content_for :title, "New AI prompt" %>
+
+<%= link_to "← Prompts", admin_ai_prompts_path, class: "text-xs text-slate-400 hover:text-slate-200" %>
+<h1 class="font-display text-2xl font-semibold mt-2 mb-5">New AI prompt</h1>
+
+<%= render "form", prompt: @prompt %>

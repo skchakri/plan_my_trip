@@ -1,26 +1,42 @@
-<% content_for :title, "Question for #{@person.name}" %>
+<% content_for :title, (@mode == "riddle" ? "Riddle for #{@person.name}" : "Question for #{@person.name}") %>
 
 <div class="mb-5">
-  <%= link_to copilot_trip_path(@trip), class: "inline-flex items-center gap-1 text-sm text-slate-400 hover:text-amber-300 transition-colors" do %>
+  <%= link_to copilot_trip_path(@trip, mode: (@mode == "riddle" ? "riddle" : nil)), class: "inline-flex items-center gap-1 text-sm text-slate-400 hover:text-amber-300 transition-colors" do %>
     <%= icon :arrow_left, class: "w-4 h-4" %> Other travelers
   <% end %>
 </div>
 
 <header class="mb-5 text-center">
-  <p class="text-[11px] uppercase tracking-[0.18em] text-amber-300 font-medium mb-1.5">For <%= @person.name %></p>
+  <p class="text-[11px] uppercase tracking-[0.18em] text-amber-300 font-medium mb-1.5">
+    <% if @mode == "riddle" %>Riddle for<% else %>For<% end %> <%= @person.name %>
+    <% if @question[:chain_position] %>
+      · Story step <%= @question[:chain_position] %> of <%= @question[:chain_length] %>
+    <% end %>
+  </p>
+  <% if @question[:chain_intro].present? %>
+    <p class="max-w-xl mx-auto text-sm sm:text-base text-slate-300 italic mb-3 leading-relaxed">
+      <%= @question[:chain_intro] %>
+    </p>
+  <% end %>
   <h1 class="font-display text-2xl sm:text-3xl font-semibold tracking-tight leading-snug" id="copilot-question-text">
     <%= @question[:q] %>
   </h1>
 </header>
 
-<%# Read-the-question button %>
+<%# Read-the-question button — full prompt + options spoken in order %>
 <div class="flex justify-center mb-6">
+  <%
+    intro_text = @question[:chain_intro].present? ? "#{@question[:chain_intro]}. " : ""
+    opts_spoken = @question[:options].each_with_index.map { |o, i| "#{('A'.ord + i).chr}, #{o}." }.join(" ")
+    speak_text  = "#{intro_text}Question for #{@person.name}. #{@question[:q]}. Options: #{opts_spoken}"
+  %>
   <button type="button"
           data-controller="tts"
-          data-tts-text-value="<%= "Question for #{@person.name}. #{@question[:q]}. Options: #{@question[:options].each_with_index.map { |o,i| "#{('A'.ord + i).chr}, #{o}." }.join(' ')}" %>"
+          data-tts-text-value="<%= speak_text %>"
+          aria-label="Read the question aloud"
           class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-slate-700 bg-slate-900/50 hover:border-amber-500/50 text-slate-200">
-    <%= icon :sparkles, class: "w-4 h-4 text-amber-400" %>
-    <span data-tts-label data-play-label="Read the question" data-stop-label="Stop">Read the question</span>
+    <%= icon :volume_2, class: "w-4 h-4 text-amber-400" %>
+    <span data-tts-label data-play-label="Read aloud" data-stop-label="Stop">Read aloud</span>
   </button>
 </div>
 
@@ -38,7 +54,14 @@
 </div>
 
 <%# Reveal area — populated by inline script after click %>
-<div id="copilot-reveal" class="hidden mt-6 max-w-md mx-auto rounded-2xl p-5 border" data-correct-answer-text="<%= @question[:options][@question[:answer]] %>" data-fun-fact="<%= @question[:fun_fact] %>">
+<div id="copilot-reveal"
+     class="hidden mt-6 max-w-md mx-auto rounded-2xl p-5 border"
+     data-correct-answer-text="<%= @question[:options][@question[:answer]] %>"
+     data-fun-fact="<%= @question[:fun_fact] %>"
+     data-question-id="<%= @question[:id] %>"
+     data-record-url="<%= copilot_response_trip_path(@trip) %>"
+     data-person-id="<%= @person.id %>"
+     data-csrf-token="<%= form_authenticity_token %>">
   <p id="copilot-reveal-headline" class="font-display text-2xl font-semibold mb-2"></p>
   <p id="copilot-fun-fact" class="text-sm text-slate-300 leading-relaxed"></p>
 
@@ -56,10 +79,18 @@
   </div>
 
   <div class="mt-4 flex flex-wrap gap-2">
-    <%= link_to copilot_question_trip_path(@trip, person_id: @person.id), class: "px-3 py-1.5 text-sm rounded-lg bg-amber-500 text-slate-950 font-semibold hover:bg-amber-400" do %>
-      Another question for <%= @person.name %>
+    <% if @question[:follow_up_id] %>
+      <%# "Continue the story" — only the JS shows this when the answer was correct %>
+      <a id="copilot-continue"
+         href="<%= copilot_question_trip_path(@trip, person_id: @person.id, question_id: @question[:follow_up_id]) %>"
+         class="hidden px-3 py-1.5 text-sm rounded-lg bg-emerald-500 text-slate-950 font-semibold hover:bg-emerald-400">
+        Continue the story · Step <%= (@question[:chain_position] || 1) + 1 %> →
+      </a>
     <% end %>
-    <%= link_to copilot_trip_path(@trip), class: "px-3 py-1.5 text-sm rounded-lg border border-slate-700 text-slate-200 hover:border-amber-500/50" do %>
+    <%= link_to copilot_question_trip_path(@trip, person_id: @person.id, mode: (@mode == "riddle" ? "riddle" : nil)), class: "px-3 py-1.5 text-sm rounded-lg bg-amber-500 text-slate-950 font-semibold hover:bg-amber-400" do %>
+      <% if @mode == "riddle" %>Another riddle for <%= @person.name %><% else %>Another question for <%= @person.name %><% end %>
+    <% end %>
+    <%= link_to copilot_trip_path(@trip, mode: (@mode == "riddle" ? "riddle" : nil)), class: "px-3 py-1.5 text-sm rounded-lg border border-slate-700 text-slate-200 hover:border-amber-500/50" do %>
       Pick another traveler
     <% end %>
   </div>
@@ -73,18 +104,42 @@
     const factEl   = document.getElementById("copilot-fun-fact");
     const correct = reveal.dataset.correctAnswerText;
     const fact    = reveal.dataset.funFact;
+    const questionId = reveal.dataset.questionId;
+    const recordUrl  = reveal.dataset.recordUrl;
+    const personId   = reveal.dataset.personId;
+    const csrfToken  = reveal.dataset.csrfToken;
 
     opts.forEach((btn) => {
       btn.addEventListener("click", () => {
         const isCorrect = btn.dataset.correct === "true";
         opts.forEach((o) => { o.disabled = true; o.classList.add("opacity-60"); });
         btn.classList.remove("opacity-60");
+
+        // Fire-and-forget: record the response so this question doesn't
+        // reappear for this person. Only meaningful when the question has
+        // an id (DB-backed); GENERIC fallback questions skip this.
+        if (questionId) {
+          const body = new URLSearchParams({
+            question_id: questionId,
+            person_id:   personId,
+            correct:     isCorrect ? "1" : "0"
+          });
+          fetch(recordUrl, {
+            method: "POST",
+            headers: { "X-CSRF-Token": csrfToken, "Content-Type": "application/x-www-form-urlencoded" },
+            body: body
+          }).catch(() => { /* offline — fine, will retry on next correct answer */ });
+        }
         if (isCorrect) {
           btn.classList.remove("border-slate-700");
           btn.classList.add("border-emerald-500", "bg-emerald-500/10");
           headline.textContent = "Correct! 🎉";
           headline.className   = "font-display text-2xl font-semibold mb-2 text-emerald-300";
           reveal.classList.add("border-emerald-500/30", "bg-emerald-500/5");
+          // Reveal the chain "Continue the story" CTA when this question
+          // has a follow-up step.
+          const cont = document.getElementById("copilot-continue");
+          if (cont) cont.classList.remove("hidden");
         } else {
           btn.classList.remove("border-slate-700");
           btn.classList.add("border-rose-500", "bg-rose-500/10");

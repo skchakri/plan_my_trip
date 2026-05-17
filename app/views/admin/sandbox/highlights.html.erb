@@ -1,0 +1,41 @@
+<%= turbo_frame_tag "sandbox-highlights" do %>
+  <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
+    <%= render "block_header", title: "Highlights grid (#{Array(@result[:value]).size})", result: @result %>
+    <% highlights = Array(@result[:value]) %>
+    <% if highlights.empty? %>
+      <p class="text-sm text-slate-500 italic">No highlights returned. Check Wikivoyage coverage for the destination — and that the catalog has rows in this region.</p>
+    <% else %>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        <% highlights.each do |h| %>
+          <div class="rounded-lg border border-slate-800 bg-slate-950/60 overflow-hidden">
+            <% if h.image_url.present? %>
+              <img src="<%= h.image_url %>" alt="<%= h.name %>" loading="lazy" class="w-full h-24 object-cover">
+            <% else %>
+              <% vis = highlight_visual_for(h.category) %>
+              <div class="w-full h-24 bg-gradient-to-br <%= vis[:gradient] %> flex items-center justify-center text-white/40">
+                <%= icon vis[:icon], class: "w-9 h-9" %>
+              </div>
+            <% end %>
+            <div class="p-2">
+              <p class="text-sm font-semibold text-slate-100 leading-tight line-clamp-2"><%= h.name %></p>
+              <% if h.summary.present? %>
+                <p class="text-xs text-slate-400 mt-1 line-clamp-3"><%= h.summary %></p>
+              <% end %>
+              <div class="flex flex-wrap gap-1 mt-1.5">
+                <% if h.category.present? %>
+                  <span class="text-[9px] px-1 py-0.5 rounded bg-slate-800 text-slate-400 uppercase tracking-widest"><%= h.category %></span>
+                <% end %>
+                <% if h.from_catalog? %>
+                  <span class="text-[9px] px-1 py-0.5 rounded bg-emerald-500/15 text-emerald-300 uppercase tracking-widest">catalog</span>
+                <% end %>
+                <% Array(h.tags).first(2).each do |t| %>
+                  <span class="text-[9px] px-1 py-0.5 rounded bg-amber-500/10 text-amber-300 uppercase tracking-widest"><%= t %></span>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+<% end %>

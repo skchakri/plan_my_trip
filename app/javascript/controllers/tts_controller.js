@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { getSpeed } from "tts_settings"
 
 // Speaks text via the Web Speech API.
 // Usage in markup:
@@ -45,7 +46,7 @@ export default class extends Controller {
     if (!text || !("speechSynthesis" in window)) return
     window.speechSynthesis.cancel() // stop anything else mid-speak
     const utter = new SpeechSynthesisUtterance(text)
-    utter.rate  = this.rateValue
+    utter.rate  = this.rateValue * getSpeed()
     utter.pitch = this.pitchValue
     utter.onend = utter.onerror = () => this._setSpeaking(false)
     this._setSpeaking(true)

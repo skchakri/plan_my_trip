@@ -1,0 +1,97 @@
+<%= turbo_frame_tag "sandbox-nearby" do %>
+  <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+      <div>
+        <h3 class="font-display text-base font-semibold text-amber-200">
+          Places near <%= @label %>
+          <span class="text-slate-500 font-normal text-sm">· <%= @radius_km %> km</span>
+        </h3>
+        <p class="text-xs text-slate-500 mt-0.5 font-mono"><%= "%.4f, %.4f" % [ @origin_lat, @origin_lng ] %><% if @kind || @tier %> · <%= [ @kind, @tier ].compact.join(" · ") %><% end %></p>
+      </div>
+      <div class="flex items-center gap-2 text-[10px] uppercase tracking-widest font-semibold">
+        <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 tabular-nums"><%= @places.size %> rows</span>
+      </div>
+    </div>
+
+    <% if @places.empty? %>
+      <div class="rounded-lg border border-dashed border-slate-800 bg-slate-950/30 p-6 text-center">
+        <p class="text-sm text-slate-500">No cataloged places within <%= @radius_km %> km of <%= @label %>. Try a larger radius, or seed this region from <code class="text-amber-300">/admin/places</code>.</p>
+      </div>
+    <% else %>
+      <%
+        places_for_map = @places.map do |(p, d)|
+          {
+            id: p.id, name: p.name,
+            lat: p.latitude.to_f, lng: p.longitude.to_f,
+            kind: p.kind, tier: p.tier,
+            distance_m: d.to_i,
+            image_url: p.image_url,
+            # Modal endpoint, not the full /admin/places/:id page — the map
+            # pin popup's "Details →" link targets the sandbox-place-modal
+            # frame so the user stays on the sandbox.
+            url: admin_sandbox_place_modal_path(p)
+          }
+        end
+      %>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="rounded-lg overflow-hidden border border-slate-800"
+             style="height: 460px;"
+             data-controller="sandbox-nearby-map"
+             data-sandbox-nearby-map-origin-value='<%= { lat: @origin_lat, lng: @origin_lng, label: @label, radiusKm: @radius_km }.to_json %>'
+             data-sandbox-nearby-map-places-value='<%= places_for_map.to_json %>'>
+          <div class="sandbox-map w-full h-full"></div>
+        </div>
+
+        <div class="rounded-lg border border-slate-800 overflow-hidden max-h-[460px] overflow-y-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-slate-900/60 text-[10px] uppercase tracking-widest text-slate-500 sticky top-0">
+              <tr>
+                <th class="text-left px-2 py-1.5"></th>
+                <th class="text-left px-2 py-1.5">Place</th>
+                <th class="text-left px-2 py-1.5">Kind</th>
+                <th class="text-right px-2 py-1.5">km</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60">
+              <% @places.each do |(p, d)| %>
+                <tr data-place-row="<%= p.id %>" class="hover:bg-amber-500/5 cursor-pointer">
+                  <td class="px-2 py-1.5 align-top">
+                    <%= link_to admin_sandbox_place_modal_path(p), data: { turbo_frame: "sandbox-place-modal" } do %>
+                      <% if p.image_url.present? %>
+                        <img src="<%= p.image_url %>" alt="<%= p.name %>" class="w-10 h-10 object-cover rounded">
+                      <% else %>
+                        <div class="w-10 h-10 bg-slate-900 rounded flex items-center justify-center text-slate-700 text-sm">◌</div>
+                      <% end %>
+                    <% end %>
+                  </td>
+                  <td class="px-2 py-1.5 align-top">
+                    <%= link_to admin_sandbox_place_modal_path(p), data: { turbo_frame: "sandbox-place-modal" },
+                          class: "text-amber-300 hover:text-amber-200 font-medium text-sm" do %>
+                      <%= p.name %>
+                    <% end %>
+                    <div class="text-[11px] text-slate-500 line-clamp-1"><%= p.description.to_s[0, 80] %></div>
+                    <div class="flex flex-wrap gap-1 mt-1">
+                      <% if p.tier.present? %>
+                        <span class="text-[9px] px-1 py-0.5 rounded bg-amber-500/10 text-amber-300 uppercase tracking-widest"><%= p.tier %></span>
+                      <% end %>
+                      <% if p.verified %>
+                        <span class="text-[9px] px-1 py-0.5 rounded bg-emerald-500/15 text-emerald-300 uppercase tracking-widest">verified</span>
+                      <% end %>
+                      <% if p.usage_count.to_i > 0 %>
+                        <span class="text-[9px] px-1 py-0.5 rounded bg-slate-800 text-slate-400 uppercase tracking-widest"><%= p.usage_count %> trips</span>
+                      <% end %>
+                    </div>
+                  </td>
+                  <td class="px-2 py-1.5 align-top">
+                    <span class="text-[10px] px-1 py-0.5 rounded bg-slate-800 text-slate-300 uppercase tracking-widest"><%= p.kind || "—" %></span>
+                  </td>
+                  <td class="px-2 py-1.5 align-top text-right tabular-nums text-xs text-slate-300"><%= (d / 1000.0).round(1) %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% end %>

@@ -1,7 +1,7 @@
 class TripsController < ApplicationController
   include MarkdownHelper
 
-  before_action :set_trip, only: %i[show edit update destroy rename plan checklist copilot copilot_question]
+  before_action :set_trip, only: %i[show edit update destroy rename plan checklist copilot copilot_question copilot_response]
 
   def index
     @trips = policy_scope(Trip).ordered.includes(:owner)
@@ -12,17 +12,19 @@ class TripsController < ApplicationController
     @membership = @trip.trip_memberships.find_by(user: current_user)
     @rendered_body = render_markdown(@trip.body)
     @booking = BookingLinks.new(@trip, viewer: current_user)
+    @known_traveler_interests = Person.known_interests_for(current_user)
   end
 
   def new
-    @trip = Trip.new(start_date: Date.current, end_date: Date.current + 3)
-    @trip.trails.build
-    authorize @trip
+    # Single-page form replaced by the guided wizard (Trips::WizardController).
+    redirect_to wizard_destination_path
   end
 
   def edit
     authorize @trip, :update?
     @trip.trails.build if @trip.trails.empty?
+    @trip.people.build # one fresh row at the end for adding another traveler
+    @known_traveler_interests = Person.known_interests_for(current_user)
   end
 
   def create
@@ -40,6 +42,7 @@ class TripsController < ApplicationController
     if @trip.update(trip_params)
       redirect_to @trip, notice: "Trip updated."
     else
+      @known_traveler_interests = Person.known_interests_for(current_user)
       render :edit, status: :unprocessable_entity
     end
   end
@@ -79,17 +82,50 @@ class TripsController < ApplicationController
   end
 
   # GET /trips/:id/copilot — driving-time engagement screen (pick-a-traveler, then play)
+  # Optional ?mode=riddle switches the page into Riddles mode, which only
+  # changes which pool we sample from when a traveler is picked.
   def copilot
     authorize @trip, :show?
     @people = @trip.people.ordered
+    @mode = (params[:mode] == "riddle") ? "riddle" : "trivia"
   end
 
-  # GET /trips/:id/copilot_question?person_id=X — pulls a question for the picked person
+  # GET /trips/:id/copilot_question?person_id=X
+  # Optional ?question_id=Y picks a specific question (used to continue a
+  # chained word-problem after a correct answer); otherwise picks a random
+  # unanswered chain-root for the person. ?mode=riddle scopes the pick to
+  # the shared riddles pool instead of interest-matched trivia.
   def copilot_question
     authorize @trip, :show?
     @person = @trip.people.find(params[:person_id])
-    @question = TriviaPool.pick_for(@person)
+    @mode = (params[:mode] == "riddle") ? "riddle" : "trivia"
+    @question =
+      if params[:question_id].present? && (rec = TriviaQuestion.kept.find_by(id: params[:question_id]))
+        TriviaPool.as_hash(rec)
+      elsif @mode == "riddle"
+        TriviaPool.pick_riddle_for(@person)
+      else
+        TriviaPool.pick_for(@person)
+      end
     @playlist = RoadTripPlaylists.for_person(@person)
+  end
+
+  # POST /trips/:id/copilot_response — records a TriviaResponse so the same
+  # question won't reappear for that person. Fired by copilot_question.html.erb
+  # JS when the user taps an answer. Idempotent (uses upsert via uniqueness).
+  def copilot_response
+    authorize @trip, :show?
+    person = @trip.people.find(params[:person_id])
+    question = TriviaQuestion.find_by(id: params[:question_id])
+
+    if question
+      response = TriviaResponse.find_or_initialize_by(person: person, trivia_question: question)
+      response.correct = ActiveModel::Type::Boolean.new.cast(params[:correct])
+      response.answered_at = Time.current
+      response.save
+    end
+
+    head :no_content
   end
 
   # PATCH /trips/:id/rename — per-user title via membership.custom_title
@@ -111,7 +147,8 @@ class TripsController < ApplicationController
     params.require(:trip).permit(
       :title, :destination, :origin, :start_date, :end_date, :traveler_count, :body,
       :pwa_plan_url, :pwa_packing_url,
-      trails_attributes: [ :id, :name, :alltrails_url, :notes, :position, :_destroy ]
+      trails_attributes: [ :id, :name, :alltrails_url, :notes, :position, :_destroy ],
+      people_attributes: [ :id, :name, :age, :_destroy, { interests: [] } ]
     )
   end
 

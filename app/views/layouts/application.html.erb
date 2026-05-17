@@ -37,8 +37,8 @@
 
     <style>
       :root { --font-sans: 'Inter', system-ui, sans-serif; --font-display: 'Fraunces', Georgia, serif; }
-      html, body { font-family: var(--font-sans); font-feature-settings: 'cv11', 'ss01'; }
-      .font-display { font-family: var(--font-display); letter-spacing: -0.02em; }
+      html, body { font-family: var(--font-sans); font-feature-settings: 'cv11', 'ss01'; font-synthesis-weight: none; }
+      .font-display { font-family: var(--font-display); letter-spacing: -0.02em; font-synthesis-weight: none; }
       *:focus-visible { outline: 2px solid #f0b870; outline-offset: 2px; border-radius: 6px; }
       input:focus-visible, select:focus-visible, textarea:focus-visible { outline: none; }
       .bg-noise { background-image: radial-gradient(rgba(232,160,79,0.04) 1px, transparent 1px); background-size: 24px 24px; }
@@ -47,36 +47,8 @@
 
   <body class="bg-slate-950 text-slate-100 min-h-full antialiased <%= 'hotwire-native' if hotwire_native_app? %>">
     <% unless hotwire_native_app? %>
-      <header class="border-b border-slate-800/70 bg-slate-950/80 backdrop-blur-xl sticky top-0 z-30">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
-          <%= link_to root_path, class: "flex items-center gap-2.5 group" do %>
-            <%= image_tag "/icon.svg", alt: "", width: 30, height: 30, class: "rounded-lg shadow-lg shadow-amber-500/10 group-hover:shadow-amber-500/30 transition-shadow" %>
-            <div class="leading-tight">
-              <div class="text-[15px] font-semibold tracking-tight bg-gradient-to-r from-amber-200 to-amber-400 bg-clip-text text-transparent">Plan My Trip</div>
-              <div class="text-[10px] uppercase tracking-widest text-slate-500 hidden sm:block">Itineraries · Bookings · Trails</div>
-            </div>
-          <% end %>
-
-          <nav class="flex items-center gap-1.5 text-sm">
-            <% if user_signed_in? %>
-              <%= link_to trips_path, class: "hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors #{'bg-slate-800/60 text-white' if controller_name == 'trips' && action_name == 'index'}" do %>
-                <%= icon :list, class: "w-4 h-4" %><span>Trips</span>
-              <% end %>
-              <%= link_to edit_user_registration_path, class: "hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors" do %>
-                <%= icon :user_circle, class: "w-4 h-4" %><span class="hidden md:inline">Account</span>
-              <% end %>
-              <%= link_to new_trip_path, class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-semibold text-sm shadow-lg shadow-amber-500/20 hover:bg-amber-400 hover:shadow-amber-500/40 transition-all" do %>
-                <%= icon :plus, class: "w-4 h-4" %><span>New trip</span>
-              <% end %>
-              <%= button_to destroy_user_session_path, method: :delete, form: { data: { turbo: false }, class: "hidden sm:block" }, class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors" do %>
-                <%= icon :log_out, class: "w-4 h-4" %>
-              <% end %>
-            <% else %>
-              <%= link_to "Sign in", new_user_session_path, class: "px-3 py-1.5 rounded-md text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors" %>
-              <%= link_to "Sign up", new_user_registration_path, class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-semibold shadow-lg shadow-amber-500/20 hover:bg-amber-400 transition-all" %>
-            <% end %>
-          </nav>
-        </div>
+      <header class="sticky top-0 inset-x-0 z-30 border-b border-slate-800/70 bg-slate-950/80 backdrop-blur-xl">
+        <%= render "layouts/site_nav" %>
       </header>
     <% end %>
 

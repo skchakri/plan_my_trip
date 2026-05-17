@@ -1,0 +1,41 @@
+<% content_for :title, "AI prompts" %>
+
+<div class="flex items-center justify-between mb-4">
+  <h1 class="font-display text-2xl font-semibold">AI prompts</h1>
+  <%= link_to "+ New prompt", new_admin_ai_prompt_path, class: "text-sm px-3 py-1.5 rounded-md bg-amber-500 text-slate-950 font-semibold hover:bg-amber-400" %>
+</div>
+
+<p class="text-sm text-slate-400 mb-4">Each prompt is fetched at call time by its <code class="text-amber-300">slug</code>. ERB-style templates (<code class="text-slate-300">&lt;%= var %&gt;</code>) can use the variables that the calling service passes in.</p>
+
+<div class="rounded-xl border border-slate-800 overflow-hidden">
+  <table class="w-full text-sm">
+    <thead class="bg-slate-900/60 text-[10px] uppercase tracking-widest text-slate-500">
+      <tr>
+        <th class="text-left px-3 py-2">Slug · name</th>
+        <th class="text-left px-3 py-2">Provider · model</th>
+        <th class="text-left px-3 py-2">Kind</th>
+        <th class="text-right px-3 py-2">Active</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-slate-800/60">
+      <% @prompts.each do |p| %>
+        <tr class="hover:bg-slate-900/40 cursor-pointer">
+          <td class="px-3 py-2">
+            <%= link_to p.slug, admin_ai_prompt_path(p), class: "text-amber-300 hover:text-amber-200 font-medium" %>
+            <div class="text-xs text-slate-400"><%= p.name %></div>
+            <% if p.description.present? %><div class="text-xs text-slate-500 mt-0.5 line-clamp-1"><%= p.description %></div><% end %>
+          </td>
+          <td class="px-3 py-2 text-slate-300"><span class="text-[10px] uppercase tracking-widest text-slate-500"><%= p.provider %></span><br><%= p.model %></td>
+          <td class="px-3 py-2"><span class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold"><%= p.kind %></span></td>
+          <td class="px-3 py-2 text-right">
+            <% if p.active %>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 font-semibold uppercase">on</span>
+            <% else %>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-700 text-slate-400 font-semibold uppercase">off</span>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

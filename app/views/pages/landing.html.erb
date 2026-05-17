@@ -30,14 +30,17 @@
           <%= link_to trips_path, class: "inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 text-slate-950 font-semibold shadow-xl shadow-amber-500/30 hover:bg-amber-400 hover:shadow-amber-500/50 transition-all" do %>
             <%= icon :list, class: "w-5 h-5" %> Open my trips
           <% end %>
+          <%= link_to wizard_destination_path, class: "inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-white/15 bg-white/5 backdrop-blur text-slate-100 font-medium hover:bg-white/10 transition-colors" do %>
+            <%= icon :sparkles, class: "w-5 h-5 text-amber-300" %> Plan a new trip
+          <% end %>
         <% else %>
           <%= link_to new_user_registration_path, class: "inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 text-slate-950 font-semibold shadow-xl shadow-amber-500/30 hover:bg-amber-400 hover:shadow-amber-500/50 transition-all" do %>
             Start free <%= icon :arrow_right, class: "w-5 h-5" %>
           <% end %>
+          <a href="/sample-trips.html" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-white/15 bg-white/5 backdrop-blur text-slate-100 font-medium hover:bg-white/10 transition-colors">
+            <%= icon :sparkles, class: "w-5 h-5 text-amber-300" %> See a sample plan
+          </a>
         <% end %>
-        <a href="/trips.html" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-white/15 bg-white/5 backdrop-blur text-slate-100 font-medium hover:bg-white/10 transition-colors">
-          <%= icon :sparkles, class: "w-5 h-5 text-amber-300" %> See a sample plan
-        </a>
       </div>
 
       <div class="mt-8 flex items-center gap-4 text-sm text-slate-400">

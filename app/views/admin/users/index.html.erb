@@ -1,0 +1,76 @@
+<% content_for :title, "Users · Admin" %>
+
+<div class="mb-4">
+  <h1 class="font-display text-2xl font-semibold">Users</h1>
+  <p class="text-sm text-slate-400">Everyone who has signed up. Toggle admin access from the detail page.</p>
+</div>
+
+<div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+  <% [
+    ["Total",      @stats[:total]],
+    ["Admins",     @stats[:admins]],
+    ["With trips", @stats[:with_trips]]
+  ].each do |label, value| %>
+    <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-3">
+      <p class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold"><%= label %></p>
+      <p class="font-display text-2xl font-semibold mt-1 tabular-nums"><%= value.to_i %></p>
+    </div>
+  <% end %>
+</div>
+
+<%= form_with url: admin_users_path, method: :get, local: true, class: "flex flex-wrap items-center gap-2 mb-4" do %>
+  <%= text_field_tag :q, params[:q], placeholder: "email or name…",
+        class: "px-3 py-1.5 rounded-md bg-slate-900/60 border border-slate-700 text-sm text-slate-100 placeholder:text-slate-500 w-72" %>
+  <%= select_tag :role, options_for_select([["All users", ""], ["Admins only", "admin"]], params[:role]),
+        class: "px-3 py-1.5 rounded-md bg-slate-900/60 border border-slate-700 text-sm" %>
+  <button type="submit" class="px-3 py-1.5 rounded-md bg-amber-500 text-slate-950 text-sm font-semibold hover:bg-amber-400">Filter</button>
+  <% if params[:q].present? || params[:role].present? %>
+    <%= link_to "Reset", admin_users_path, class: "px-3 py-1.5 text-sm text-slate-400 hover:text-amber-200" %>
+  <% end %>
+<% end %>
+
+<% if @users.empty? %>
+  <p class="text-sm text-slate-500 italic">No users match these filters.</p>
+<% else %>
+  <div class="rounded-xl border border-slate-800 overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-slate-900/60 text-[10px] uppercase tracking-widest text-slate-500">
+        <tr>
+          <th class="text-left px-3 py-2">User</th>
+          <th class="text-right px-3 py-2">Trips</th>
+          <th class="text-left px-3 py-2">Memberships</th>
+          <th class="text-left px-3 py-2">Joined</th>
+          <th class="text-left px-3 py-2">Flags</th>
+          <th class="px-3 py-2"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-800/60">
+        <% @users.each do |u| %>
+          <tr class="hover:bg-slate-900/40">
+            <td class="px-3 py-2">
+              <%= link_to u.email, admin_user_path(u), class: "text-amber-300 hover:text-amber-200 font-medium" %>
+              <% if u.name.present? %><div class="text-[11px] text-slate-500"><%= u.name %></div><% end %>
+            </td>
+            <td class="px-3 py-2 text-right tabular-nums text-slate-300"><%= u.owned_trips.count %></td>
+            <td class="px-3 py-2 text-[11px] text-slate-500">
+              <% on = u.discount_memberships.to_h.select { |_, v| v }.size %>
+              <%= on %> active
+            </td>
+            <td class="px-3 py-2 text-[11px] text-slate-500 whitespace-nowrap"><%= u.created_at.strftime("%Y-%m-%d") %></td>
+            <td class="px-3 py-2">
+              <% if u.admin? %>
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 font-semibold uppercase">admin</span>
+              <% end %>
+              <% if u.alltrails_pro? %>
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 font-semibold uppercase">AT pro</span>
+              <% end %>
+            </td>
+            <td class="px-3 py-2 text-right">
+              <%= link_to "view", admin_user_path(u), class: "text-xs text-slate-400 hover:text-amber-300" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>

@@ -56,4 +56,4 @@ Caesars is a 15-minute walk. Park MGM is a 20-minute walk or a quick rideshare. 
 
 ---
 
-*Want the full Vegas itinerary? The four-day plan with the Sphere, the Skywalk, the dam, and the Bellagio is [available as a sample trip](/trips.html) — or sign up and copy it into your own.*
+*Want the full Vegas itinerary? The four-day plan with the Sphere, the Skywalk, the dam, and the Bellagio is [available as a sample trip](/sample-trips.html) — or sign up and copy it into your own.*

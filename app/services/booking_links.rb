@@ -43,6 +43,7 @@ class BookingLinks
 
   def cars
     return [] if destination.blank?
+    return [] if @trip.transport_mode == "own_car" # short-circuit: see #own_car?
     out = []
     out << Link.new(provider: "Kayak Cars", url: kayak_cars,
                     note: "Aggregator — compare across rental brands")
@@ -57,6 +58,12 @@ class BookingLinks
     out << Link.new(provider: "Turo", url: turo_search,
                     note: "Peer-to-peer — sometimes cheaper, sometimes not")
     sort_member_first(out)
+  end
+
+  # Used by the bookings partial to render an "own car" panel in place of the
+  # rental list. Pure view helper — no URLs to dispatch.
+  def own_car?
+    @trip.transport_mode == "own_car"
   end
 
   def flights

@@ -1,0 +1,63 @@
+<% content_for :title, "Call #{@call.id.first(8)}" %>
+
+<%= link_to "← Calls", admin_ai_calls_path, class: "text-xs text-slate-400 hover:text-slate-200" %>
+
+<div class="flex items-start justify-between gap-4 mt-2 mb-5">
+  <div class="min-w-0">
+    <h1 class="font-display text-xl font-semibold"><%= @call.prompt_slug %></h1>
+    <p class="text-xs text-slate-500 mt-1 tabular-nums"><%= @call.created_at.strftime('%Y-%m-%d %H:%M:%S %Z') %> · <%= time_ago_in_words(@call.created_at) %> ago</p>
+  </div>
+  <div class="flex items-center gap-2 shrink-0">
+    <% if @call.ai_prompt %>
+      <%= link_to "Open prompt →", admin_ai_prompt_path(@call.ai_prompt), class: "text-xs text-amber-300 hover:text-amber-200" %>
+    <% end %>
+    <%= button_to "Delete", admin_ai_call_path(@call), method: :delete, data: { turbo_confirm: "Delete this call from the log?" }, class: "px-2.5 py-1 rounded-md bg-rose-500/15 border border-rose-500/30 text-rose-200 text-xs hover:bg-rose-500/25 cursor-pointer" %>
+  </div>
+</div>
+
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+  <% [
+    [ "Status", @call.status ],
+    [ "Provider · Model", "#{@call.provider} · #{@call.model}" ],
+    [ "Latency", "#{@call.latency_ms || '—'} ms" ],
+    [ "Tokens (in/out)", "#{@call.input_tokens || '—'} / #{@call.output_tokens || '—'}" ]
+  ].each do |label, value| %>
+    <div class="rounded-lg border border-slate-800 bg-slate-900/40 p-2.5">
+      <p class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold"><%= label %></p>
+      <p class="text-sm text-slate-100 mt-0.5"><%= value %></p>
+    </div>
+  <% end %>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+  <div>
+    <p class="text-[11px] uppercase tracking-widest text-slate-400 font-semibold mb-1.5">User · trip</p>
+    <p class="text-sm text-slate-200"><%= @call.user&.email || "—" %></p>
+    <% if @call.trip %><p class="text-xs text-slate-500"><%= link_to @call.trip.title, trip_path(@call.trip), class: "hover:text-amber-300" %></p><% end %>
+  </div>
+  <div>
+    <p class="text-[11px] uppercase tracking-widest text-slate-400 font-semibold mb-1.5">Input variables</p>
+    <pre class="rounded-lg bg-slate-900/60 border border-slate-800 p-2.5 text-xs text-slate-300 whitespace-pre-wrap font-mono overflow-x-auto"><%= JSON.pretty_generate(@call.input_variables || {}) %></pre>
+  </div>
+</div>
+
+<section class="mb-4">
+  <p class="text-[11px] uppercase tracking-widest text-slate-400 font-semibold mb-1.5">Rendered system prompt</p>
+  <pre class="rounded-lg bg-slate-900/60 border border-slate-800 p-3 text-xs leading-relaxed text-slate-300 whitespace-pre-wrap font-mono overflow-x-auto"><%= @call.rendered_system %></pre>
+</section>
+<section class="mb-4">
+  <p class="text-[11px] uppercase tracking-widest text-slate-400 font-semibold mb-1.5">Rendered user prompt</p>
+  <pre class="rounded-lg bg-slate-900/60 border border-slate-800 p-3 text-xs leading-relaxed text-slate-300 whitespace-pre-wrap font-mono overflow-x-auto"><%= @call.rendered_user %></pre>
+</section>
+<section class="mb-4">
+  <p class="text-[11px] uppercase tracking-widest text-slate-400 font-semibold mb-1.5">Response</p>
+  <% if @call.image_url.present? %>
+    <a href="<%= @call.image_url %>" target="_blank" rel="noopener" class="text-amber-300 hover:text-amber-200 text-sm break-all"><%= @call.image_url %></a>
+  <% elsif @call.response_text.present? %>
+    <pre class="rounded-lg bg-slate-900/60 border border-slate-800 p-3 text-xs leading-relaxed text-slate-100 whitespace-pre-wrap font-mono overflow-x-auto"><%= @call.response_text %></pre>
+  <% elsif @call.error.present? %>
+    <pre class="rounded-lg bg-rose-500/10 border border-rose-500/30 p-3 text-xs text-rose-200 whitespace-pre-wrap font-mono"><%= @call.error %></pre>
+  <% else %>
+    <p class="text-sm text-slate-500 italic">No response captured.</p>
+  <% end %>
+</section>

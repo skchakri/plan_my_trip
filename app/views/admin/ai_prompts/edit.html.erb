@@ -1,0 +1,6 @@
+<% content_for :title, "Edit · #{@prompt.slug}" %>
+
+<%= link_to "← #{@prompt.slug}", admin_ai_prompt_path(@prompt), class: "text-xs text-slate-400 hover:text-slate-200" %>
+<h1 class="font-display text-2xl font-semibold mt-2 mb-5">Edit prompt</h1>
+
+<%= render "form", prompt: @prompt %>

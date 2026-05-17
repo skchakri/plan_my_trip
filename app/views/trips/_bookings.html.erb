@@ -1,9 +1,14 @@
-<% sections = [
-  ["Hotels",     :hotels,     :bed],
-  ["Cars",       :cars,       :car],
-  ["Flights",    :flights,    :plane],
-  ["Activities", :activities, :ticket]
-] %>
+<%
+  sections = [
+    [ "Stays",      :stays,      :hotels,     :bed,    "Already booked? Note where + drop your confirmation." ],
+    [ "Cars",       :cars,       :cars,       :car,    "Bringing your own car? Toggle this — we'll skip rentals + add maintenance prep to your checklist." ],
+    [ "Flights",    :flights,    :flights,    :plane,  "Already ticketed? Note your airline + drop your boarding pass / itinerary." ],
+    [ "Activities", :activities, :activities, :ticket, "Reservations made? Drop the tickets here." ]
+  ]
+  # method name on BookingLinks (e.g. :hotels for "Stays" section)
+  method_for = { stays: :hotels, cars: :cars, flights: :flights, activities: :activities }
+  claims_by_kind = @trip.booking_claims.includes(documents_attachments: :blob).index_by(&:kind)
+%>
 
 <section class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 sm:p-7 mt-6">
   <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
@@ -12,42 +17,132 @@
       <%= icon :settings, class: "w-3.5 h-3.5" %> Edit your memberships
     <% end %>
   </div>
+
   <% if @trip.destination.blank? %>
     <p class="text-sm text-slate-500 italic">Add a destination to this trip to see booking links.</p>
   <% else %>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      <% sections.each do |title, method, glyph_name|
-           links = booking.public_send(method)
-           next if links.empty? %>
-        <details class="rounded-xl border border-slate-800 bg-slate-800/40 hover:border-slate-700 transition-colors" <%= "open".html_safe if method == :hotels %>>
+      <% sections.each do |title, kind, _method_alias, glyph_name, prompt_copy|
+           claim = claims_by_kind[kind.to_s]
+           links = claim ? [] : booking.public_send(method_for[kind])
+           section_open = (kind == :stays && claim.nil?) || claim.present? %>
+        <details class="rounded-xl border border-slate-800 bg-slate-800/40 hover:border-slate-700 transition-colors" <%= "open".html_safe if section_open %>>
           <summary class="cursor-pointer px-4 py-3 flex items-center justify-between gap-2 select-none">
             <span class="inline-flex items-center gap-2 font-medium text-slate-100">
               <span class="text-amber-400/80"><%= icon glyph_name, class: "w-4 h-4" %></span>
               <%= title %>
+              <% if claim %>
+                <span class="text-[10px] uppercase tracking-widest font-semibold px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300">Handled</span>
+              <% end %>
             </span>
             <span class="inline-flex items-center gap-1 text-xs text-slate-500">
-              <%= links.size %> options <%= icon :chevron_down, class: "w-4 h-4 transition-transform group-open:rotate-180" %>
+              <% if claim %>
+                <%= pluralize(claim.documents.size, "doc") %>
+              <% else %>
+                <%= links.size %> options
+              <% end %>
+              <%= icon :chevron_down, class: "w-4 h-4 transition-transform group-open:rotate-180" %>
             </span>
           </summary>
-          <ul class="px-4 pb-3 space-y-2.5">
-            <% links.each do |link| %>
-              <li class="border-t border-slate-700/50 pt-2.5">
-                <div class="flex items-start justify-between gap-2">
-                  <div class="min-w-0">
-                    <%= link_to link.url, target: "_blank", rel: "noopener", class: "inline-flex items-center gap-1 font-medium text-slate-100 hover:text-amber-300 transition-colors" do %>
-                      <%= link.provider %> <%= icon :external_link, class: "w-3 h-3" %>
-                    <% end %>
-                    <% if link.badge.present? %>
-                      <span class="ml-1 text-[11px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 font-medium"><%= link.badge %></span>
-                    <% end %>
-                    <% if link.note.present? %>
-                      <p class="text-xs text-slate-400 mt-0.5 leading-relaxed"><%= link.note %></p>
-                    <% end %>
-                  </div>
+
+          <% if claim %>
+            <%# ───── Handled state ───────────────────────────────────────── %>
+            <div class="px-4 pb-4 pt-1 space-y-3 border-t border-slate-700/40">
+              <% if claim.note.present? %>
+                <div class="rounded-lg bg-slate-900/60 border border-slate-700/40 px-3 py-2.5">
+                  <p class="text-[11px] uppercase tracking-widest text-emerald-300 font-semibold mb-1">Your note</p>
+                  <p class="text-sm text-slate-200 leading-relaxed"><%= simple_format claim.note %></p>
                 </div>
-              </li>
-            <% end %>
-          </ul>
+              <% end %>
+
+              <% if claim.documents.any? %>
+                <div>
+                  <p class="text-[11px] uppercase tracking-widest text-slate-400 font-semibold mb-1.5">Uploaded documents</p>
+                  <ul class="space-y-1.5">
+                    <% claim.documents.each do |doc| %>
+                      <li class="flex items-center justify-between gap-2 rounded-md bg-slate-900/60 border border-slate-700/40 px-2.5 py-1.5">
+                        <%= link_to rails_blob_path(doc, disposition: "inline"), target: "_blank", rel: "noopener", class: "min-w-0 flex items-center gap-2 text-sm text-slate-200 hover:text-amber-200 truncate" do %>
+                          <span class="shrink-0 text-slate-500"><%= icon :external_link, class: "w-3.5 h-3.5" %></span>
+                          <span class="truncate"><%= doc.filename %></span>
+                          <span class="shrink-0 text-[10px] text-slate-500"><%= number_to_human_size(doc.byte_size) %></span>
+                        <% end %>
+                        <%= button_to document_trip_booking_claim_path(@trip, claim, doc_id: doc.id), method: :delete, data: { turbo_confirm: "Delete #{doc.filename}?" }, class: "text-rose-400 hover:text-rose-300 cursor-pointer" do %>
+                          <%= icon :x, class: "w-3.5 h-3.5" %>
+                        <% end %>
+                      </li>
+                    <% end %>
+                  </ul>
+                </div>
+              <% end %>
+
+              <%# Add more docs / edit note %>
+              <%= form_with url: trip_booking_claims_path(@trip), method: :post, multipart: true, class: "space-y-2" do |f| %>
+                <%= f.hidden_field "booking_claim[kind]", value: kind %>
+                <%= f.text_area "booking_claim[note]", value: claim.note, rows: 2,
+                       placeholder: "Update your note (e.g. 'Hilton Garden Inn — confirmation #ABC123')",
+                       class: "w-full rounded-lg bg-slate-900/60 border border-slate-700 px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:border-amber-500 focus:outline-none" %>
+                <div class="flex flex-wrap items-center gap-2">
+                  <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-slate-900/60 border border-slate-700 text-sm text-slate-300 hover:border-amber-500/50 cursor-pointer">
+                    <%= icon :external_link, class: "w-3.5 h-3.5" %>
+                    <span>Attach more</span>
+                    <%= f.file_field "booking_claim[documents][]", multiple: true, class: "sr-only", accept: "image/*,application/pdf" %>
+                  </label>
+                  <%= f.submit "Save", class: "inline-flex items-center px-3 py-1.5 rounded-md bg-amber-500 text-slate-950 font-semibold text-sm hover:bg-amber-400 cursor-pointer" %>
+                  <%= button_to trip_booking_claim_path(@trip, claim), method: :delete, data: { turbo_confirm: "Remove your #{title.downcase} claim and restore booking options?" }, class: "ml-auto text-xs text-slate-400 hover:text-rose-300 cursor-pointer inline-flex items-center gap-1" do %>
+                    <%= icon :x, class: "w-3.5 h-3.5" %> Remove claim
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <%# ───── Default state: booking links + claim CTA ──────────── %>
+            <ul class="px-4 pb-3 space-y-2.5">
+              <% links.each do |link| %>
+                <li class="border-t border-slate-700/50 pt-2.5">
+                  <div class="flex items-start justify-between gap-2">
+                    <div class="min-w-0">
+                      <%= link_to link.url, target: "_blank", rel: "noopener", class: "inline-flex items-center gap-1 font-medium text-slate-100 hover:text-amber-300 transition-colors" do %>
+                        <%= link.provider %> <%= icon :external_link, class: "w-3 h-3" %>
+                      <% end %>
+                      <% if link.badge.present? %>
+                        <span class="ml-1 text-[11px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 font-medium"><%= link.badge %></span>
+                      <% end %>
+                      <% if link.note.present? %>
+                        <p class="text-xs text-slate-400 mt-0.5 leading-relaxed"><%= link.note %></p>
+                      <% end %>
+                    </div>
+                  </div>
+                </li>
+              <% end %>
+            </ul>
+
+            <%# "I've got this" inline form %>
+            <details class="mx-4 mb-4 mt-1 rounded-lg border border-emerald-500/20 bg-emerald-500/[0.04] open:bg-emerald-500/[0.06]">
+              <summary class="cursor-pointer px-3 py-2 text-sm flex items-center gap-2 select-none text-emerald-200/90">
+                <%= icon :sparkles, class: "w-3.5 h-3.5" %>
+                <% if kind == :cars %>
+                  Bringing my own car / I've already booked
+                <% else %>
+                  I've already <%= kind == :stays ? "booked" : "ticketed" %> this
+                <% end %>
+              </summary>
+              <%= form_with url: trip_booking_claims_path(@trip), method: :post, multipart: true, class: "px-3 pb-3 space-y-2" do |f| %>
+                <%= f.hidden_field "booking_claim[kind]", value: kind %>
+                <p class="text-xs text-slate-400 leading-relaxed"><%= prompt_copy %></p>
+                <%= f.text_area "booking_claim[note]", rows: 2,
+                       placeholder: kind == :cars ? "e.g. Bringing our Subaru — full tank, fresh oil." : "e.g. Hanksville Inn — 3 nights, conf #XYZ",
+                       class: "w-full rounded-lg bg-slate-900/60 border border-slate-700 px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:border-amber-500 focus:outline-none" %>
+                <div class="flex flex-wrap items-center gap-2">
+                  <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-slate-900/60 border border-slate-700 text-sm text-slate-300 hover:border-amber-500/50 cursor-pointer">
+                    <%= icon :external_link, class: "w-3.5 h-3.5" %>
+                    <span>Attach docs <span class="text-slate-500 font-normal">(optional)</span></span>
+                    <%= f.file_field "booking_claim[documents][]", multiple: true, class: "sr-only", accept: "image/*,application/pdf" %>
+                  </label>
+                  <%= f.submit kind == :cars ? "Yes — my own car" : "Mark as handled", class: "inline-flex items-center px-3 py-1.5 rounded-md bg-emerald-500 text-slate-950 font-semibold text-sm hover:bg-emerald-400 cursor-pointer" %>
+                </div>
+              <% end %>
+            </details>
+          <% end %>
         </details>
       <% end %>
     </div>

@@ -1,0 +1,48 @@
+<% if calls.empty? %>
+  <p class="text-sm text-slate-500 italic">No calls yet.</p>
+<% else %>
+  <div class="rounded-xl border border-slate-800 overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-slate-900/60 text-[10px] uppercase tracking-widest text-slate-500">
+        <tr>
+          <th class="text-left px-3 py-2">When</th>
+          <th class="text-left px-3 py-2">Slug · model</th>
+          <th class="text-left px-3 py-2">User · trip</th>
+          <th class="text-right px-3 py-2">Tokens</th>
+          <th class="text-right px-3 py-2">Latency</th>
+          <th class="text-left px-3 py-2">Status</th>
+          <th class="px-3 py-2"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-800/60">
+        <% calls.each do |c| %>
+          <tr class="<%= 'bg-rose-500/[0.04]' unless c.successful? %>">
+            <td class="px-3 py-2 text-slate-300 text-xs whitespace-nowrap" title="<%= c.created_at %>"><%= time_ago_in_words(c.created_at) %> ago</td>
+            <td class="px-3 py-2">
+              <%= link_to c.prompt_slug, admin_ai_call_path(c), class: "text-amber-300 hover:text-amber-200 font-medium" %>
+              <div class="text-[11px] text-slate-500"><%= c.provider %> · <%= c.model %></div>
+            </td>
+            <td class="px-3 py-2 text-xs">
+              <%= c.user&.email || "—" %>
+              <% if c.trip %><div class="text-slate-500"><%= c.trip.title.to_s.truncate(36) %></div><% end %>
+            </td>
+            <td class="px-3 py-2 text-right tabular-nums text-slate-300"><%= c.total_tokens %></td>
+            <td class="px-3 py-2 text-right tabular-nums text-slate-400 text-xs"><%= c.latency_ms %>ms</td>
+            <td class="px-3 py-2">
+              <% if c.successful? %>
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 font-semibold uppercase">ok</span>
+              <% elsif c.status == "failure" %>
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-300 font-semibold uppercase">fail</span>
+              <% else %>
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-700 text-slate-300 font-semibold uppercase"><%= c.status %></span>
+              <% end %>
+            </td>
+            <td class="px-3 py-2 text-right">
+              <%= link_to "view", admin_ai_call_path(c), class: "text-xs text-slate-400 hover:text-amber-300" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>

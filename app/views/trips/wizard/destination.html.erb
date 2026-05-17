@@ -1,0 +1,91 @@
+<% content_for :title, "Plan a trip — where to?" %>
+<% input_classes = "w-full rounded-lg bg-slate-800/70 border border-slate-700 px-3 py-2.5 text-slate-100 placeholder-slate-500 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 focus:outline-none transition-colors" %>
+<% label_classes = "block text-xs uppercase tracking-widest text-slate-400 font-semibold mb-1.5" %>
+
+<div class="mb-6">
+  <%= link_to trips_path, class: "inline-flex items-center gap-1 text-sm text-slate-400 hover:text-amber-300 transition-colors" do %>
+    <%= icon :arrow_left, class: "w-4 h-4" %> Trips
+  <% end %>
+  <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500 font-medium mt-3">Plan a trip · step 1 of 4</p>
+  <h1 class="font-display text-3xl sm:text-4xl font-semibold tracking-tight">Where are you going?</h1>
+  <p class="text-sm text-slate-400 mt-1.5">A destination and dates is all we need to start. We'll pull in highlights and a day-by-day plan in the next steps.</p>
+</div>
+
+<%= render "trips/wizard/progress", step: 1 %>
+
+<%= form_with url: wizard_destination_path, method: :post, scope: :wizard, class: "space-y-6" do |f| %>
+  <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 sm:p-6 space-y-5">
+    <div data-controller="place-autocomplete"
+         data-place-autocomplete-search-url-value="<%= search_places_path %>"
+         class="relative">
+      <%= f.label :destination, class: label_classes %>
+      <%= f.text_field :destination,
+            value: @draft["destination"],
+            required: true,
+            autofocus: true,
+            autocomplete: "off",
+            placeholder: "e.g. Las Vegas, NV · Grand Canyon · Tokyo",
+            class: input_classes,
+            data: {
+              place_autocomplete_target: "input",
+              action: "input->place-autocomplete#query focus->place-autocomplete#query keydown->place-autocomplete#navigate blur->place-autocomplete#blur"
+            } %>
+      <%# Hidden fields the typeahead fills when a known place is picked.
+          The wizard ignores these for now (it still calls fresh Wikipedia
+          / Claude lookups on save), but they're here for later: with
+          place_id + coords pre-set, the highlights step could surface
+          the catalog's known siblings instantly. %>
+      <%= f.hidden_field :place_id,         value: @draft["place_id"], data: { place_autocomplete_target: "placeId" } %>
+      <%= f.hidden_field :destination_lat,  value: @draft["destination_lat"], data: { place_autocomplete_target: "lat" } %>
+      <%= f.hidden_field :destination_lng,  value: @draft["destination_lng"], data: { place_autocomplete_target: "lng" } %>
+
+      <%# Suggestion dropdown — populated by the Stimulus controller. %>
+      <ul data-place-autocomplete-target="results"
+          hidden
+          class="absolute left-0 right-0 top-full mt-1.5 z-30 rounded-xl border border-slate-700 bg-slate-900/95 backdrop-blur shadow-2xl shadow-black/60 overflow-hidden max-h-80 overflow-y-auto"></ul>
+
+      <p class="text-[11px] text-slate-500 mt-1.5">Type a city, park, or region. Picks from our shared catalog of places others have visited — or just type a fresh one.</p>
+    </div>
+
+    <div>
+      <%= f.label :origin, "Origin (for flight search)", class: label_classes %>
+      <%= f.text_field :origin, value: @draft["origin"], placeholder: "e.g. SLC or Salt Lake City", class: input_classes %>
+    </div>
+
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+      <div>
+        <%= f.label :start_date, "Leaving on", class: label_classes %>
+        <%= f.date_field :start_date, value: @draft["start_date"], required: true, class: input_classes %>
+      </div>
+      <div>
+        <%= f.label :departure_time, "Departure time", class: label_classes %>
+        <%= f.time_field :departure_time, value: @draft["departure_time"], class: input_classes %>
+        <p class="text-[11px] text-slate-500 mt-1.5">When you're leaving home</p>
+      </div>
+      <div class="hidden sm:block"></div>
+      <div>
+        <%= f.label :end_date, "Returning on", class: label_classes %>
+        <%= f.date_field :end_date, value: @draft["end_date"], required: true, class: input_classes %>
+      </div>
+      <div>
+        <%= f.label :return_time, "Return time", class: label_classes %>
+        <%= f.time_field :return_time, value: @draft["return_time"], class: input_classes %>
+        <p class="text-[11px] text-slate-500 mt-1.5">When you want to be back</p>
+      </div>
+      <div>
+        <%= f.label :traveler_count, "Travelers", class: label_classes %>
+        <%= f.number_field :traveler_count, value: @draft["traveler_count"] || 2, min: 1, max: 30, class: input_classes %>
+      </div>
+    </div>
+
+    <div>
+      <%= f.label :title, "Trip title (optional)", class: label_classes %>
+      <%= f.text_field :title, value: @draft["title"], placeholder: "We'll auto-name it if you skip", class: input_classes %>
+    </div>
+  </div>
+
+  <div class="flex items-center justify-between gap-3">
+    <%= link_to trips_path, class: "text-sm text-slate-400 hover:text-slate-200" do %>Cancel<% end %>
+    <%= f.submit "Continue → Travelers", class: "inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-amber-500 text-slate-950 font-semibold shadow-lg shadow-amber-500/20 hover:bg-amber-400 transition-colors cursor-pointer" %>
+  </div>
+<% end %>

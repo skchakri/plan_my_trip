@@ -1,0 +1,75 @@
+<%= turbo_frame_tag "sandbox-structure" do %>
+  <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
+    <%= render "block_header", title: "Day-by-day plan", result: @result %>
+    <% structure = @result[:value] || {} %>
+    <% days = Array(structure["days"]) %>
+
+    <% if structure["excitement_pitch"].present? %>
+      <p class="text-sm text-slate-300 italic leading-relaxed mb-3">"<%= structure["excitement_pitch"] %>"</p>
+    <% end %>
+
+    <% if days.empty? %>
+      <p class="text-sm text-slate-500 italic">No days returned. Check that <code class="text-amber-300">trip_structure.v1</code> is active.</p>
+    <% else %>
+      <div class="space-y-3">
+        <% days.each do |d| %>
+          <div class="rounded-lg border border-slate-800 bg-slate-950/60 overflow-hidden">
+            <div class="px-3 py-2 bg-slate-900/60 flex items-center justify-between gap-2">
+              <div>
+                <p class="text-sm font-semibold text-slate-100"><%= d["title"] %></p>
+                <p class="text-xs text-slate-500"><%= d["date"] %> · <%= d["theme"] %></p>
+              </div>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 uppercase tracking-widest"><%= d["accent"] %></span>
+            </div>
+            <% if d["summary"].present? %>
+              <p class="px-3 pt-2 text-xs text-slate-400 leading-relaxed"><%= d["summary"] %></p>
+            <% end %>
+            <ul class="divide-y divide-slate-800/60">
+              <% Array(d["activities"]).each do |a| %>
+                <li class="px-3 py-2">
+                  <div class="flex items-center justify-between gap-2">
+                    <p class="text-sm text-slate-100">
+                      <% if a["time_label"].present? %><span class="text-amber-300 text-xs font-semibold mr-1.5"><%= a["time_label"] %></span><% end %>
+                      <%= a["title"] %>
+                    </p>
+                    <% if a["latitude"] && a["longitude"] %>
+                      <span class="text-[10px] text-slate-500 font-mono"><%= "%.3f, %.3f" % [ a["latitude"], a["longitude"] ] %></span>
+                    <% end %>
+                  </div>
+                  <% if a["location_name"].present? || a["address"].present? %>
+                    <p class="text-xs text-slate-500 mt-0.5">
+                      <% if a["location_name"].present? %><span class="text-slate-400"><%= a["location_name"] %></span><% end %>
+                      <% if a["address"].present? %> · <%= a["address"] %><% end %>
+                    </p>
+                  <% end %>
+                  <% if a["famous_for"].present? %>
+                    <p class="text-xs text-slate-400 italic mt-1"><%= a["famous_for"] %></p>
+                  <% end %>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+      </div>
+
+      <% if structure["checklist"].is_a?(Hash) %>
+        <% before = Array(structure.dig("checklist", "before_trip")) %>
+        <% if before.any? %>
+          <div class="mt-4 rounded-lg border border-slate-800 bg-slate-950/40 p-3">
+            <p class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-1.5">Before-trip checklist</p>
+            <ul class="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-0.5 text-xs text-slate-300">
+              <% before.each do |i| %>
+                <li>• <%= i["title"] %><span class="text-slate-500"> (<%= i["category"] %>)</span></li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+      <% end %>
+
+      <details class="mt-4 group">
+        <summary class="cursor-pointer text-xs text-amber-300 hover:text-amber-200 select-none">Raw JSON →</summary>
+        <pre class="mt-2 rounded-lg bg-slate-950 border border-slate-800 p-3 text-[11px] leading-relaxed text-slate-300 font-mono overflow-x-auto"><%= JSON.pretty_generate(structure) %></pre>
+      </details>
+    <% end %>
+  </div>
+<% end %>

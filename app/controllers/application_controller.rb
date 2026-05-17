@@ -16,8 +16,12 @@ class ApplicationController < ActionController::Base
     if (token = session.delete(:invitation_token))
       session.delete(:invitation_email)
       invitation_path(token)
+    elsif (stored = stored_location_for(resource))
+      stored
+    elsif resource.is_a?(User) && resource.trips.kept.none?
+      wizard_destination_path
     else
-      stored_location_for(resource) || trips_path
+      trips_path
     end
   end
 

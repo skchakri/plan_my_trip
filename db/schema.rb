@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_09_120001) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_15_213000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -55,14 +55,74 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_09_120001) do
     t.string "maps_url"
     t.text "notes"
     t.string "photo_url"
+    t.uuid "place_id"
     t.integer "position", default: 0, null: false
     t.string "time_label"
     t.string "title", null: false
     t.uuid "trip_day_id", null: false
     t.string "uber_url"
     t.datetime "updated_at", null: false
+    t.index ["place_id"], name: "index_activities_on_place_id"
     t.index ["trip_day_id", "position"], name: "index_activities_on_trip_day_id_and_position"
     t.index ["trip_day_id"], name: "index_activities_on_trip_day_id"
+  end
+
+  create_table "ai_calls", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "ai_prompt_id"
+    t.datetime "created_at", null: false
+    t.text "error"
+    t.string "image_url"
+    t.integer "input_tokens"
+    t.jsonb "input_variables", default: {}, null: false
+    t.integer "latency_ms"
+    t.jsonb "meta", default: {}, null: false
+    t.string "model", null: false
+    t.integer "output_tokens"
+    t.string "prompt_slug", null: false
+    t.string "provider", null: false
+    t.text "rendered_system"
+    t.text "rendered_user"
+    t.text "response_text"
+    t.string "status", default: "pending", null: false
+    t.uuid "trip_id"
+    t.datetime "updated_at", null: false
+    t.uuid "user_id"
+    t.index ["ai_prompt_id"], name: "index_ai_calls_on_ai_prompt_id"
+    t.index ["created_at"], name: "index_ai_calls_on_created_at"
+    t.index ["prompt_slug"], name: "index_ai_calls_on_prompt_slug"
+    t.index ["status"], name: "index_ai_calls_on_status"
+    t.index ["trip_id"], name: "index_ai_calls_on_trip_id"
+    t.index ["user_id"], name: "index_ai_calls_on_user_id"
+  end
+
+  create_table "ai_prompts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.string "kind", default: "text", null: false
+    t.integer "max_tokens"
+    t.string "model", null: false
+    t.string "name", null: false
+    t.text "notes"
+    t.string "provider", default: "anthropic", null: false
+    t.string "slug", null: false
+    t.text "system_template"
+    t.decimal "temperature", precision: 4, scale: 2
+    t.datetime "updated_at", null: false
+    t.text "user_template", null: false
+    t.index ["active"], name: "index_ai_prompts_on_active"
+    t.index ["provider"], name: "index_ai_prompts_on_provider"
+    t.index ["slug"], name: "index_ai_prompts_on_slug", unique: true
+  end
+
+  create_table "booking_claims", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "kind", null: false
+    t.text "note"
+    t.uuid "trip_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["trip_id", "kind"], name: "index_booking_claims_on_trip_id_and_kind", unique: true
+    t.index ["trip_id"], name: "index_booking_claims_on_trip_id"
   end
 
   create_table "checklist_items", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -93,6 +153,55 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_09_120001) do
     t.datetime "updated_at", null: false
     t.index ["trip_id", "position"], name: "index_people_on_trip_id_and_position"
     t.index ["trip_id"], name: "index_people_on_trip_id"
+  end
+
+  create_table "places", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "canonical_name"
+    t.uuid "contributed_by_id"
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.datetime "discarded_at"
+    t.text "famous_for"
+    t.text "image_attribution"
+    t.string "image_source"
+    t.string "image_url"
+    t.string "kind"
+    t.decimal "latitude", precision: 10, scale: 7
+    t.decimal "longitude", precision: 10, scale: 7
+    t.string "name", null: false
+    t.string "region"
+    t.jsonb "source_urls", default: {}, null: false
+    t.string "tier"
+    t.datetime "updated_at", null: false
+    t.integer "usage_count", default: 0, null: false
+    t.boolean "verified", default: false, null: false
+    t.index "lower((name)::text)", name: "index_places_on_lower_name"
+    t.index ["contributed_by_id"], name: "index_places_on_contributed_by_id"
+    t.index ["discarded_at"], name: "index_places_on_discarded_at"
+    t.index ["latitude", "longitude"], name: "index_places_on_lat_lng"
+    t.index ["region"], name: "index_places_on_region"
+    t.index ["tier"], name: "index_places_on_tier"
+    t.index ["usage_count"], name: "index_places_on_usage_count"
+  end
+
+  create_table "route_landmarks", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.string "image_url"
+    t.string "kind", default: "scenic", null: false
+    t.decimal "latitude", precision: 10, scale: 7, null: false
+    t.decimal "longitude", precision: 10, scale: 7, null: false
+    t.string "name", null: false
+    t.text "narration", null: false
+    t.integer "position", default: 0, null: false
+    t.string "source", default: "ai", null: false
+    t.uuid "trip_id"
+    t.datetime "updated_at", null: false
+    t.string "wikipedia_url"
+    t.index ["discarded_at"], name: "index_route_landmarks_on_discarded_at"
+    t.index ["trip_id", "position"], name: "index_route_landmarks_on_trip_id_and_position"
+    t.index ["trip_id"], name: "index_route_landmarks_on_global", where: "(trip_id IS NULL)"
+    t.index ["trip_id"], name: "index_route_landmarks_on_trip_id"
   end
 
   create_table "trails", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -156,6 +265,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_09_120001) do
   create_table "trips", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.text "body"
     t.datetime "created_at", null: false
+    t.time "departure_time"
     t.string "destination"
     t.datetime "discarded_at"
     t.date "end_date"
@@ -164,15 +274,51 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_09_120001) do
     t.uuid "owner_id", null: false
     t.string "pwa_packing_url"
     t.string "pwa_plan_url"
+    t.time "return_time"
     t.date "start_date"
     t.string "title", null: false
+    t.string "transport_mode"
     t.integer "traveler_count", default: 2, null: false
     t.datetime "updated_at", null: false
     t.index ["discarded_at"], name: "index_trips_on_discarded_at"
     t.index ["owner_id"], name: "index_trips_on_owner_id"
   end
 
+  create_table "trivia_questions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.integer "answer_index", null: false
+    t.text "chain_intro"
+    t.datetime "created_at", null: false
+    t.string "difficulty"
+    t.datetime "discarded_at"
+    t.text "fun_fact"
+    t.jsonb "options", default: [], null: false
+    t.uuid "parent_id"
+    t.text "question", null: false
+    t.string "source", default: "seed", null: false
+    t.string "tag", null: false
+    t.uuid "trip_id"
+    t.datetime "updated_at", null: false
+    t.index ["discarded_at"], name: "index_trivia_questions_on_discarded_at"
+    t.index ["parent_id"], name: "index_trivia_questions_on_parent_id"
+    t.index ["tag", "trip_id"], name: "index_trivia_questions_on_tag_and_trip_id"
+    t.index ["tag"], name: "index_trivia_questions_on_tag"
+    t.index ["trip_id"], name: "index_trivia_questions_on_trip_id"
+  end
+
+  create_table "trivia_responses", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "answered_at", null: false
+    t.boolean "correct", default: false, null: false
+    t.datetime "created_at", null: false
+    t.uuid "person_id", null: false
+    t.uuid "trivia_question_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["person_id", "trivia_question_id"], name: "idx_trivia_responses_person_question", unique: true
+    t.index ["person_id"], name: "index_trivia_responses_on_person_id"
+    t.index ["trivia_question_id"], name: "index_trivia_responses_on_trivia_question_id"
+  end
+
   create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.boolean "admin", default: false, null: false
     t.boolean "alltrails_pro", default: false, null: false
     t.datetime "created_at", null: false
     t.jsonb "discount_memberships", default: {}, null: false
@@ -183,15 +329,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_09_120001) do
     t.datetime "reset_password_sent_at"
     t.string "reset_password_token"
     t.datetime "updated_at", null: false
+    t.index ["admin"], name: "index_users_on_admin", where: "(admin = true)"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "activities", "places"
   add_foreign_key "activities", "trip_days"
+  add_foreign_key "ai_calls", "ai_prompts"
+  add_foreign_key "ai_calls", "trips"
+  add_foreign_key "ai_calls", "users"
+  add_foreign_key "booking_claims", "trips"
   add_foreign_key "checklist_items", "trips"
   add_foreign_key "people", "trips"
+  add_foreign_key "places", "users", column: "contributed_by_id"
+  add_foreign_key "route_landmarks", "trips"
   add_foreign_key "trails", "trips"
   add_foreign_key "trip_days", "trips"
   add_foreign_key "trip_invitations", "trips"
@@ -199,4 +353,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_09_120001) do
   add_foreign_key "trip_memberships", "trips"
   add_foreign_key "trip_memberships", "users"
   add_foreign_key "trips", "users", column: "owner_id"
+  add_foreign_key "trivia_questions", "trips"
+  add_foreign_key "trivia_questions", "trivia_questions", column: "parent_id", on_delete: :cascade
+  add_foreign_key "trivia_responses", "people"
+  add_foreign_key "trivia_responses", "trivia_questions"
 end

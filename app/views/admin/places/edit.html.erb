@@ -1,0 +1,77 @@
+<% content_for :title, "Edit #{@place.name} · Admin" %>
+
+<div class="mb-4">
+  <%= link_to "← #{@place.name}", admin_place_path(@place), class: "text-xs text-slate-400 hover:text-amber-200" %>
+</div>
+
+<h1 class="font-display text-2xl font-semibold mb-4">Edit place</h1>
+
+<%= form_with model: @place, url: admin_place_path(@place), method: :patch, class: "space-y-4 max-w-2xl" do |f| %>
+  <% if @place.errors.any? %>
+    <div class="rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-100 px-3 py-2 text-sm">
+      <%= @place.errors.full_messages.to_sentence %>
+    </div>
+  <% end %>
+
+  <div>
+    <%= f.label :name, class: "text-[10px] uppercase tracking-widest text-slate-500 font-semibold block mb-1" %>
+    <%= f.text_field :name, class: "w-full px-3 py-2 rounded-md bg-slate-900/60 border border-slate-700 text-slate-100" %>
+  </div>
+
+  <div>
+    <%= f.label :canonical_name, class: "text-[10px] uppercase tracking-widest text-slate-500 font-semibold block mb-1" %>
+    <%= f.text_field :canonical_name, class: "w-full px-3 py-2 rounded-md bg-slate-900/60 border border-slate-700 text-slate-100" %>
+  </div>
+
+  <div class="grid grid-cols-2 gap-3">
+    <div>
+      <%= f.label :kind, class: "text-[10px] uppercase tracking-widest text-slate-500 font-semibold block mb-1" %>
+      <%= f.select :kind, [["—", nil]] + Place::KINDS.map { |k| [k, k] }, {}, class: "w-full px-3 py-2 rounded-md bg-slate-900/60 border border-slate-700 text-slate-100" %>
+    </div>
+    <div>
+      <%= f.label :image_source, class: "text-[10px] uppercase tracking-widest text-slate-500 font-semibold block mb-1" %>
+      <%= f.select :image_source, [["—", nil]] + Place::IMAGE_SOURCES.map { |s| [s, s] }, {}, class: "w-full px-3 py-2 rounded-md bg-slate-900/60 border border-slate-700 text-slate-100" %>
+    </div>
+  </div>
+
+  <div>
+    <%= f.label :famous_for, class: "text-[10px] uppercase tracking-widest text-slate-500 font-semibold block mb-1" %>
+    <%= f.text_area :famous_for, rows: 2, class: "w-full px-3 py-2 rounded-md bg-slate-900/60 border border-slate-700 text-slate-100" %>
+  </div>
+
+  <div>
+    <%= f.label :description, class: "text-[10px] uppercase tracking-widest text-slate-500 font-semibold block mb-1" %>
+    <%= f.text_area :description, rows: 6, class: "w-full px-3 py-2 rounded-md bg-slate-900/60 border border-slate-700 text-slate-100" %>
+  </div>
+
+  <div>
+    <%= f.label :image_url, class: "text-[10px] uppercase tracking-widest text-slate-500 font-semibold block mb-1" %>
+    <%= f.url_field :image_url, class: "w-full px-3 py-2 rounded-md bg-slate-900/60 border border-slate-700 text-slate-100" %>
+  </div>
+
+  <div>
+    <%= f.label :image_attribution, class: "text-[10px] uppercase tracking-widest text-slate-500 font-semibold block mb-1" %>
+    <%= f.text_field :image_attribution, class: "w-full px-3 py-2 rounded-md bg-slate-900/60 border border-slate-700 text-slate-100" %>
+  </div>
+
+  <div class="grid grid-cols-2 gap-3">
+    <div>
+      <%= f.label :latitude, class: "text-[10px] uppercase tracking-widest text-slate-500 font-semibold block mb-1" %>
+      <%= f.number_field :latitude, step: "0.0000001", class: "w-full px-3 py-2 rounded-md bg-slate-900/60 border border-slate-700 text-slate-100" %>
+    </div>
+    <div>
+      <%= f.label :longitude, class: "text-[10px] uppercase tracking-widest text-slate-500 font-semibold block mb-1" %>
+      <%= f.number_field :longitude, step: "0.0000001", class: "w-full px-3 py-2 rounded-md bg-slate-900/60 border border-slate-700 text-slate-100" %>
+    </div>
+  </div>
+
+  <label class="inline-flex items-center gap-2 text-sm text-slate-300">
+    <%= f.check_box :verified, class: "rounded border-slate-700 bg-slate-900/60 text-amber-500 focus:ring-amber-500" %>
+    Verified
+  </label>
+
+  <div class="flex items-center gap-2 pt-2">
+    <%= f.submit "Save", class: "px-4 py-2 rounded-md bg-amber-500 text-slate-950 text-sm font-semibold hover:bg-amber-400 cursor-pointer" %>
+    <%= link_to "Cancel", admin_place_path(@place), class: "px-4 py-2 rounded-md text-sm text-slate-400 hover:text-amber-200" %>
+  </div>
+<% end %>

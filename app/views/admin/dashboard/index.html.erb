@@ -1,0 +1,61 @@
+<% content_for :title, "Admin dashboard" %>
+
+<h1 class="font-display text-2xl font-semibold mb-1">AI dashboard</h1>
+<p class="text-sm text-slate-400 mb-6">DB-stored prompts feed every Claude / OpenAI call in the app. Edit prompts here without a deploy; each call is logged below.</p>
+
+<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
+  <% [
+    ["Prompts",      @stats[:prompts]],
+    ["Active",       @stats[:active]],
+    ["Calls (all)",  @stats[:calls_total]],
+    ["Calls 24h",    @stats[:calls_24h]],
+    ["Fails 24h",    @stats[:failures_24h]],
+    ["Tokens 24h",   @stats[:tokens_24h]]
+  ].each do |label, value| %>
+    <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-3">
+      <p class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold"><%= label %></p>
+      <p class="font-display text-2xl font-semibold mt-1 tabular-nums"><%= value.to_i %></p>
+    </div>
+  <% end %>
+</div>
+
+<section class="mb-8">
+  <div class="flex items-center justify-between mb-3">
+    <h2 class="font-display text-lg font-semibold">Prompts</h2>
+    <%= link_to "+ New prompt", new_admin_ai_prompt_path, class: "text-xs px-2.5 py-1.5 rounded-md bg-amber-500 text-slate-950 font-semibold hover:bg-amber-400" %>
+  </div>
+  <div class="rounded-xl border border-slate-800 overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-slate-900/60 text-[10px] uppercase tracking-widest text-slate-500">
+        <tr><th class="text-left px-3 py-2">Slug</th><th class="text-left px-3 py-2">Provider · model</th><th class="text-left px-3 py-2">Kind</th><th class="text-right px-3 py-2">Active</th></tr>
+      </thead>
+      <tbody class="divide-y divide-slate-800/60">
+        <% @prompts.each do |p| %>
+          <tr class="hover:bg-slate-900/40">
+            <td class="px-3 py-2">
+              <%= link_to p.slug, admin_ai_prompt_path(p), class: "text-amber-300 hover:text-amber-200 font-medium" %>
+              <div class="text-xs text-slate-500"><%= p.name %></div>
+            </td>
+            <td class="px-3 py-2 text-slate-300"><span class="text-[10px] uppercase tracking-widest text-slate-500"><%= p.provider %></span> <span class="text-slate-200"><%= p.model %></span></td>
+            <td class="px-3 py-2 text-slate-300"><%= p.kind %></td>
+            <td class="px-3 py-2 text-right">
+              <% if p.active %>
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 font-semibold uppercase">on</span>
+              <% else %>
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-700 text-slate-400 font-semibold uppercase">off</span>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="flex items-center justify-between mb-3">
+    <h2 class="font-display text-lg font-semibold">Recent calls</h2>
+    <%= link_to "View all →", admin_ai_calls_path, class: "text-xs text-amber-300 hover:text-amber-200" %>
+  </div>
+  <%= render "admin/ai_calls/table", calls: @recent_calls %>
+</section>

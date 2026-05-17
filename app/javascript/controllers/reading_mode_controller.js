@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { getSpeed, setSpeed, nextSpeed, formatSpeed } from "tts_settings"
 
 // Fullscreen "podcast mode" modal that walks through a trip's plan one
 // scene at a time. Each scene carries an array of dialogue lines spoken
@@ -9,7 +10,7 @@ export default class extends Controller {
   static targets = [
     "modal", "photo", "photoFallback", "mapGrid", "mapPin", "mapsLink",
     "eyebrow", "title", "subtitle", "text", "progress", "playPauseLabel",
-    "speakerBadge", "speakerLabel"
+    "speakerBadge", "speakerLabel", "speedLabel"
   ]
 
   // Voice-name patterns we try (in order) when picking the host and the
@@ -42,6 +43,25 @@ export default class extends Controller {
     if ("speechSynthesis" in window) {
       window.speechSynthesis.onvoiceschanged = () => this._loadVoices()
     }
+    this._renderSpeedLabel()
+  }
+
+  cycleSpeed(event) {
+    if (event) event.preventDefault()
+    setSpeed(nextSpeed())
+    this._renderSpeedLabel()
+    // Reflect the new speed mid-playback: cancel current utterance and
+    // re-speak the same line so the listener hears the change immediately.
+    if (!this._paused) {
+      this._cancelSpeech()
+      this._playFromCurrentLine()
+    }
+  }
+
+  _renderSpeedLabel() {
+    // Multiple chips share the same target name (trip-level button + modal
+    // header) so update all of them.
+    this.speedLabelTargets.forEach(el => { el.textContent = formatSpeed() })
   }
 
   open(event) {
@@ -221,7 +241,8 @@ export default class extends Controller {
     const u = new SpeechSynthesisUtterance(line.text || "")
     const voice = (line.voice === "guide") ? this._guideVoice : this._hostVoice
     if (voice) u.voice = voice
-    u.rate  = typeof line.rate  === "number" ? line.rate  : 1.0
+    const baseRate = typeof line.rate  === "number" ? line.rate  : 1.0
+    u.rate  = baseRate * getSpeed()
     u.pitch = typeof line.pitch === "number" ? line.pitch : 1.0
     u.volume = 1.0
 
@@ -230,7 +251,10 @@ export default class extends Controller {
       if (this._paused) return
       if (this.modalTarget.classList.contains("hidden")) return
       this._lineIdx++
-      const pause = typeof line.pause_after_ms === "number" ? line.pause_after_ms : 200
+      const basePause = typeof line.pause_after_ms === "number" ? line.pause_after_ms : 200
+      // Tighten the pause when the user picks a faster speed so the
+      // cadence between lines tracks the speech rate instead of dragging.
+      const pause = Math.max(80, Math.round(basePause / getSpeed()))
       this._pendingTimer = setTimeout(() => {
         this._pendingTimer = null
         this._playFromCurrentLine()

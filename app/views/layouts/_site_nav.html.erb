@@ -1,0 +1,61 @@
+<%# Shared header contents for both `application` (in-app) and `marketing`
+    layouts. The two layouts wrap this with different <header> chrome —
+    marketing uses `absolute` to overlay the hero, application uses
+    `sticky` with a backdrop-blurred background. The interior is identical. %>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-5 flex items-center justify-between gap-4">
+  <%= link_to root_path, class: "flex items-center gap-2.5 group" do %>
+    <%= image_tag "/icon.svg", alt: "", width: 32, height: 32, class: "rounded-lg shadow-lg shadow-amber-500/20 group-hover:shadow-amber-500/40 transition-shadow" %>
+    <span class="text-[15px] font-semibold tracking-tight bg-gradient-to-r from-amber-200 to-amber-400 bg-clip-text text-transparent">Plan My Trip</span>
+  <% end %>
+
+  <nav class="flex items-center gap-1 text-sm">
+    <%= link_to "Blog",  blog_index_path, class: "hidden sm:inline-block px-3 py-1.5 rounded-md text-slate-300 hover:text-white hover:bg-white/5 transition-colors" %>
+    <%= link_to "About", about_path,      class: "hidden sm:inline-block px-3 py-1.5 rounded-md text-slate-300 hover:text-white hover:bg-white/5 transition-colors" %>
+    <% if user_signed_in? %>
+      <%= link_to trips_path, class: "ml-1 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-semibold text-sm shadow-lg shadow-amber-500/20 hover:bg-amber-400 hover:shadow-amber-500/40 transition-all" do %>
+        <%= icon :list, class: "w-4 h-4" %> Open my trips
+      <% end %>
+      <details class="relative ml-1 group">
+        <summary class="list-none cursor-pointer inline-flex items-center gap-2 px-1.5 py-1 rounded-full hover:bg-white/5 transition-colors">
+          <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-amber-500 to-amber-700 text-slate-950 text-xs font-bold ring-2 ring-amber-500/40">
+            <%= current_user.display_name.to_s.split(/\s+/).first(2).map { |w| w[0] }.join.upcase.presence || "?" %>
+          </span>
+          <span class="hidden sm:inline text-xs text-slate-300 max-w-[12ch] truncate"><%= current_user.display_name %></span>
+          <%= icon :chevron_down, class: "w-3.5 h-3.5 text-slate-500 group-open:rotate-180 transition-transform" %>
+        </summary>
+        <div class="absolute right-0 mt-2 w-60 rounded-xl border border-slate-800 bg-slate-900/95 backdrop-blur shadow-2xl shadow-black/60 py-1.5 z-50">
+          <div class="px-3 py-2 border-b border-slate-800">
+            <p class="text-xs text-slate-500">Signed in as</p>
+            <p class="text-sm text-slate-100 font-medium truncate"><%= current_user.email %></p>
+          </div>
+          <%= link_to trips_path, class: "flex items-center gap-2 px-3 py-2 text-sm text-slate-200 hover:bg-white/5" do %>
+            <%= icon :list, class: "w-4 h-4 text-amber-400" %> My trips
+          <% end %>
+          <%= link_to new_trip_path, class: "flex items-center gap-2 px-3 py-2 text-sm text-slate-200 hover:bg-white/5" do %>
+            <%= icon :plus, class: "w-4 h-4 text-amber-400" %> New trip
+          <% end %>
+          <%= link_to edit_user_registration_path, class: "flex items-center gap-2 px-3 py-2 text-sm text-slate-200 hover:bg-white/5" do %>
+            <%= icon :settings, class: "w-4 h-4 text-slate-400" %> Account & memberships
+          <% end %>
+          <% if current_user.admin? %>
+            <%= link_to admin_root_path, class: "flex items-center gap-2 px-3 py-2 text-sm text-amber-200 hover:bg-amber-500/10" do %>
+              <%= icon :sparkles, class: "w-4 h-4 text-amber-400" %> Admin dashboard
+            <% end %>
+          <% end %>
+          <div class="border-t border-slate-800 mt-1 pt-1">
+            <%= button_to destroy_user_session_path, method: :delete, form: { data: { turbo_confirm: "Sign out?" } }, class: "w-full text-left" do %>
+              <span class="flex items-center gap-2 px-3 py-2 text-sm text-slate-200 hover:bg-rose-500/10 hover:text-rose-200 cursor-pointer">
+                <%= icon :arrow_right, class: "w-4 h-4 text-rose-400" %> Sign out
+              </span>
+            <% end %>
+          </div>
+        </div>
+      </details>
+    <% else %>
+      <%= link_to "Sign in", new_user_session_path, class: "px-3 py-1.5 rounded-md text-slate-300 hover:text-white hover:bg-white/5 transition-colors" %>
+      <%= link_to new_user_registration_path, class: "ml-1 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-semibold text-sm shadow-lg shadow-amber-500/20 hover:bg-amber-400 hover:shadow-amber-500/40 transition-all" do %>
+        Start free <%= icon :arrow_right, class: "w-4 h-4" %>
+      <% end %>
+    <% end %>
+  </nav>
+</div>

@@ -3,7 +3,7 @@
 // page has been visited it stays available offline. Asset files are
 // cached on first request and refreshed in the background.
 
-const VERSION = "v4";
+const VERSION = "v5";
 const RUNTIME_CACHE = `pmt-runtime-${VERSION}`;
 const ASSET_CACHE   = `pmt-assets-${VERSION}`;
 const PAGE_CACHE    = `pmt-pages-${VERSION}`;
