@@ -11,8 +11,33 @@
     <link rel="apple-touch-icon" href="/icon.png">
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
+    <style>
+      .turbo-progress-bar { display: none !important; }
+      .pmt-loading-overlay {
+        position: fixed; inset: 0; z-index: 9999;
+        display: flex; align-items: center; justify-content: center;
+        background: rgba(10, 14, 26, 0.55); backdrop-filter: blur(4px);
+        opacity: 0; pointer-events: none; transition: opacity 180ms ease;
+      }
+      .pmt-loading-overlay.is-visible { opacity: 1; pointer-events: auto; }
+      .pmt-loading-ring {
+        width: 56px; height: 56px; border-radius: 50%;
+        background: conic-gradient(from 0deg, transparent 0deg, #f0b870 90deg, #fbbf24 270deg, transparent 360deg);
+        -webkit-mask: radial-gradient(circle at center, transparent 58%, #000 60%);
+                mask: radial-gradient(circle at center, transparent 58%, #000 60%);
+        animation: pmt-spin 900ms linear infinite;
+        filter: drop-shadow(0 0 12px rgba(240, 184, 112, 0.35));
+      }
+      @keyframes pmt-spin { to { transform: rotate(360deg); } }
+      @media (prefers-reduced-motion: reduce) {
+        .pmt-loading-ring { animation-duration: 2400ms; }
+        .pmt-loading-overlay { transition: none; }
+      }
+      .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    </style>
   </head>
   <body class="bg-slate-950 text-slate-100 min-h-full antialiased">
+    <%= render "layouts/loading_overlay" %>
     <header class="border-b border-slate-800 bg-slate-900/60 backdrop-blur sticky top-0 z-30">
       <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
         <div class="flex items-center gap-4">

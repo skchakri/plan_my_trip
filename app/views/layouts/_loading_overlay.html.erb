@@ -1,0 +1,10 @@
+<%# Full-page spinner overlay — replaces Turbo's default top progress bar.
+    Toggled by loading_spinner_controller.js on turbo:visit / submit-start
+    (with a 200ms delay so fast navigations don't flash). %>
+<div data-controller="loading-spinner"
+     data-loading-spinner-target="overlay"
+     data-loading-spinner-delay-value="200"
+     class="pmt-loading-overlay" aria-hidden="true" role="status">
+  <span class="pmt-loading-ring"></span>
+  <span class="sr-only">Loading…</span>
+</div>

@@ -42,10 +42,39 @@
       *:focus-visible { outline: 2px solid #f0b870; outline-offset: 2px; border-radius: 6px; }
       input:focus-visible, select:focus-visible, textarea:focus-visible { outline: none; }
       .bg-noise { background-image: radial-gradient(rgba(232,160,79,0.04) 1px, transparent 1px); background-size: 24px 24px; }
+
+      /* Hide Turbo's default top progress bar — replaced by centered spinner. */
+      .turbo-progress-bar { display: none !important; }
+
+      /* Centered spinner overlay shown during slow Turbo navigations. */
+      .pmt-loading-overlay {
+        position: fixed; inset: 0; z-index: 9999;
+        display: flex; align-items: center; justify-content: center;
+        background: rgba(10, 14, 26, 0.55); backdrop-filter: blur(4px);
+        opacity: 0; pointer-events: none; transition: opacity 180ms ease;
+      }
+      .pmt-loading-overlay.is-visible { opacity: 1; pointer-events: auto; }
+      .pmt-loading-ring {
+        width: 56px; height: 56px; border-radius: 50%;
+        background:
+          conic-gradient(from 0deg, transparent 0deg, #f0b870 90deg, #fbbf24 270deg, transparent 360deg);
+        -webkit-mask: radial-gradient(circle at center, transparent 58%, #000 60%);
+                mask: radial-gradient(circle at center, transparent 58%, #000 60%);
+        animation: pmt-spin 900ms linear infinite;
+        filter: drop-shadow(0 0 12px rgba(240, 184, 112, 0.35));
+      }
+      @keyframes pmt-spin { to { transform: rotate(360deg); } }
+      @media (prefers-reduced-motion: reduce) {
+        .pmt-loading-ring { animation-duration: 2400ms; }
+        .pmt-loading-overlay { transition: none; }
+      }
+      .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
     </style>
   </head>
 
   <body class="bg-slate-950 text-slate-100 min-h-full antialiased <%= 'hotwire-native' if hotwire_native_app? %>">
+    <%= render "layouts/loading_overlay" %>
+
     <% unless hotwire_native_app? %>
       <header class="sticky top-0 inset-x-0 z-30 border-b border-slate-800/70 bg-slate-950/80 backdrop-blur-xl">
         <%= render "layouts/site_nav" %>
