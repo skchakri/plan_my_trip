@@ -51,6 +51,7 @@ class TripSharesController < ApplicationController
       membership.role = "member"
       membership.accepted_at = Time.current
       membership.save!
+      NotificationDispatcher.trip_share_accepted(membership)
       redirect_to @trip, notice: "Shared with #{user.display_name}. It's now in their trips."
     end
   end

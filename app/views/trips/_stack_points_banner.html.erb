@@ -1,0 +1,56 @@
+<%# Top-of-trip nudge: stack points by booking through the viewer's card
+    travel portal. Shows in 3 modes:
+      • viewer has linked cards → big banner with the actual portal links
+      • viewer has no cards linked → soft prompt with a link to account
+      • disabled entirely on tiny trips with no booking_claims slot — but
+        the rest of the app already nudges bookings, so we always render
+        on a trip page.
+%>
+<% portals = @booking.card_portals %>
+<section class="rounded-2xl border border-violet-500/30 bg-gradient-to-br from-violet-500/15 via-violet-500/5 to-transparent overflow-hidden mb-6">
+  <div class="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center gap-4">
+    <div class="shrink-0 inline-flex items-center justify-center w-12 h-12 rounded-xl bg-violet-500/20 text-violet-200 border border-violet-500/40">
+      <%= icon :trophy, class: "w-6 h-6" %>
+    </div>
+    <div class="min-w-0 flex-1">
+      <% if portals.any? %>
+        <h3 class="font-display text-lg font-semibold text-violet-100">Stack points on this trip</h3>
+        <p class="text-sm text-slate-300 mt-0.5">
+          You have <%= pluralize(portals.size, "card") %> linked — book hotels and cars through your portal for the multiplier.
+        </p>
+      <% else %>
+        <h3 class="font-display text-lg font-semibold text-violet-100">Earn points you're already leaving on the table</h3>
+        <p class="text-sm text-slate-300 mt-0.5">
+          Chase Sapphire, Amex Platinum, and Capital One Venture all run travel portals with 5×–10× points. Tell us which you have and we'll surface the right link on every booking.
+        </p>
+      <% end %>
+    </div>
+    <div class="shrink-0 flex flex-wrap items-center gap-2 sm:justify-end">
+      <% if portals.any? %>
+        <% portals.each do |link| %>
+          <%= link_to link.url, target: "_blank", rel: "noopener",
+                class: "inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-violet-500/20 text-violet-100 border border-violet-500/40 text-sm font-medium hover:bg-violet-500/30 transition-colors",
+                title: link.note do %>
+            <%= link.provider %> <%= icon :external_link, class: "w-3.5 h-3.5" %>
+          <% end %>
+        <% end %>
+      <% else %>
+        <%= link_to edit_user_registration_path,
+              class: "inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-amber-500 text-slate-950 text-sm font-semibold hover:bg-amber-400 transition-colors" do %>
+          <%= icon :plus, class: "w-4 h-4" %> Add your cards
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+  <% if portals.any? && portals.any? { |p| p.note.present? } %>
+    <ul class="border-t border-violet-500/20 px-5 sm:px-6 py-3 grid sm:grid-cols-2 gap-x-6 gap-y-1.5 text-xs">
+      <% portals.each do |link| %>
+        <% next if link.note.blank? %>
+        <li class="flex items-start gap-2 text-slate-400">
+          <span class="mt-1 shrink-0 w-1 h-1 rounded-full bg-violet-400/60"></span>
+          <span><span class="text-violet-300 font-medium"><%= link.provider %>:</span> <%= link.note %></span>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+</section>

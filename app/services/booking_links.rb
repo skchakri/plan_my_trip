@@ -3,9 +3,14 @@
 # certain loyalty memberships, those provider links are badged as
 # "Member rate" so they sort to the top of each section.
 #
-# All URLs hit public, documented search forms. No affiliate IDs are
-# attached — if/when you sign up for affiliate programs, append your tag
-# in the per-provider builders below.
+# Affiliate-aware: when affiliate IDs are configured (see
+# config/initializers/affiliates.rb), Booking.com / GetYourGuide /
+# Viator / Skyscanner links carry the partner tag + a per-trip sub-id
+# so conversions are attributable in the affiliate dashboard.
+# Providers without a URL-param affiliate scheme (Expedia, Hotels.com,
+# Kayak, the chain-direct sites, Turo, AllTrails) remain plain search
+# URLs — they need network-wrapped redirect URLs that can't be built
+# from a search string alone.
 class BookingLinks
   Link = Struct.new(:provider, :url, :badge, :note, keyword_init: true)
 
@@ -129,6 +134,17 @@ class BookingLinks
     viewer&.has_membership?(key) || false
   end
 
+  def affiliates
+    Rails.application.config.x.affiliates
+  end
+
+  # Short, opaque-but-stable per-trip tag we append to affiliate URLs as
+  # a sub-id. Lets the affiliate dashboard tell us which trip generated
+  # the conversion without leaking the full trip UUID.
+  def tracking_subid
+    trip.id.to_s.delete("-").first(12)
+  end
+
   def sort_member_first(links)
     links.partition { |l| l.badge.to_s.match?(/member|honors|genius/i) }.flatten
   end
@@ -152,7 +168,12 @@ class BookingLinks
 
   # ── Hotel URLs ────────────────────────────────────────────────────────
   def booking_com_hotels
-    "https://www.booking.com/searchresults.html?#{q(ss: destination, checkin: start_iso, checkout: end_iso, group_adults: adults)}"
+    params = { ss: destination, checkin: start_iso, checkout: end_iso, group_adults: adults }
+    if (aid = affiliates.booking_com_aid)
+      params[:aid] = aid
+      params[:label] = "#{affiliates.booking_com_label}-#{tracking_subid}"
+    end
+    "https://www.booking.com/searchresults.html?#{q(params)}"
   end
 
   def hotels_com
@@ -221,16 +242,35 @@ class BookingLinks
   end
 
   def skyscanner_flights
-    "https://www.skyscanner.com/transport/flights/?#{q(adultsv2: adults, cabinclass: 'economy')}"
+    params = { adultsv2: adults, cabinclass: "economy" }
+    if (associateid = affiliates.skyscanner_associateid)
+      params[:associateid] = associateid
+    elsif (marker = affiliates.travelpayouts_marker)
+      params[:marker] = marker
+      params[:sub_id] = tracking_subid
+    end
+    "https://www.skyscanner.com/transport/flights/?#{q(params)}"
   end
 
   # ── Activity URLs ─────────────────────────────────────────────────────
   def getyourguide
-    "https://www.getyourguide.com/s/?#{q(q: destination, date_from: start_iso, date_to: end_iso)}"
+    params = { q: destination, date_from: start_iso, date_to: end_iso }
+    if (partner_id = affiliates.getyourguide_partner_id)
+      params[:partner_id] = partner_id
+      params[:cmp] = tracking_subid
+    end
+    "https://www.getyourguide.com/s/?#{q(params)}"
   end
 
   def viator
-    "https://www.viator.com/searchResults/all?#{q(text: destination)}"
+    params = { text: destination }
+    if (pid = affiliates.viator_pid)
+      params[:pid] = pid
+      params[:mcid] = affiliates.viator_mcid
+      params[:medium] = "link"
+      params[:campaign] = tracking_subid
+    end
+    "https://www.viator.com/searchResults/all?#{q(params)}"
   end
 
   def tiqets

@@ -1,5 +1,6 @@
 <% content_for :title, @trip.title_for(current_user) %>
 <% is_owner = (@trip.owner_id == current_user.id) %>
+<% day_trip = @trip.day_trip? %>
 
 <div class="mb-5">
   <%= link_to trips_path, class: "inline-flex items-center gap-1 text-sm text-slate-400 hover:text-amber-300 transition-colors" do %>
@@ -19,6 +20,11 @@
           <% else %>
             <span class="inline-block w-1.5 h-1.5 rounded-full bg-sky-400"></span> Shared by <%= @trip.owner.display_name %>
           <% end %>
+          <% if day_trip %>
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-200 border border-emerald-500/30 text-[10px] font-semibold tracking-normal normal-case ml-1">
+              <%= icon :sun, class: "w-3 h-3" %> Day trip
+            </span>
+          <% end %>
         </p>
         <h1 class="font-display text-3xl sm:text-4xl font-semibold tracking-tight text-slate-50"><%= @trip.title_for(current_user) %></h1>
         <% if @trip.title_for(current_user) != @trip.title %>
@@ -32,7 +38,14 @@
             <span class="inline-flex items-center gap-1.5 text-slate-400"><%= icon :plane, class: "w-4 h-4 text-slate-500" %>From <%= @trip.origin %></span>
           <% end %>
           <% if @trip.start_date && @trip.end_date %>
-            <span class="inline-flex items-center gap-1.5 text-slate-400"><%= icon :calendar, class: "w-4 h-4 text-slate-500" %><%= @trip.start_date.strftime("%b %-d") %> – <%= @trip.end_date.strftime("%b %-d, %Y") %></span>
+            <span class="inline-flex items-center gap-1.5 text-slate-400">
+              <%= icon :calendar, class: "w-4 h-4 text-slate-500" %>
+              <% if day_trip || @trip.start_date == @trip.end_date %>
+                <%= @trip.start_date.strftime("%a %b %-d, %Y") %>
+              <% else %>
+                <%= @trip.start_date.strftime("%b %-d") %> – <%= @trip.end_date.strftime("%b %-d, %Y") %>
+              <% end %>
+            </span>
           <% end %>
         </div>
       </div>
@@ -43,6 +56,24 @@
         <% end %>
         <%= link_to checklist_trip_path(@trip), class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-200 border border-emerald-500/30 text-sm hover:bg-emerald-500/20 transition-colors" do %>
           <%= icon :check, class: "w-4 h-4" %> Checklist
+        <% end %>
+        <% webcal = calendar_trip_url(@trip, format: :ics).sub(%r{\Ahttps?://}, "webcal://") %>
+        <%= link_to webcal,
+              class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 text-slate-200 text-sm hover:border-amber-500/50 hover:bg-slate-800/50 transition-colors",
+              title: "Subscribe in Google/Apple/Outlook Calendar" do %>
+          <%= icon :calendar, class: "w-4 h-4" %> Subscribe
+        <% end %>
+        <%= link_to wallet_trip_path(@trip),
+              class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 text-slate-200 text-sm hover:border-amber-500/50 hover:bg-slate-800/50 transition-colors",
+              title: "Print-ready survival sheet — bookings, addresses, coordinates" do %>
+          <%= icon :printer, class: "w-4 h-4" %> Wallet
+        <% end %>
+        <%= button_to duplicate_trip_path(@trip),
+              method: :post,
+              data: { turbo_confirm: "Duplicate \"#{@trip.title_for(current_user)}\" into your trips?" },
+              form_class: "inline",
+              class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 text-slate-200 text-sm hover:border-amber-500/50 hover:bg-slate-800/50 transition-colors" do %>
+          <%= icon :copy, class: "w-4 h-4" %> Duplicate
         <% end %>
         <% if is_owner %>
           <%= link_to edit_trip_path(@trip), class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 text-slate-200 text-sm hover:border-amber-500/50 hover:bg-slate-800/50 transition-colors" do %>
@@ -56,12 +87,21 @@
     </div>
 
     <!-- Stat tiles -->
-    <% stats = [
-         (@trip.nights ? { label: "Nights",   value: @trip.nights,         icon: :calendar } : nil),
-         { label: "Travelers", value: @trip.traveler_count, icon: :users },
-         (@trip.trails.any? ? { label: "Trails", value: @trip.trails.size, icon: :mountain } : nil),
-         { label: "With access", value: @trip.member_count, icon: :user_circle }
-       ].compact %>
+    <% stats = if day_trip
+         [
+           (@trip.trip_days.first&.activities&.any? ? { label: "Stops", value: @trip.trip_days.first.activities.size, icon: :map_pin } : nil),
+           (@trip.max_radius_km ? { label: "Radius", value: "#{@trip.max_radius_km} km", icon: :compass } : nil),
+           { label: "Travelers", value: @trip.traveler_count, icon: :users },
+           { label: "With access", value: @trip.member_count, icon: :user_circle }
+         ].compact
+       else
+         [
+           (@trip.nights ? { label: "Nights",   value: @trip.nights,         icon: :calendar } : nil),
+           { label: "Travelers", value: @trip.traveler_count, icon: :users },
+           (@trip.trails.any? ? { label: "Trails", value: @trip.trails.size, icon: :mountain } : nil),
+           { label: "With access", value: @trip.member_count, icon: :user_circle }
+         ].compact
+       end %>
     <% if stats.any? %>
       <div class="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-2.5">
         <% stats.each do |s| %>
@@ -76,6 +116,26 @@
     <% end %>
   </div>
 </section>
+
+<%= render "stack_points_banner" %>
+
+<%# Realtime presence — pills of other trip members currently viewing the
+    trip. Updated via Action Cable; only renders for trips with multiple
+    members (no point on solo trips). %>
+<% if @trip.member_count > 1 %>
+  <div data-controller="trip-presence" data-trip-presence-trip-id-value="<%= @trip.id %>"
+       class="mb-6 flex items-center gap-2 text-xs text-slate-500 flex-wrap">
+    <span class="inline-flex items-center gap-1.5">
+      <span class="relative flex w-2 h-2">
+        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-50"></span>
+        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+      </span>
+      Live
+    </span>
+    <span data-trip-presence-target="empty">No one else viewing right now</span>
+    <span data-trip-presence-target="list" class="flex items-center gap-1.5 flex-wrap"></span>
+  </div>
+<% end %>
 
 <!-- Personal title override -->
 <details class="mb-6 rounded-xl bg-slate-900/40 border border-slate-800">
@@ -212,8 +272,10 @@
   <% end %>
 </section>
 
-<!-- Bookings -->
-<%= render "bookings", booking: @booking %>
+<!-- Bookings (multi-day only — day trips don't need hotels/flights) -->
+<% unless day_trip %>
+  <%= render "bookings", booking: @booking %>
+<% end %>
 
 <!-- Trip documents (hotel, car, flight confirmations) -->
 <section class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 sm:p-7 mt-6">
@@ -245,6 +307,60 @@
   <% end %>
   <p class="text-[11px] text-slate-500 mt-1.5">PDF, image, .ics, or .txt — hotel reservations, car rental, flight tickets, etc.</p>
 </section>
+
+<!-- Owner-only: public share link (read-only URL anyone can open) -->
+<% if is_owner %>
+  <section class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 sm:p-7 mt-6"
+           data-controller="share-link">
+    <div class="flex items-start justify-between gap-3 flex-wrap mb-3">
+      <div>
+        <h2 class="font-display text-xl font-semibold flex items-center gap-2">
+          <%= icon :link, class: "w-5 h-5 text-teal-300/80" %> Public link
+        </h2>
+        <p class="text-sm text-slate-400 mt-1">Anyone with the link sees a read-only version. No signup required.</p>
+      </div>
+      <span class="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs <%= @trip.share_link_active? ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30' : 'bg-slate-800 text-slate-400 border border-slate-700' %>">
+        <span class="w-1.5 h-1.5 rounded-full <%= @trip.share_link_active? ? 'bg-emerald-400' : 'bg-slate-500' %>"></span>
+        <%= @trip.share_link_active? ? "On" : "Off" %>
+      </span>
+    </div>
+
+    <% if @trip.share_link_active? %>
+      <% public_url = public_trip_url(@trip.share_token) %>
+      <div class="flex items-stretch gap-2 bg-slate-950/60 border border-slate-700 rounded-lg p-1 pl-3">
+        <input type="text" readonly value="<%= public_url %>"
+               data-share-link-target="url"
+               class="flex-1 bg-transparent text-sm text-slate-200 outline-none truncate" />
+        <button type="button"
+                data-action="share-link#copy"
+                data-share-link-target="copyBtn"
+                class="shrink-0 px-3 py-1.5 rounded-md bg-amber-500 text-slate-950 text-sm font-semibold hover:bg-amber-400 transition-colors">
+          Copy
+        </button>
+      </div>
+      <div class="mt-3 flex flex-wrap gap-2">
+        <%= button_to rotate_public_share_trip_path(@trip),
+              method: :post,
+              data: { turbo_confirm: "Rotate the link? The current URL will stop working." },
+              class: "inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md border border-slate-700 text-slate-300 hover:bg-slate-800/60 transition-colors" do %>
+          <%= icon :refresh_cw, class: "w-3.5 h-3.5" %> Rotate URL
+        <% end %>
+        <%= button_to disable_public_share_trip_path(@trip),
+              method: :delete,
+              data: { turbo_confirm: "Disable the public link?" },
+              class: "inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md bg-rose-500/10 text-rose-200 border border-rose-500/30 hover:bg-rose-500/20 transition-colors" do %>
+          <%= icon :x, class: "w-3.5 h-3.5" %> Revoke
+        <% end %>
+      </div>
+    <% else %>
+      <%= button_to enable_public_share_trip_path(@trip),
+            method: :post,
+            class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-500/10 text-teal-200 border border-teal-500/30 hover:bg-teal-500/20 transition-colors text-sm" do %>
+        <%= icon :link, class: "w-4 h-4" %> Generate public link
+      <% end %>
+    <% end %>
+  </section>
+<% end %>
 
 <!-- Owner-only: members + pending invitations + delete -->
 <% if is_owner %>

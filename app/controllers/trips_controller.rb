@@ -1,10 +1,10 @@
 class TripsController < ApplicationController
   include MarkdownHelper
 
-  before_action :set_trip, only: %i[show edit update destroy rename plan checklist copilot copilot_question copilot_response]
+  before_action :set_trip, only: %i[show edit update destroy rename plan checklist copilot copilot_question copilot_response duplicate calendar wallet]
 
   def index
-    @trips = policy_scope(Trip).ordered.includes(:owner)
+    @trips = policy_scope(Trip).ordered.includes(:owner).with_cover_data
   end
 
   def show
@@ -56,7 +56,10 @@ class TripsController < ApplicationController
   # GET /trips/:id/plan — rich day-by-day Final plan with photos and deep-linked maps
   def plan
     authorize @trip, :show?
-    @days = @trip.trip_days.ordered.includes(:activities)
+    @days = @trip.trip_days.ordered.includes(
+      activities: { comments: :author },
+      suggestions: %i[author suggestion_votes]
+    )
     @rendered_body = render_markdown(@trip.body)
     @reading_scenes = build_reading_scenes(@trip, @days)
   end
@@ -129,6 +132,40 @@ class TripsController < ApplicationController
   end
 
   # PATCH /trips/:id/rename — per-user title via membership.custom_title
+  # POST /trips/:id/duplicate — anyone with show access can clone into their
+  # own trips list. Optionally shifts dates if new_start_date is given.
+  def duplicate
+    authorize @trip, :show?
+    new_trip = TripDuplicator.new(
+      source:         @trip,
+      owner:          current_user,
+      new_title:      params[:new_title].presence,
+      new_start_date: params[:new_start_date].presence
+    ).call
+    redirect_to new_trip, notice: "Trip duplicated. Edit anything you'd like to change."
+  rescue ActiveRecord::RecordInvalid => e
+    redirect_to @trip, alert: "Couldn't duplicate: #{e.record.errors.full_messages.to_sentence}"
+  end
+
+  # GET /trips/:id/wallet — terse, paper-optimised survival sheet of
+  # confirmations, addresses, and lat/lng coords. Save-as-PDF target.
+  def wallet
+    authorize @trip, :show?
+    @days = @trip.trip_days.ordered.includes(:activities)
+    @bookings = @trip.booking_claims.includes(documents_attachments: :blob)
+    render layout: "wallet"
+  end
+
+  # GET /trips/:id/calendar.ics — auth-gated iCalendar feed for the owner
+  # or any trip member to subscribe in Google/Apple/Outlook.
+  def calendar
+    authorize @trip, :show?
+    send_data TripIcsBuilder.new(@trip).to_ics,
+              type: "text/calendar; charset=utf-8",
+              filename: "#{@trip.title.parameterize.presence || 'trip'}.ics",
+              disposition: "inline"
+  end
+
   def rename
     authorize @trip, :rename?
     membership = @trip.trip_memberships.find_by!(user: current_user)

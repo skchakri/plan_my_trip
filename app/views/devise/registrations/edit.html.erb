@@ -25,6 +25,66 @@
       </label>
     </div>
 
+    <%# Email digest opt-out. Devise needs the param permitted —
+        see ApplicationController#configure_permitted_parameters. We
+        translate the form checkbox (1 = receive digest) into a
+        nullable timestamp on the model. %>
+    <div>
+      <label class="flex items-start gap-2.5">
+        <input type="hidden" name="user[receive_digest]" value="0">
+        <input type="checkbox" name="user[receive_digest]" value="1"
+               <%= "checked" unless current_user.digest_optout_at.present? %>
+               class="mt-1 rounded bg-slate-800 border-slate-600">
+        <span>
+          <span class="font-medium text-amber-200">Daily email digest</span>
+          <span class="block text-xs text-slate-400 mt-1">One email a day summarising new comments and trip activity. We only send it when you have unread updates from the last 24 hours.</span>
+        </span>
+      </label>
+    </div>
+
+    <fieldset class="rounded-lg border border-slate-800 bg-slate-900/40 p-4 space-y-3">
+      <legend class="px-2 text-sm font-medium text-emerald-300">Home base for day trips</legend>
+      <p class="text-xs text-slate-500 -mt-2">Pre-fills the day-trip planner so we can suggest nearby spots without you having to type your city every time. Skip the lat/lng if you don't have it — entering your city is enough to start.</p>
+      <div data-controller="place-autocomplete" data-place-autocomplete-search-url-value="<%= search_places_path %>" class="relative">
+        <%= f.label :home_city, "Home city / town", class: "block text-xs uppercase tracking-widest text-slate-400 font-semibold mb-1.5" %>
+        <%= f.text_field :home_city, autocomplete: "off",
+              placeholder: "e.g. Salt Lake City, UT",
+              class: "w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 focus:border-emerald-500 focus:outline-none",
+              data: {
+                place_autocomplete_target: "input",
+                action: "input->place-autocomplete#query focus->place-autocomplete#query keydown->place-autocomplete#navigate blur->place-autocomplete#blur"
+              } %>
+        <%= f.hidden_field :home_lat, data: { place_autocomplete_target: "lat" } %>
+        <%= f.hidden_field :home_lng, data: { place_autocomplete_target: "lng" } %>
+        <ul data-place-autocomplete-target="results" hidden
+            class="absolute left-0 right-0 top-full mt-1.5 z-30 rounded-xl border border-slate-700 bg-slate-900/95 backdrop-blur shadow-2xl shadow-black/60 overflow-hidden max-h-80 overflow-y-auto"></ul>
+      </div>
+      <div>
+        <%= f.label :default_radius_km, "Default drive radius", class: "block text-xs uppercase tracking-widest text-slate-400 font-semibold mb-1.5" %>
+        <%= f.select :default_radius_km,
+              [ [ "25 mi (~45 min)", 40 ], [ "50 mi (~1 hr)", 80 ], [ "75 mi (~1.5 hr)", 120 ], [ "125 mi (~2.5 hr)", 200 ] ],
+              {},
+              class: "w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2" %>
+      </div>
+      <div>
+        <p class="block text-xs uppercase tracking-widest text-slate-400 font-semibold mb-1.5">Default interests</p>
+        <%# Empty hidden field ensures default_interests is sent as [] when no boxes are checked. %>
+        <%= hidden_field_tag "user[default_interests][]", "" %>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          <% User::DAY_TRIP_INTERESTS.each do |int| %>
+            <% checked = current_user.default_interests.include?(int[:key]) %>
+            <label class="cursor-pointer">
+              <input type="checkbox" name="user[default_interests][]" value="<%= int[:key] %>" <%= "checked" if checked %> class="peer sr-only">
+              <span class="flex items-center gap-2 px-2.5 py-2 rounded-md border border-slate-700 bg-slate-800/40 text-xs text-slate-300 peer-checked:bg-emerald-500/15 peer-checked:border-emerald-500/50 peer-checked:text-emerald-100 transition-colors">
+                <span><%= int[:emoji] %></span>
+                <span class="leading-tight"><%= int[:label] %></span>
+              </span>
+            </label>
+          <% end %>
+        </div>
+      </div>
+    </fieldset>
+
     <fieldset class="rounded-lg border border-slate-800 bg-slate-900/40 p-4 space-y-3">
       <legend class="px-2 text-sm font-medium text-amber-300">Memberships &amp; loyalty</legend>
       <p class="text-xs text-slate-500 -mt-2">Tell us what you have. We'll badge "Member rate" links on trip pages and surface real discounts you qualify for. Nothing leaves your account — these are hints, not credentials.</p>

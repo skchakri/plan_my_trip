@@ -20,22 +20,40 @@ Rails.application.routes.draw do
     delete "",          action: :reset,            as: :wizard_reset
   end
 
+  # Day-trip flow: home base + interests → AI-curated nearby ideas →
+  # one-day Trip. The /day_trips routes only handle planning; the saved
+  # trip lives at /trips/:id like any other trip.
+  scope "day_trips", controller: "day_trips" do
+    get  "new",            action: :new,            as: :day_trips_new
+    get  "suggestions",    action: :suggestions,    as: :day_trip_suggestions
+    post "",               action: :create,         as: :day_trips
+    post "save_home_base", action: :save_home_base, as: :day_trip_save_home_base
+  end
+
   # Shared place catalog — the same Goblin Valley row is referenced by
   # every trip that visits it. Show-only for now; index/upload/admin
   # tools land in a later slice.
   resources :places, only: [ :show ] do
     collection do
       get :search
+      post :rate # find-or-create from card metadata + POST review in one shot
     end
+    resources :reviews, only: [ :create, :destroy ], controller: "place_reviews"
   end
 
   resources :trips do
+    resources :trip_days, only: [] do
+      resources :suggestions, only: [ :create, :destroy ] do
+        member { post :vote }
+      end
+    end
     resources :shares, only: [ :new, :create, :destroy ], controller: "trip_shares"
     resources :invitations, only: [ :destroy ], controller: "trip_invitations"
     resources :checklist_items, only: [ :create, :update, :destroy ]
     resources :activities, only: [] do
       resources :documents, only: [ :create, :destroy ], controller: "activity_documents"
       resources :photos, only: [ :create, :destroy ], controller: "activity_photos"
+      resources :comments, only: [ :create, :destroy ]
     end
     resources :people, only: [ :create, :destroy ]
     resources :documents, only: [ :create, :destroy ], controller: "trip_documents"
@@ -51,8 +69,24 @@ Rails.application.routes.draw do
       get :copilot
       get :copilot_question
       post :copilot_response
+      post   :share_link,        to: "public_trips#enable",  as: :enable_public_share
+      delete :share_link,        to: "public_trips#disable", as: :disable_public_share
+      post   :share_link_rotate, to: "public_trips#rotate",  as: :rotate_public_share
+      post   :duplicate
+      get    :calendar, defaults: { format: :ics }, constraints: { format: :ics }
+      get    :wallet
     end
   end
+
+  # Public read-only trip view — anyone with the link can see a stripped-down
+  # plan. No auth. Revocation/rotation lives under /trips/:id/share_link.
+  get "s/:token", to: "public_trips#show", as: :public_trip, constraints: { token: /[A-Za-z0-9_-]+/ }
+  get "s/:token/calendar.ics", to: "public_trips#calendar", as: :public_trip_calendar, constraints: { token: /[A-Za-z0-9_-]+/ }
+
+  # SEO-indexed Place landing pages — public, crawlable, slug-stable.
+  # Distinct from the auth-gated /places/:id used during trip planning.
+  get "p/:slug", to: "public_places#show", as: :public_place, constraints: { slug: /[a-z0-9-]+/ }
+  get "places-sitemap.xml", to: "public_places#sitemap", as: :places_sitemap, defaults: { format: :xml }
 
   # ── Admin (DB-stored AI prompts + audit log) ──────────────────────
   namespace :admin do
@@ -83,6 +117,16 @@ Rails.application.routes.draw do
     get "sandbox/nearby",          to: "sandbox#nearby",          as: :sandbox_nearby
     get "sandbox/places/:id",      to: "sandbox#place_modal",     as: :sandbox_place_modal
   end
+
+  resources :notifications, only: [ :index ] do
+    member     { post :read }
+    collection { post :read_all }
+  end
+
+  # Starter templates for the empty-state dashboard. The list lives in
+  # app/services/trip_template.rb — no DB row, no admin tooling.
+  post "trip_templates/:key/use", to: "trip_templates#use", as: :use_trip_template,
+       constraints: { key: /[a-z0-9-]+/ }
 
   # Trip invitations sent by email — magic-link landing
   get "invitations/:token", to: "invitations#show", as: :invitation

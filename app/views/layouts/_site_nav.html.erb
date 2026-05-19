@@ -15,6 +15,7 @@
       <%= link_to trips_path, class: "ml-1 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-semibold text-sm shadow-lg shadow-amber-500/20 hover:bg-amber-400 hover:shadow-amber-500/40 transition-all" do %>
         <%= icon :list, class: "w-4 h-4" %> Open my trips
       <% end %>
+      <%= render "notifications/bell" %>
       <details class="relative ml-1 group">
         <summary class="list-none cursor-pointer inline-flex items-center gap-2 px-1.5 py-1 rounded-full hover:bg-white/5 transition-colors">
           <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-amber-500 to-amber-700 text-slate-950 text-xs font-bold ring-2 ring-amber-500/40">
@@ -32,7 +33,10 @@
             <%= icon :list, class: "w-4 h-4 text-amber-400" %> My trips
           <% end %>
           <%= link_to new_trip_path, class: "flex items-center gap-2 px-3 py-2 text-sm text-slate-200 hover:bg-white/5" do %>
-            <%= icon :plus, class: "w-4 h-4 text-amber-400" %> New trip
+            <%= icon :plus, class: "w-4 h-4 text-amber-400" %> New multi-day trip
+          <% end %>
+          <%= link_to day_trips_new_path, class: "flex items-center gap-2 px-3 py-2 text-sm text-slate-200 hover:bg-white/5" do %>
+            <%= icon :sun, class: "w-4 h-4 text-emerald-400" %> Plan a day trip
           <% end %>
           <%= link_to edit_user_registration_path, class: "flex items-center gap-2 px-3 py-2 text-sm text-slate-200 hover:bg-white/5" do %>
             <%= icon :settings, class: "w-4 h-4 text-slate-400" %> Account & memberships

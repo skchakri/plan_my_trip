@@ -34,7 +34,7 @@ module Places
         description: data["description"].to_s.strip.presence,
         kind: kind
       }
-    rescue => e
+    rescue StandardError => e
       Rails.logger.warn("[Places::DescriptionBuilder] #{@place.name}: #{e.class}: #{e.message}")
       { description: nil, kind: nil }
     end

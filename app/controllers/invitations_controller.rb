@@ -36,9 +36,11 @@ class InvitationsController < ApplicationController
     membership = @invitation.trip.trip_memberships.find_or_initialize_by(user: current_user)
     membership.role ||= "member"
     membership.accepted_at ||= Time.current
+    new_membership = membership.new_record?
     membership.save!
 
     @invitation.update!(accepted_at: Time.current)
+    NotificationDispatcher.trip_share_accepted(membership) if new_membership
 
     redirect_to @invitation.trip, notice: "Added \"#{@invitation.trip.title}\" to your trips."
   end

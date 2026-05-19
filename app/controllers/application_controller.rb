@@ -31,7 +31,12 @@ class ApplicationController < ActionController::Base
     devise_parameter_sanitizer.permit(:sign_up, keys: [ :name ])
     devise_parameter_sanitizer.permit(
       :account_update,
-      keys: [ :name, :alltrails_pro, { discount_memberships: User::MEMBERSHIPS.keys.map(&:to_s) } ]
+      keys: [
+        :name, :alltrails_pro, :receive_digest,
+        :home_city, :home_lat, :home_lng, :default_radius_km,
+        { discount_memberships: User::MEMBERSHIPS.keys.map(&:to_s),
+          default_interests: [] }
+      ]
     )
   end
 

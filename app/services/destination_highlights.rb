@@ -128,7 +128,7 @@ class DestinationHighlights
 
     merged = persist_new_highlights!(merged)
     PlaceRanker.rank!(merged.first(MAX_RESULTS), interests: @vibes)
-  rescue => e
+  rescue StandardError => e
     Rails.logger.warn("[DestinationHighlights] #{@destination}: #{e.class}: #{e.message}")
     []
   end
@@ -185,7 +185,7 @@ class DestinationHighlights
          .order(usage_count: :desc, verified: :desc)
          .limit(MAX_RESULTS)
          .map { |p| place_to_highlight(p) }
-  rescue => e
+  rescue StandardError => e
     Rails.logger.warn("[DestinationHighlights] catalog #{@destination}: #{e.class}: #{e.message}")
     []
   end
@@ -260,7 +260,7 @@ class DestinationHighlights
         longitude: wiki&.longitude || llm_lng
       )
     end
-  rescue => e
+  rescue StandardError => e
     Rails.logger.warn("[DestinationHighlights] claude_research #{@destination}: #{e.class}: #{e.message}")
     []
   end

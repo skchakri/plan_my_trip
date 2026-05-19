@@ -36,7 +36,7 @@ class DayPlanBuilder
     parsed = result.json
     return fallback unless parsed.is_a?(Hash)
     coerce_shape(parsed)
-  rescue => e
+  rescue StandardError => e
     Rails.logger.warn("[DayPlanBuilder] #{e.class}: #{e.message}")
     fallback
   end

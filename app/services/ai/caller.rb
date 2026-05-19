@@ -1,3 +1,5 @@
+require "digest"
+
 module Ai
   # Unified entry point for every AI call in the app.
   #
@@ -7,21 +9,28 @@ module Ai
   #
   # - Looks up the AiPrompt by slug (must exist & be active)
   # - Renders the system + user templates with the given variables
-  # - Dispatches to the configured provider (anthropic or openai)
+  # - Returns a 30-day cached response if the rendered prompts hash matches
+  #   a prior successful call (same provider/model/params)
+  # - Otherwise dispatches to the configured provider, then caches the result
   # - Records an AiCall row with status / timings / tokens / rendered prompts
+  #   (cache hits get latency_ms=0, tokens=0, meta.cached=true)
   # - Returns an Ai::Result the caller can introspect (text, json, image_url)
   class Caller
     class PromptNotFoundError < StandardError; end
+
+    CACHE_TTL = 30.days
+    CACHE_NAMESPACE = "ai_call/v1".freeze
 
     def self.call(...)
       new(...).call
     end
 
-    def initialize(slug:, variables: {}, user: nil, trip: nil)
+    def initialize(slug:, variables: {}, user: nil, trip: nil, cache: true)
       @slug = slug.to_s
       @variables = variables || {}
       @user = user
       @trip = trip
+      @cache = cache
     end
 
     def call
@@ -32,6 +41,12 @@ module Ai
       end
 
       rendered = prompt.render(@variables)
+      key = cache_key_for(prompt, rendered)
+      if @cache
+        cached = Rails.cache.read(key)
+        return cache_hit_result(prompt, rendered, cached) if cached
+      end
+
       audit = create_audit!(prompt, rendered)
 
       provider = provider_for(prompt)
@@ -57,9 +72,11 @@ module Ai
       end
       audit.update!(attrs)
 
+      write_cache(key, prompt, text_or_url) if @cache
+
       Result.new(text: prompt.kind == "image" ? nil : text_or_url, image_url: prompt.kind == "image" ? text_or_url : nil, call: audit)
-    rescue => e
-      Rails.logger.warn("[Ai::Caller] #{@slug}: #{e.class}: #{e.message}")
+    rescue StandardError => e
+      ErrorTracker.report(e, source: "Ai::Caller", context: { slug: @slug })
       Result.new(text: nil, error: "#{e.class}: #{e.message}")
     end
 
@@ -74,7 +91,7 @@ module Ai
       end
     end
 
-    def create_audit!(prompt, rendered)
+    def create_audit!(prompt, rendered, meta: {})
       AiCall.create!(
         ai_prompt: prompt,
         prompt_slug: prompt.slug,
@@ -85,7 +102,58 @@ module Ai
         trip: @trip,
         input_variables: serialize_variables(@variables),
         rendered_system: rendered[:system],
-        rendered_user: rendered[:user]
+        rendered_user: rendered[:user],
+        meta: meta
+      )
+    end
+
+    # Build a stable cache key from prompt identity + rendered inputs.
+    # prompt.updated_at busts the cache whenever an admin edits the prompt;
+    # model/temperature/max_tokens busts it when generation params change.
+    def cache_key_for(prompt, rendered)
+      payload = [
+        prompt.slug,
+        prompt.updated_at&.to_i,
+        prompt.provider,
+        prompt.model,
+        prompt.kind,
+        prompt.max_tokens,
+        prompt.temperature&.to_s,
+        rendered[:system].to_s,
+        rendered[:user].to_s
+      ].join("\x1F")
+      "#{CACHE_NAMESPACE}/#{Digest::SHA256.hexdigest(payload)}"
+    end
+
+    def write_cache(key, prompt, text_or_url)
+      return if text_or_url.blank?
+      payload =
+        if prompt.kind == "image"
+          { image_url: text_or_url }
+        else
+          { text: text_or_url }
+        end
+      Rails.cache.write(key, payload, expires_in: CACHE_TTL)
+    end
+
+    def cache_hit_result(prompt, rendered, cached)
+      audit = create_audit!(prompt, rendered, meta: { "cached" => true })
+      attrs = {
+        status: "success",
+        latency_ms: 0,
+        input_tokens: 0,
+        output_tokens: 0
+      }
+      if prompt.kind == "image"
+        attrs[:image_url] = cached[:image_url] || cached["image_url"]
+      else
+        attrs[:response_text] = cached[:text] || cached["text"]
+      end
+      audit.update!(attrs)
+      Result.new(
+        text: prompt.kind == "image" ? nil : (cached[:text] || cached["text"]),
+        image_url: prompt.kind == "image" ? (cached[:image_url] || cached["image_url"]) : nil,
+        call: audit
       )
     end
 
@@ -95,7 +163,12 @@ module Ai
       vars.transform_values do |v|
         case v
         when String, Integer, Float, TrueClass, FalseClass, NilClass then v
-        when Array, Hash then JSON.parse(v.to_json) rescue v.to_s.truncate(500)
+        when Array, Hash
+          begin
+            JSON.parse(v.to_json)
+          rescue StandardError
+            v.to_s.truncate(500)
+          end
         else v.to_s.truncate(500)
         end
       end

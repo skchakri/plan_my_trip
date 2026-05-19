@@ -37,6 +37,16 @@ class Trip < ApplicationRecord
   scope :day_trips,   -> { where(day_trip: true) }
   scope :multi_day,   -> { where(day_trip: false) }
 
+  # Eager-load every association that `#cover_image_url` walks. Callers
+  # iterating Trips for the dashboard MUST use this — without it the
+  # cover lookup N+1s across activities + photos + places + landmarks.
+  scope :with_cover_data, -> {
+    includes(
+      :route_landmarks,
+      trip_days: { activities: [ { photos_attachments: :blob }, :place ] }
+    )
+  }
+
   def day_trip?
     self[:day_trip] == true
   end
@@ -78,9 +88,9 @@ class Trip < ApplicationRecord
   end
 
   # Cover image for the trip — first activity hero photo across all days,
-  # falling back to the first route landmark image, then nil. Callers
-  # should eager-load via `includes(trip_days: { activities: { photos_attachments: :blob, place: {} } }, route_landmarks: {})`
-  # when iterating on the dashboard, otherwise this N+1s.
+  # falling back to the first route landmark image, then nil. Iterating a
+  # collection of trips? Use `Trip.with_cover_data` to preload associations,
+  # otherwise this N+1s on activities + photos + places + landmarks.
   def cover_image_url
     @cover_image_url ||= begin
       hit = trip_days.flat_map(&:activities).find { |a| a.hero_image_url.present? }

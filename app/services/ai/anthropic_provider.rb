@@ -51,7 +51,7 @@ module Ai
         output_tokens: json.dig("usage", "output_tokens")
       }
       [ text, usage, nil ]
-    rescue => e
+    rescue StandardError => e
       [ nil, {}, "#{e.class}: #{e.message}" ]
     end
   end

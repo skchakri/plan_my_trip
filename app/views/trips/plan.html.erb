@@ -26,6 +26,53 @@
   .accent-border { border-color: var(--accent-strong); }
   .accent-fg-bg { background: rgb(var(--accent)); color: #0a0e1a; }
   .accent-dot::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 999px; background: rgb(var(--accent)); margin-right: 8px; vertical-align: middle; }
+
+  /* ── Print / Save as PDF ────────────────────────────────────────
+     Browser-native PDF via Cmd/Ctrl+P. Switches to a light, ink-friendly
+     palette and hides chrome that doesn't make sense on paper. Pure CSS,
+     no headless-Chrome dependency. */
+  @media print {
+    /* Hide all app chrome — nav, footers, modals, sticky toolbars,
+       and any element explicitly opted out with .no-print. */
+    header[class*="sticky"], nav, footer,
+    .no-print, [data-controller~="reading-mode"] [role="dialog"],
+    [data-reading-mode-target="modal"], [data-action*="reading-mode"] { display: none !important; }
+
+    /* Light page. The screen palette is dark-on-dark; printer ink is
+       precious and the slate-950 background would render as a grey wash. */
+    html, body { background: #ffffff !important; color: #0a0e1a !important; }
+    * { color: #0a0e1a !important; background: transparent !important; box-shadow: none !important; text-shadow: none !important; }
+    a, a:visited { color: #0a0e1a !important; text-decoration: underline; }
+
+    /* Keep each day's article together on a page when possible. */
+    [data-accent] { page-break-inside: avoid; break-inside: avoid; }
+    h1, h2, h3 { page-break-after: avoid; }
+
+    /* Drop the per-day accent backgrounds — they print as ink-heavy bars. */
+    .accent-bg, .accent-bg-strong, .accent-fg-bg { background: transparent !important; }
+    .accent-text { color: #0a0e1a !important; font-weight: 600; }
+    .accent-border { border-color: #cbd5e1 !important; }
+
+    /* Hide map tiles + interactive buttons — they're not useful on paper. */
+    .leaflet-container, [data-controller~="interactive-map"] button,
+    [data-action*="interactive-map"] { display: none !important; }
+
+    /* Inline checklists / details: force open so subscribers see them. */
+    details { display: block !important; }
+    details > summary { display: list-item !important; cursor: default; }
+
+    /* Tighter spacing for paper. */
+    body { font-size: 11pt; line-height: 1.4; }
+    h1 { font-size: 22pt; margin: 0 0 6pt; }
+    h2 { font-size: 14pt; margin: 12pt 0 4pt; }
+    h3 { font-size: 12pt; margin: 8pt 0 4pt; }
+    img { max-width: 100% !important; height: auto !important; max-height: 2.2in; object-fit: contain; }
+
+    /* Page metadata — title, URL, page number — most browsers show these
+       by default; if the user disables headers/footers we still want a
+       trip title at the top. */
+    @page { margin: 0.6in 0.5in; }
+  }
 </style>
 <% end %>
 
@@ -36,15 +83,27 @@
 </div>
 
 <header class="mb-5">
-  <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500 font-medium mb-1.5 inline-flex items-center gap-2">
-    <%= icon :sparkles, class: "w-3.5 h-3.5 text-amber-400" %> Final plan
-  </p>
-  <h1 class="font-display text-3xl sm:text-4xl font-semibold tracking-tight"><%= @trip.title_for(current_user) %></h1>
-  <% if @trip.start_date && @trip.end_date %>
-    <p class="text-sm text-slate-400 mt-2 inline-flex items-center gap-1.5">
-      <%= icon :calendar, class: "w-4 h-4 text-slate-500" %><%= @trip.start_date.strftime("%a, %b %-d") %> – <%= @trip.end_date.strftime("%a, %b %-d, %Y") %>
-    </p>
-  <% end %>
+  <div class="flex items-start justify-between gap-3 flex-wrap">
+    <div>
+      <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500 font-medium mb-1.5 inline-flex items-center gap-2">
+        <%= icon :sparkles, class: "w-3.5 h-3.5 text-amber-400" %> Final plan
+      </p>
+      <h1 class="font-display text-3xl sm:text-4xl font-semibold tracking-tight"><%= @trip.title_for(current_user) %></h1>
+      <% if @trip.start_date && @trip.end_date %>
+        <p class="text-sm text-slate-400 mt-2 inline-flex items-center gap-1.5">
+          <%= icon :calendar, class: "w-4 h-4 text-slate-500" %><%= @trip.start_date.strftime("%a, %b %-d") %> – <%= @trip.end_date.strftime("%a, %b %-d, %Y") %>
+        </p>
+      <% end %>
+    </div>
+    <%# Print / Save-as-PDF button. Hidden from print itself via the
+        no-print stylesheet below. %>
+    <button type="button"
+            onclick="window.print()"
+            class="no-print shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 text-slate-200 text-sm hover:border-amber-500/50 hover:bg-slate-800/50 transition-colors"
+            title="Save as PDF or print">
+      <%= icon :printer, class: "w-4 h-4" %> Save as PDF
+    </button>
+  </div>
 </header>
 
 <%# Trip-level controls: Read whole plan (modal) + Drive co-pilot + Save maps offline %>
@@ -632,6 +691,8 @@
                         </ul>
                       </details>
                     <% end %>
+
+                    <%= render "comments/thread", trip: @trip, activity: activity %>
                   </div>
                 </div>
               </li>
@@ -640,6 +701,10 @@
         <% else %>
           <p class="px-5 py-4 text-sm text-slate-500 italic">No activities scheduled for this day yet.</p>
         <% end %>
+
+        <div class="px-5 py-3 border-t border-slate-800/60">
+          <%= render "suggestions/board", trip: @trip, trip_day: day %>
+        </div>
 
         <%# Inline day checklist %>
         <% if day_items.any? %>

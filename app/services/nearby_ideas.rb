@@ -112,7 +112,7 @@ class NearbyIdeas
       anchor_lat: @lat,
       anchor_lng: @lng
     )
-  rescue => e
+  rescue StandardError => e
     Rails.logger.warn("[NearbyIdeas] #{@anchor_label}: #{e.class}: #{e.message}")
     []
   end
@@ -124,7 +124,7 @@ class NearbyIdeas
          .order(usage_count: :desc, verified: :desc)
          .limit(MAX_RESULTS)
          .map { |p| place_to_idea(p) }
-  rescue => e
+  rescue StandardError => e
     Rails.logger.warn("[NearbyIdeas] catalog #{@anchor_label}: #{e.class}: #{e.message}")
     []
   end
@@ -189,7 +189,7 @@ class NearbyIdeas
         longitude: lng
       )
     end
-  rescue => e
+  rescue StandardError => e
     Rails.logger.warn("[NearbyIdeas] claude_research #{@anchor_label}: #{e.class}: #{e.message}")
     []
   end
@@ -227,7 +227,7 @@ class NearbyIdeas
       image_url: json.dig("thumbnail", "source"),
       wikipedia_url: json.dig("content_urls", "desktop", "page")
     }
-  rescue => _
+  rescue StandardError => _
     nil
   end
 end

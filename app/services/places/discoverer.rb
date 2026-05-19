@@ -67,7 +67,7 @@ module Places
         ids << place.id if place
       end
       ids
-    rescue => e
+    rescue StandardError => e
       Rails.logger.warn("[Places::Discoverer] #{@query}: #{e.class}: #{e.message}")
       []
     end
@@ -79,7 +79,7 @@ module Places
       )
       json = result.json
       json.is_a?(Array) ? json : []
-    rescue => e
+    rescue StandardError => e
       Rails.logger.warn("[Places::Discoverer] ai #{@query}: #{e.class}: #{e.message}")
       []
     end

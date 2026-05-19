@@ -131,7 +131,7 @@ class LandmarkImageFinder
       }
     end
     nil
-  rescue => e
+  rescue StandardError => e
     Rails.logger.warn("[LandmarkImageFinder/pexels] #{@name}: #{e.class}: #{e.message}")
     nil
   end
@@ -168,7 +168,7 @@ class LandmarkImageFinder
       }
     end
     nil
-  rescue => e
+  rescue StandardError => e
     Rails.logger.warn("[LandmarkImageFinder/unsplash] #{@name}: #{e.class}: #{e.message}")
     nil
   end
@@ -204,7 +204,7 @@ class LandmarkImageFinder
       }
     end
     nil
-  rescue => e
+  rescue StandardError => e
     Rails.logger.warn("[LandmarkImageFinder/pixabay] #{@name}: #{e.class}: #{e.message}")
     nil
   end

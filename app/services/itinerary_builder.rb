@@ -25,7 +25,7 @@ class ItineraryBuilder
     result = Ai::Caller.call(slug: PROMPT_SLUG, variables: prompt_vars)
     text = result.text.to_s.strip
     text.presence || fallback_markdown
-  rescue => e
+  rescue StandardError => e
     Rails.logger.warn("[ItineraryBuilder] #{e.class}: #{e.message}")
     fallback_markdown
   end

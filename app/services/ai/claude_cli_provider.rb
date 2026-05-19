@@ -143,7 +143,7 @@ module Ai
       [ text, usage, nil ]
     rescue JSON::ParserError => e
       [ nil, {}, "JSON parse: #{e.message}; raw=#{out.to_s.truncate(300)}" ]
-    rescue => e
+    rescue StandardError => e
       [ nil, {}, "#{e.class}: #{e.message}" ]
     end
 

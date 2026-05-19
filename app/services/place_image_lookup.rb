@@ -78,7 +78,7 @@ class PlaceImageLookup
       commons_geosearch_thumb_urls.each { |url| urls << url }
     end
     urls.uniq.compact
-  rescue => e
+  rescue StandardError => e
     Rails.logger.warn("[PlaceImageLookup] #{@name}: #{e.class}: #{e.message}")
     []
   end

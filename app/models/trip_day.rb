@@ -3,6 +3,7 @@ class TripDay < ApplicationRecord
 
   belongs_to :trip
   has_many :activities, -> { order(position: :asc, created_at: :asc) }, dependent: :destroy
+  has_many :suggestions, -> { ranked }, dependent: :destroy
 
   validates :title, :label, presence: true
   validates :accent, inclusion: { in: ACCENTS }

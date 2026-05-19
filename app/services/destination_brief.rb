@@ -57,7 +57,7 @@ class DestinationBrief
       watchouts: Array(payload["watchouts"]).map { |w| w.to_s.strip }.reject(&:blank?),
       best_for: Array(payload["best_for"]).map { |b| b.to_s.strip.downcase }.reject(&:blank?)
     )
-  rescue => e
+  rescue StandardError => e
     Rails.logger.warn("[DestinationBrief] #{@destination}: #{e.class}: #{e.message}")
     EMPTY
   end

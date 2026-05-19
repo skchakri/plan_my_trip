@@ -69,7 +69,7 @@ module Places
         else
           existing += 1
         end
-      rescue => e
+      rescue StandardError => e
         Rails.logger.warn("[Places::RegionalSeeder] #{name}: #{e.class}: #{e.message}")
         errored += 1
       end

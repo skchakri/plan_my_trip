@@ -45,7 +45,7 @@ class RouteLandmarksBuilder
     sanitized = items.filter_map { |raw| sanitize(raw) }
     enrich_images!(sanitized)
     persist(sanitized)
-  rescue => e
+  rescue StandardError => e
     Rails.logger.warn("[RouteLandmarksBuilder] #{@destination}: #{e.class}: #{e.message}")
     persist([])
   end

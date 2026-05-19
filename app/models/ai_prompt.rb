@@ -38,7 +38,7 @@ class AiPrompt < ApplicationRecord
     safe = variables.transform_keys(&:to_sym)
     binding_with_locals = TemplateContext.new(safe).get_binding
     ERB.new(text, trim_mode: "-").result(binding_with_locals)
-  rescue => e
+  rescue StandardError => e
     Rails.logger.warn("[AiPrompt #{slug}] render error: #{e.class}: #{e.message}")
     text
   end

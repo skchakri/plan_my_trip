@@ -1,0 +1,1144 @@
+---
+science:
+- difficulty: easy
+  intro: A glass of water sits on a kitchen counter. Let's explore the states of matter.
+  steps:
+  - q: What state of matter is liquid water?
+    options:
+    - Solid
+    - Liquid
+    - Gas
+    - Plasma
+    answer: 1
+    fun_fact: Water flows and takes the shape of its container — that's liquid.
+  - q: Put that glass in a freezer. What state does the water become?
+    options:
+    - Solid
+    - Liquid
+    - Gas
+    - Plasma
+    answer: 0
+    fun_fact: Frozen water is ice — a solid with a fixed shape.
+  - q: Boil water on the stove. What state rises out of the pot?
+    options:
+    - Solid
+    - Liquid
+    - Gas
+    - Plasma
+    answer: 2
+    fun_fact: Steam is water in gas form, also called water vapor.
+  - q: At what Celsius temperature does pure water freeze at sea level?
+    options:
+    - "-10°"
+    - 0°
+    - 10°
+    - 32°
+    answer: 1
+    fun_fact: 0°C — the same temperature as 32°F.
+  - q: And at what Celsius temperature does it boil at sea level?
+    options:
+    - 80°
+    - 90°
+    - 100°
+    - 120°
+    answer: 2
+    fun_fact: 100°C — bubbles form throughout the liquid.
+  - q: What's the process of a liquid turning into a gas called?
+    options:
+    - Melting
+    - Freezing
+    - Evaporation
+    - Condensation
+    answer: 2
+    fun_fact: Evaporation can happen below boiling too — that's how puddles dry up.
+- difficulty: medium
+  intro: Your heart is pumping blood as you read this. Let's tour the human body.
+  steps:
+  - q: Which organ pumps blood through the body?
+    options:
+    - Liver
+    - Brain
+    - Heart
+    - Lungs
+    answer: 2
+    fun_fact: An adult heart beats about 100,000 times a day.
+  - q: How many chambers does the human heart have?
+    options:
+    - '2'
+    - '3'
+    - '4'
+    - '5'
+    answer: 2
+    fun_fact: Two atria on top, two ventricles on the bottom.
+  - q: Which organ takes in oxygen and releases CO₂?
+    options:
+    - Stomach
+    - Lungs
+    - Kidneys
+    - Pancreas
+    answer: 1
+    fun_fact: Tiny sacs called alveoli swap the gases with your blood.
+  - q: Roughly how many bones are in an adult human body?
+    options:
+    - '106'
+    - '156'
+    - '206'
+    - '306'
+    answer: 2
+    fun_fact: Babies have more (~270) — many fuse together while growing.
+  - q: What part of blood carries oxygen?
+    options:
+    - White blood cells
+    - Red blood cells
+    - Plasma
+    - Platelets
+    answer: 1
+    fun_fact: Red blood cells get their color from iron-rich hemoglobin.
+  - q: Which organ is the body's largest by surface area?
+    options:
+    - Liver
+    - Skin
+    - Lungs
+    - Intestine
+    answer: 1
+    fun_fact: Skin spread out covers about 2 square meters in an adult.
+history:
+- difficulty: medium
+  intro: Let's walk through some big moments of the 20th century.
+  steps:
+  - q: In what year did World War II end?
+    options:
+    - '1942'
+    - '1944'
+    - '1945'
+    - '1948'
+    answer: 2
+    fun_fact: Japan surrendered in September 1945.
+  - q: Who was the US president when WWII ended?
+    options:
+    - Franklin D. Roosevelt
+    - Harry S. Truman
+    - Dwight D. Eisenhower
+    - John F. Kennedy
+    answer: 1
+    fun_fact: Truman took over after FDR died in April 1945.
+  - q: What year did humans first land on the Moon?
+    options:
+    - '1965'
+    - '1967'
+    - '1969'
+    - '1972'
+    answer: 2
+    fun_fact: Apollo 11 landed on July 20, 1969.
+  - q: Which two countries raced to be first on the Moon?
+    options:
+    - US and UK
+    - US and Soviet Union
+    - US and China
+    - US and Germany
+    answer: 1
+    fun_fact: The Cold War 'Space Race' drove both nations to invest heavily.
+  - q: Which wall fell in 1989, symbolizing the end of the Cold War in Europe?
+    options:
+    - Great Wall of China
+    - Hadrian's Wall
+    - Berlin Wall
+    - Wall of Jericho
+    answer: 2
+    fun_fact: The Berlin Wall divided East and West Berlin for 28 years.
+  - q: What major political event followed in 1991?
+    options:
+    - End of WWI
+    - Fall of the Soviet Union
+    - Founding of the EU
+    - Launch of the internet
+    answer: 1
+    fun_fact: The USSR dissolved into 15 independent countries.
+space:
+- difficulty: medium
+  intro: Let's take a quick tour of our solar system.
+  steps:
+  - q: Which planet is closest to the Sun?
+    options:
+    - Venus
+    - Earth
+    - Mercury
+    - Mars
+    answer: 2
+    fun_fact: Mercury orbits in just 88 Earth days.
+  - q: Which planet is known as the 'Red Planet'?
+    options:
+    - Venus
+    - Mars
+    - Jupiter
+    - Saturn
+    answer: 1
+    fun_fact: Iron oxide (rust) on the surface gives Mars its color.
+  - q: Which is the largest planet in our solar system?
+    options:
+    - Earth
+    - Saturn
+    - Jupiter
+    - Neptune
+    answer: 2
+    fun_fact: Over 1,300 Earths could fit inside Jupiter.
+  - q: Which planet has the most prominent ring system?
+    options:
+    - Jupiter
+    - Saturn
+    - Uranus
+    - Neptune
+    answer: 1
+    fun_fact: Saturn's rings are mostly chunks of ice and rock.
+  - q: What's the closest star to Earth?
+    options:
+    - Proxima Centauri
+    - Polaris
+    - The Sun
+    - Sirius
+    answer: 2
+    fun_fact: Light from the Sun reaches us in about 8 minutes.
+  - q: What galaxy do we live in?
+    options:
+    - Andromeda
+    - Milky Way
+    - Whirlpool
+    - Triangulum
+    answer: 1
+    fun_fact: The Milky Way holds 100–400 billion stars.
+animals:
+- difficulty: easy
+  intro: Let's compare some of the world's most amazing animals.
+  steps:
+  - q: What's the fastest land animal?
+    options:
+    - Lion
+    - Cheetah
+    - Horse
+    - Greyhound
+    answer: 1
+    fun_fact: Cheetahs hit 70 mph in short bursts.
+  - q: What's the largest animal alive today?
+    options:
+    - African elephant
+    - Blue whale
+    - Giraffe
+    - Polar bear
+    answer: 1
+    fun_fact: Blue whales can be over 100 feet long.
+  - q: How many hearts does an octopus have?
+    options:
+    - '1'
+    - '2'
+    - '3'
+    - '4'
+    answer: 2
+    fun_fact: Three hearts — two for gills, one for the body.
+  - q: What group of animals are spiders part of?
+    options:
+    - Insects
+    - Arachnids
+    - Crustaceans
+    - Reptiles
+    answer: 1
+    fun_fact: Arachnids have 8 legs and no antennae; insects have 6 legs.
+  - q: What's a baby kangaroo called?
+    options:
+    - Cub
+    - Joey
+    - Kit
+    - Pup
+    answer: 1
+    fun_fact: Joeys live in their mom's pouch for months.
+  - q: Which mammal is the only one capable of true flight?
+    options:
+    - Squirrel
+    - Bat
+    - Possum
+    - Sugar-glider
+    answer: 1
+    fun_fact: Other 'flying' mammals only glide — bats actually fly.
+dinosaurs:
+- difficulty: medium
+  intro: Dinosaurs ruled Earth for over 165 million years. Let's meet a few.
+  steps:
+  - q: Which dinosaur's name means 'tyrant lizard king'?
+    options:
+    - Stegosaurus
+    - Velociraptor
+    - T. rex
+    - Brachiosaurus
+    answer: 2
+    fun_fact: T. rex's full name is Tyrannosaurus rex.
+  - q: Which dinosaur had three large horns on its head?
+    options:
+    - Triceratops
+    - Stegosaurus
+    - Ankylosaurus
+    - Diplodocus
+    answer: 0
+    fun_fact: Two big brow horns and one short nose horn.
+  - q: Which dinosaur had bony plates running along its back?
+    options:
+    - Triceratops
+    - Stegosaurus
+    - Velociraptor
+    - Iguanodon
+    answer: 1
+    fun_fact: The plates may have helped with heat regulation.
+  - q: Which long-necked dinosaur was a huge plant-eater?
+    options:
+    - Brachiosaurus
+    - Allosaurus
+    - Compsognathus
+    - Spinosaurus
+    answer: 0
+    fun_fact: Brachiosaurus could reach treetops 30+ feet up.
+  - q: Roughly how long ago did the non-avian dinosaurs go extinct?
+    options:
+    - 6 thousand years
+    - 6 million
+    - 66 million
+    - 660 million
+    answer: 2
+    fun_fact: An asteroid impact 66 million years ago likely caused it.
+  - q: Which modern animals are direct descendants of dinosaurs?
+    options:
+    - Lizards
+    - Birds
+    - Crocodiles
+    - Snakes
+    answer: 1
+    fun_fact: Birds evolved from small theropod dinosaurs.
+sports:
+- difficulty: medium
+  intro: Different sports, different rules. Let's quiz a few.
+  steps:
+  - q: How many players are on a soccer team on the field?
+    options:
+    - '9'
+    - '10'
+    - '11'
+    - '12'
+    answer: 2
+    fun_fact: 11 including the goalkeeper.
+  - q: How many points is a touchdown in NFL football?
+    options:
+    - '3'
+    - '6'
+    - '7'
+    - '10'
+    answer: 1
+    fun_fact: 6 for the touchdown, plus a kicked extra point makes 7.
+  - q: How many holes are in a standard round of golf?
+    options:
+    - '9'
+    - '12'
+    - '18'
+    - '24'
+    answer: 2
+    fun_fact: 18 holes — standardized at St Andrews in Scotland.
+  - q: How many players on a basketball team are on the court for one team?
+    options:
+    - '4'
+    - '5'
+    - '6'
+    - '7'
+    answer: 1
+    fun_fact: 5 per team, 10 on the court total.
+  - q: How often are the Summer Olympic Games normally held?
+    options:
+    - Every year
+    - Every 2 years
+    - Every 4 years
+    - Every 8 years
+    answer: 2
+    fun_fact: Summer and Winter Games alternate every 2 years.
+  - q: Where were the first modern Olympic Games held in 1896?
+    options:
+    - Paris
+    - Athens
+    - London
+    - Rome
+    answer: 1
+    fun_fact: Athens — Greece, the home of the original Olympics.
+music:
+- difficulty: medium
+  intro: From orchestras to rock bands — let's tour the world of music.
+  steps:
+  - q: How many strings does a standard guitar have?
+    options:
+    - '4'
+    - '6'
+    - '8'
+    - '12'
+    answer: 1
+    fun_fact: Six strings — though 12-string guitars exist for a fuller sound.
+  - q: Which instrument is highest-pitched in this group?
+    options:
+    - Cello
+    - Violin
+    - Double-bass
+    - Viola
+    answer: 1
+    fun_fact: Violins are tuned an octave above violas.
+  - q: How many keys are on a standard piano?
+    options:
+    - '66'
+    - '76'
+    - '88'
+    - '96'
+    answer: 2
+    fun_fact: 52 white + 36 black = 88 keys.
+  - q: Which Beatle was known as 'the Quiet One'?
+    options:
+    - John Lennon
+    - Paul McCartney
+    - George Harrison
+    - Ringo Starr
+    answer: 2
+    fun_fact: George wrote 'Here Comes the Sun' and 'Something'.
+  - q: What family of instruments do drums and cymbals belong to?
+    options:
+    - Strings
+    - Woodwinds
+    - Brass
+    - Percussion
+    answer: 3
+    fun_fact: Percussion is anything you hit, shake, or scrape.
+  - q: What does the term 'forte' mean in music?
+    options:
+    - Slowly
+    - Quietly
+    - Loudly
+    - Smoothly
+    answer: 2
+    fun_fact: Forte (f) tells the musician to play loud.
+movies:
+- difficulty: medium
+  intro: Lights, camera — a tour of film history.
+  steps:
+  - q: What movie won Best Picture at the very first Oscars (1929)?
+    options:
+    - Casablanca
+    - Wings
+    - Gone with the Wind
+    - Citizen Kane
+    answer: 1
+    fun_fact: "'Wings' (1927) — a silent film about WWI pilots."
+  - q: Which director made Jurassic Park and E.T.?
+    options:
+    - George Lucas
+    - Steven Spielberg
+    - James Cameron
+    - Quentin Tarantino
+    answer: 1
+    fun_fact: Spielberg practically defined the summer blockbuster.
+  - q: Which movie series features wizards at Hogwarts?
+    options:
+    - Lord of the Rings
+    - Harry Potter
+    - Narnia
+    - Star Wars
+    answer: 1
+    fun_fact: Eight Harry Potter films were released from 2001 to 2011.
+  - q: What does 'CGI' stand for in filmmaking?
+    options:
+    - Computer Generated Imagery
+    - Cinematic Graphic Illusion
+    - Color Gradient Index
+    - Camera Guided Imaging
+    answer: 0
+    fun_fact: CGI is used to create characters and effects digitally.
+  - q: Which 1997 movie features an ocean liner that sinks?
+    options:
+    - Titanic
+    - Avatar
+    - Inception
+    - Gladiator
+    answer: 0
+    fun_fact: 'Titanic won 11 Oscars, tying Ben-Hur and LOTR: Return of the King.'
+  - q: What animation studio made Toy Story?
+    options:
+    - DreamWorks
+    - Disney
+    - Pixar
+    - Ghibli
+    answer: 2
+    fun_fact: Toy Story (1995) was the first fully computer-animated feature film.
+movies_kids:
+- difficulty: easy
+  intro: A trip through some of the most-loved family movies.
+  steps:
+  - q: What does Buzz Lightyear say in Toy Story?
+    options:
+    - Hakuna matata
+    - To infinity and beyond
+    - Yabba dabba doo
+    - May the Force be with you
+    answer: 1
+    fun_fact: He believes he's a real space ranger for most of the first film.
+  - q: What kind of animal is Simba in The Lion King?
+    options:
+    - Tiger
+    - Cheetah
+    - Lion
+    - Leopard
+    answer: 2
+    fun_fact: Simba even means 'lion' in Swahili.
+  - q: Which Disney princess has a pet tiger named Rajah?
+    options:
+    - Belle
+    - Jasmine
+    - Mulan
+    - Moana
+    answer: 1
+    fun_fact: Princess Jasmine — from Aladdin.
+  - q: What's the name of the snowman in Frozen?
+    options:
+    - Sven
+    - Olaf
+    - Marshmallow
+    - Hans
+    answer: 1
+    fun_fact: Olaf loves summer (even though it would melt him).
+  - q: In Finding Nemo, what kind of fish is Nemo?
+    options:
+    - Salmon
+    - Clownfish
+    - Tuna
+    - Marlin
+    answer: 1
+    fun_fact: Clownfish live among sea anemones for protection.
+  - q: Which film features dragons hidden away on the island of Berk?
+    options:
+    - Brave
+    - How to Train Your Dragon
+    - Tangled
+    - Encanto
+    answer: 1
+    fun_fact: Hiccup tames a Night Fury named Toothless.
+geography:
+- difficulty: medium
+  intro: Mountains, oceans, deserts — let's roam the globe.
+  steps:
+  - q: What's the largest desert on Earth?
+    options:
+    - Sahara
+    - Gobi
+    - Antarctic
+    - Arabian
+    answer: 2
+    fun_fact: Antarctica counts as a desert — it gets very little precipitation.
+  - q: Which is the longest river in the world?
+    options:
+    - Amazon
+    - Nile
+    - Yangtze
+    - Mississippi
+    answer: 1
+    fun_fact: The Nile flows over 4,100 miles.
+  - q: What's the largest ocean?
+    options:
+    - Atlantic
+    - Pacific
+    - Indian
+    - Arctic
+    answer: 1
+    fun_fact: The Pacific covers about a third of Earth's surface.
+  - q: Which mountain is the highest on Earth?
+    options:
+    - K2
+    - Kangchenjunga
+    - Everest
+    - Denali
+    answer: 2
+    fun_fact: Everest peaks at 29,032 feet (8,849 m).
+  - q: How many continents are there on Earth?
+    options:
+    - '5'
+    - '6'
+    - '7'
+    - '8'
+    answer: 2
+    fun_fact: Africa, Antarctica, Asia, Australia, Europe, North America, South America.
+  - q: Which country has the largest population?
+    options:
+    - United States
+    - Indonesia
+    - India
+    - Russia
+    answer: 2
+    fun_fact: India overtook China around 2023.
+cars:
+- difficulty: easy
+  intro: From classic gas engines to modern EVs — meet the cars.
+  steps:
+  - q: What does 'EV' stand for?
+    options:
+    - Extra Vehicle
+    - Electric Vehicle
+    - Engine Variant
+    - Express Van
+    answer: 1
+    fun_fact: EVs run on batteries instead of burning fuel.
+  - q: Which company makes the Mustang?
+    options:
+    - Chevrolet
+    - Ford
+    - Dodge
+    - Toyota
+    answer: 1
+    fun_fact: Ford launched the Mustang in 1964.
+  - q: Which company is famous for the Model S and Model 3 EVs?
+    options:
+    - Tesla
+    - Rivian
+    - Lucid
+    - Polestar
+    answer: 0
+    fun_fact: Tesla was founded in 2003.
+  - q: What does ABS stand for in car brakes?
+    options:
+    - Active Brake System
+    - Anti-lock Braking System
+    - Automatic Brake Switch
+    - Axle Brake Set
+    answer: 1
+    fun_fact: ABS keeps wheels from locking up during hard braking.
+  - q: What's measured in miles per gallon (MPG)?
+    options:
+    - Top speed
+    - Fuel efficiency
+    - Engine size
+    - Trunk capacity
+    answer: 1
+    fun_fact: Higher MPG = farther per gallon of gas.
+  - q: Which Japanese company makes the Civic and Accord?
+    options:
+    - Toyota
+    - Honda
+    - Nissan
+    - Mazda
+    answer: 1
+    fun_fact: Honda also makes motorcycles and lawn mowers.
+video_games:
+- difficulty: easy
+  intro: From plumbers to Pokémon — let's quiz on video games.
+  steps:
+  - q: What's the name of Mario's brother?
+    options:
+    - Luigi
+    - Wario
+    - Toad
+    - Yoshi
+    answer: 0
+    fun_fact: Luigi wears green and is a bit taller than Mario.
+  - q: In which series do you 'catch them all'?
+    options:
+    - Zelda
+    - Pokémon
+    - Mario
+    - Minecraft
+    answer: 1
+    fun_fact: Pokémon launched in 1996 in Japan.
+  - q: Who is the green-clad hero of The Legend of Zelda?
+    options:
+    - Mario
+    - Link
+    - Zelda
+    - Ganondorf
+    answer: 1
+    fun_fact: Zelda is the princess; Link is the player character.
+  - q: Which game lets you build worlds out of blocks?
+    options:
+    - Terraria
+    - Roblox
+    - Minecraft
+    - Fortnite
+    answer: 2
+    fun_fact: Minecraft launched in 2009 and is the best-selling game ever.
+  - q: What's the name of Sonic the Hedgehog's signature color?
+    options:
+    - Red
+    - Green
+    - Blue
+    - Yellow
+    answer: 2
+    fun_fact: Sonic was Sega's mascot starting in 1991.
+  - q: What does 'NPC' stand for in games?
+    options:
+    - New Player Character
+    - Non-Player Character
+    - Network Pixel Code
+    - Next Player Cue
+    answer: 1
+    fun_fact: NPCs are characters controlled by the game, not the player.
+disney:
+- difficulty: easy
+  intro: Mickey, princesses, and pixie dust — a Disney tour.
+  steps:
+  - q: Who is Mickey Mouse's longtime girlfriend?
+    options:
+    - Daisy
+    - Minnie
+    - Clarabelle
+    - Pluto
+    answer: 1
+    fun_fact: Minnie and Mickey both debuted in 1928 in 'Steamboat Willie'.
+  - q: What's the name of Mickey's dog?
+    options:
+    - Goofy
+    - Pluto
+    - Donald
+    - Daisy
+    answer: 1
+    fun_fact: Pluto is the only one in the gang who doesn't talk.
+  - q: What is Elsa's sister's name in Frozen?
+    options:
+    - Anna
+    - Aurora
+    - Ariel
+    - Belle
+    answer: 0
+    fun_fact: Anna is the younger, more outgoing sister.
+  - q: What kind of creature is Stitch in Lilo & Stitch?
+    options:
+    - Dog
+    - Alien
+    - Koala
+    - Hamster
+    answer: 1
+    fun_fact: Stitch is Experiment 626, a tiny alien.
+  - q: In Moana, what kind of bird is Hei Hei?
+    options:
+    - Rooster
+    - Parrot
+    - Pelican
+    - Albatross
+    answer: 0
+    fun_fact: A not-so-bright rooster who accidentally tags along on her voyage.
+  - q: Which Disney park city has 'Magic Kingdom'?
+    options:
+    - Anaheim
+    - Tokyo
+    - Paris
+    - Orlando
+    answer: 3
+    fun_fact: Walt Disney World in Orlando, Florida — opened 1971.
+superhero:
+- difficulty: medium
+  intro: Capes, masks, and secret identities — heroes assemble.
+  steps:
+  - q: What's Spider-Man's real name?
+    options:
+    - Bruce Wayne
+    - Peter Parker
+    - Tony Stark
+    - Steve Rogers
+    answer: 1
+    fun_fact: He's bitten by a radioactive spider as a teenager.
+  - q: Which superhero is from the planet Krypton?
+    options:
+    - Batman
+    - Superman
+    - Flash
+    - Aquaman
+    answer: 1
+    fun_fact: His Kryptonian birth name is Kal-El.
+  - q: Who is Iron Man's secret identity?
+    options:
+    - Steve Rogers
+    - Bruce Banner
+    - Tony Stark
+    - Thor Odinson
+    answer: 2
+    fun_fact: Tony Stark is a billionaire inventor and Avenger.
+  - q: What does Captain America's shield is famously made of (in the comics)?
+    options:
+    - Steel
+    - Titanium
+    - Vibranium
+    - Adamantium
+    answer: 2
+    fun_fact: Vibranium absorbs vibrations — and impact.
+  - q: Which superhero turns into a giant green powerhouse when angry?
+    options:
+    - Hulk
+    - Thor
+    - Hawkeye
+    - Antman
+    answer: 0
+    fun_fact: Dr. Bruce Banner becomes the Hulk.
+  - q: Which superhero team includes Iron Man, Cap, Thor, and Hulk?
+    options:
+    - X-Men
+    - Justice League
+    - Avengers
+    - Fantastic Four
+    answer: 2
+    fun_fact: The Avengers debuted in Marvel comics in 1963.
+food:
+- difficulty: easy
+  intro: A snack break around the world's kitchens.
+  steps:
+  - q: What's the main ingredient in guacamole?
+    options:
+    - Tomato
+    - Avocado
+    - Onion
+    - Lime
+    answer: 1
+    fun_fact: Botanically, avocados are a berry.
+  - q: Which country invented pizza?
+    options:
+    - USA
+    - Italy
+    - Greece
+    - France
+    answer: 1
+    fun_fact: Modern pizza comes from Naples, Italy.
+  - q: Where does sushi originally come from?
+    options:
+    - China
+    - Korea
+    - Japan
+    - Thailand
+    answer: 2
+    fun_fact: Vinegared rice + raw fish — a Japanese specialty.
+  - q: What spice gives curry its yellow color?
+    options:
+    - Paprika
+    - Saffron
+    - Turmeric
+    - Cinnamon
+    answer: 2
+    fun_fact: Turmeric is also used as a natural dye.
+  - q: Which fruit is known as the 'king of fruits' in Southeast Asia?
+    options:
+    - Mango
+    - Durian
+    - Lychee
+    - Pineapple
+    answer: 1
+    fun_fact: Durian is famous for its strong smell.
+  - q: What grain is used to make traditional Italian risotto?
+    options:
+    - Wheat
+    - Rice
+    - Barley
+    - Corn
+    answer: 1
+    fun_fact: Short-grain Arborio rice gives risotto its creamy texture.
+books:
+- difficulty: easy
+  intro: From Hogwarts to Hobbiton — book trivia.
+  steps:
+  - q: Who wrote the Harry Potter series?
+    options:
+    - Roald Dahl
+    - C.S. Lewis
+    - J.K. Rowling
+    - Suzanne Collins
+    answer: 2
+    fun_fact: Rowling wrote much of book 1 in Edinburgh cafés.
+  - q: Who wrote The Hobbit and The Lord of the Rings?
+    options:
+    - J.K. Rowling
+    - J.R.R. Tolkien
+    - C.S. Lewis
+    - George R.R. Martin
+    answer: 1
+    fun_fact: Tolkien also invented entire languages for Middle-earth.
+  - q: What is the first book in the Chronicles of Narnia (publication order)?
+    options:
+    - Prince Caspian
+    - The Magician's Nephew
+    - The Lion, the Witch and the Wardrobe
+    - The Last Battle
+    answer: 2
+    fun_fact: Published in 1950 by C.S. Lewis.
+  - q: Who wrote 'Charlie and the Chocolate Factory'?
+    options:
+    - Roald Dahl
+    - Eric Carle
+    - Beatrix Potter
+    - Dr. Seuss
+    answer: 0
+    fun_fact: Dahl also wrote 'Matilda' and 'James and the Giant Peach'.
+  - q: What's the famous opening line of George Orwell's 1984?
+    options:
+    - Call me Ishmael.
+    - It was a bright cold day in April, and the clocks were striking thirteen.
+    - It was the best of times…
+    - Once upon a time…
+    answer: 1
+    fun_fact: Orwell's '1984' was published in 1949.
+  - q: Which fictional detective lives at 221B Baker Street?
+    options:
+    - Hercule Poirot
+    - Sherlock Holmes
+    - Sam Spade
+    - Father Brown
+    answer: 1
+    fun_fact: Created by Sir Arthur Conan Doyle in 1887.
+art:
+- difficulty: medium
+  intro: Walk through the gallery — paint, sculpture, and style.
+  steps:
+  - q: Who painted the Mona Lisa?
+    options:
+    - Picasso
+    - Van Gogh
+    - Leonardo da Vinci
+    - Michelangelo
+    answer: 2
+    fun_fact: Leonardo started it around 1503 and never quite 'finished'.
+  - q: Who painted the ceiling of the Sistine Chapel?
+    options:
+    - Raphael
+    - Michelangelo
+    - Donatello
+    - Leonardo da Vinci
+    answer: 1
+    fun_fact: It took him about four years (1508–1512).
+  - q: Which artist cut off part of his own ear?
+    options:
+    - Picasso
+    - Van Gogh
+    - Monet
+    - Dalí
+    answer: 1
+    fun_fact: Vincent van Gogh, after a fight with Paul Gauguin in 1888.
+  - q: Which movement is Claude Monet most associated with?
+    options:
+    - Cubism
+    - Surrealism
+    - Impressionism
+    - Pop-art
+    answer: 2
+    fun_fact: The term came from Monet's painting 'Impression, Sunrise'.
+  - q: Which artist is famous for the painting 'The Scream'?
+    options:
+    - Vincent van Gogh
+    - Edvard Munch
+    - Salvador Dalí
+    - Pablo Picasso
+    answer: 1
+    fun_fact: Munch painted multiple versions between 1893 and 1910.
+  - q: What is a portrait an artist paints of themselves called?
+    options:
+    - Still-life
+    - Self-portrait
+    - Landscape
+    - Mural
+    answer: 1
+    fun_fact: Van Gogh painted dozens of his own self-portraits.
+travel:
+- difficulty: medium
+  intro: Landmarks and famous cities of the world.
+  steps:
+  - q: In which city is the Eiffel Tower?
+    options:
+    - London
+    - Paris
+    - Rome
+    - Madrid
+    answer: 1
+    fun_fact: Built for the 1889 World's Fair.
+  - q: Roughly how tall is the Eiffel Tower to its tip?
+    options:
+    - 330 ft
+    - 550 ft
+    - 1,083 ft
+    - 2,000 ft
+    answer: 2
+    fun_fact: About 1,083 feet (330 m) — once the tallest in the world.
+  - q: The Colosseum is located in which city?
+    options:
+    - Athens
+    - Rome
+    - Florence
+    - Naples
+    answer: 1
+    fun_fact: Completed in 80 AD; it held up to 80,000 spectators.
+  - q: In which country would you visit Machu Picchu?
+    options:
+    - Mexico
+    - Peru
+    - Chile
+    - Brazil
+    answer: 1
+    fun_fact: Built by the Inca around 1450 high in the Andes.
+  - q: The Statue of Liberty was a gift from which country?
+    options:
+    - Spain
+    - France
+    - Italy
+    - England
+    answer: 1
+    fun_fact: France gifted it to the US in 1886.
+  - q: What's the name of the famous waterfall on the border of US and Canada?
+    options:
+    - Victoria Falls
+    - Angel Falls
+    - Niagara Falls
+    - Iguazu Falls
+    answer: 2
+    fun_fact: Niagara — about 6 million cubic feet of water per minute go over Horseshoe Falls.
+photography:
+- difficulty: medium
+  intro: Settings, lenses, light — let's tune a camera.
+  steps:
+  - q: What does ISO control on a camera?
+    options:
+    - Color balance
+    - Sensor sensitivity to light
+    - Shutter speed
+    - Lens aperture
+    answer: 1
+    fun_fact: Higher ISO = brighter photo, but more grain (noise).
+  - q: What's measured in 'f-stops' on a camera lens?
+    options:
+    - Zoom
+    - Aperture
+    - Shutter
+    - ISO
+    answer: 1
+    fun_fact: f/1.8 is a wider opening than f/16 — counterintuitive but true.
+  - q: Which setting controls how long light hits the sensor?
+    options:
+    - ISO
+    - Aperture
+    - Shutter-speed
+    - White-balance
+    answer: 2
+    fun_fact: Slow shutter = motion blur; fast shutter freezes action.
+  - q: What's the 'rule of thirds'?
+    options:
+    - Use only 3 colors
+    - Divide the frame in a 3×3 grid for composition
+    - Print at 3:1 ratio
+    - Set ISO to a multiple of 3
+    answer: 1
+    fun_fact: Place key subjects along the 3×3 grid lines or intersections.
+  - q: What does HDR stand for in photography?
+    options:
+    - High Dynamic Range
+    - High Definition Render
+    - Hyper Depth Resolution
+    - Hue Detail Reset
+    answer: 0
+    fun_fact: HDR blends multiple exposures to keep both shadows and highlights visible.
+  - q: What kind of lens has a very wide field of view?
+    options:
+    - Telephoto
+    - Wide-angle
+    - Macro
+    - Fisheye-only
+    answer: 1
+    fun_fact: Wide-angle lenses (e.g., 24mm) capture more of a scene.
+cooking:
+- difficulty: easy
+  intro: Kitchen science — temperatures, methods, and tools.
+  steps:
+  - q: At what Celsius temperature does water freeze?
+    options:
+    - "-10°"
+    - 0°
+    - 10°
+    - 32°
+    answer: 1
+    fun_fact: 0°C = 32°F — both pure-water freezing points.
+  - q: What cooking method involves submerging food in hot oil?
+    options:
+    - Boiling
+    - Steaming
+    - Frying
+    - Grilling
+    answer: 2
+    fun_fact: Frying gets food crisp because oil reaches much higher temps than water.
+  - q: What does 'al dente' mean for pasta?
+    options:
+    - Very soft
+    - Firm to the bite
+    - Cooked with cheese
+    - Served cold
+    answer: 1
+    fun_fact: Italian for 'to the tooth' — pasta still has a slight chew.
+  - q: Which ingredient is the leavening agent in most breads?
+    options:
+    - Salt
+    - Sugar
+    - Yeast
+    - Butter
+    answer: 2
+    fun_fact: Yeast eats sugar and releases CO₂, which makes dough rise.
+  - q: What's the safe internal temperature (°F) for cooked chicken?
+    options:
+    - 145°
+    - 155°
+    - 165°
+    - 185°
+    answer: 2
+    fun_fact: 165°F kills harmful bacteria like salmonella.
+  - q: Which cooking method uses dry heat in an enclosed space?
+    options:
+    - Boiling
+    - Roasting
+    - Poaching
+    - Steaming
+    answer: 1
+    fun_fact: Ovens roast or bake using circulating hot air.
+gardening:
+- difficulty: easy
+  intro: From seed to harvest — let's grow a garden.
+  steps:
+  - q: What do bees collect from flowers?
+    options:
+    - Pollen
+    - Nectar
+    - Both
+    - Honey
+    answer: 2
+    fun_fact: Bees gather pollen and nectar; they make honey from nectar.
+  - q: What process do plants use to make food from sunlight?
+    options:
+    - Respiration
+    - Photosynthesis
+    - Germination
+    - Pollination
+    answer: 1
+    fun_fact: Plants combine CO₂ + water + sunlight → sugar + oxygen.
+  - q: Which part of a plant typically anchors it and absorbs water?
+    options:
+    - Stem
+    - Leaf
+    - Root
+    - Flower
+    answer: 2
+    fun_fact: Roots also pull up dissolved nutrients from the soil.
+  - q: What's the pH level of neutral soil?
+    options:
+    - '5'
+    - '6'
+    - '7'
+    - '8'
+    answer: 2
+    fun_fact: Below 7 is acidic; above 7 is alkaline.
+  - q: What do you call planting different crops in the same plot over time?
+    options:
+    - Mulching
+    - Crop-rotation
+    - Pollination
+    - Composting
+    answer: 1
+    fun_fact: Rotating crops keeps soil healthy and reduces pests.
+  - q: Which insect is famous for pollinating crops alongside bees?
+    options:
+    - Wasps
+    - Butterflies
+    - Mosquitoes
+    - Termites
+    answer: 1
+    fun_fact: Butterflies and moths are major flower visitors.

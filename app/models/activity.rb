@@ -5,6 +5,7 @@ class Activity < ApplicationRecord
   belongs_to :trip_day
   belongs_to :place, optional: true
   has_one :trip, through: :trip_day
+  has_many :comments, -> { kept.ordered }, dependent: :destroy
 
   # User-uploaded photos of this stop. First attachment wins as the hero
   # so a trip member can override the Wikipedia/place image with a real

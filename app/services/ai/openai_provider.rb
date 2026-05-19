@@ -23,7 +23,7 @@ module Ai
     def call(rendered)
       return [ nil, {}, "OPENAI_API_KEY missing" ] if api_key.blank?
       @prompt.kind == "image" ? call_image(rendered) : call_text(rendered)
-    rescue => e
+    rescue StandardError => e
       [ nil, {}, "#{e.class}: #{e.message}" ]
     end
 
