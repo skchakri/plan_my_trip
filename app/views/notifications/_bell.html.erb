@@ -1,0 +1,53 @@
+<%# Header notification bell — opens a dropdown of the most recent 10
+    notifications. Unread count badge updates on next page load (we
+    don't push live updates yet — Solid Cable comes later). %>
+<% recent = current_user.notifications_received.recent.limit(10).to_a %>
+<% unread = recent.count(&:unread?) %>
+<details class="relative ml-1 group" data-controller="dropdown">
+  <summary class="list-none cursor-pointer relative inline-flex items-center justify-center w-9 h-9 rounded-full hover:bg-white/5 transition-colors text-slate-300"
+           aria-label="Notifications">
+    <%= icon :bell, class: "w-5 h-5" %>
+    <% if unread.positive? %>
+      <span class="absolute top-1 right-1.5 min-w-[16px] h-[16px] px-1 rounded-full bg-amber-500 text-slate-950 text-[10px] font-bold flex items-center justify-center">
+        <%= unread > 99 ? "99+" : unread %>
+      </span>
+    <% end %>
+  </summary>
+  <div class="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-xl border border-slate-800 bg-slate-900/95 backdrop-blur shadow-2xl shadow-black/60 z-50 overflow-hidden">
+    <div class="flex items-center justify-between gap-2 px-3 py-2 border-b border-slate-800">
+      <p class="text-xs uppercase tracking-wider text-slate-400">Notifications</p>
+      <% if unread.positive? %>
+        <%= button_to read_all_notifications_path,
+              method: :post,
+              form: { class: "inline" },
+              class: "text-xs text-amber-300 hover:text-amber-200" do %>
+          Mark all read
+        <% end %>
+      <% end %>
+    </div>
+    <% if recent.empty? %>
+      <p class="px-3 py-6 text-sm text-slate-400 text-center">You're all caught up.</p>
+    <% else %>
+      <ul class="max-h-96 overflow-y-auto divide-y divide-slate-800/60">
+        <% recent.each do |n| %>
+          <li>
+            <%= button_to read_notification_path(n),
+                  method: :post,
+                  form: { class: "block w-full" },
+                  class: "w-full text-left px-3 py-2.5 hover:bg-white/5 transition-colors flex items-start gap-2.5 #{'bg-amber-500/5' if n.unread?}" do %>
+              <% if n.unread? %>
+                <span class="mt-1.5 shrink-0 w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+              <% else %>
+                <span class="mt-1.5 shrink-0 w-1.5 h-1.5 rounded-full bg-transparent"></span>
+              <% end %>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm text-slate-200 leading-snug"><%= n.body %></p>
+                <p class="text-[11px] text-slate-500 mt-0.5"><%= time_ago_in_words(n.created_at) %> ago</p>
+              </div>
+            <% end %>
+          </li>
+        <% end %>
+      </ul>
+    <% end %>
+  </div>
+</details>

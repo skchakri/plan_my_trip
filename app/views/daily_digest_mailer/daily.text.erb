@@ -1,0 +1,13 @@
+Your trip updates
+<%= @unread_total %> <%= "update".pluralize(@unread_total) %> from the last day.
+
+<% @notifications.each do |n| %>
+• <%= n.body %>
+  <%= n.created_at.strftime("%b %-d · %-l:%M %p") %>
+  <%= URI.join(root_url, n.url.presence || "/").to_s %>
+
+<% end %>
+
+Open in Plan My Trip: <%= notifications_url %>
+
+Don't want these? Turn off daily digest: <%= edit_user_registration_url %>

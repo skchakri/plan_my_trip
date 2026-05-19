@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background:#f6f7fb; margin:0; padding:24px;">
+    <table cellpadding="0" cellspacing="0" border="0" align="center" width="560" style="max-width:560px;width:100%;background:#ffffff;border-radius:16px;border:1px solid #e2e8f0;">
+      <tr>
+        <td style="padding:24px 24px 8px;">
+          <h1 style="font-family:Georgia,serif;font-size:22px;color:#0a0e1a;margin:0 0 4px;">Your trip updates</h1>
+          <p style="color:#475569;font-size:14px;margin:0;"><%= @unread_total %> <%= "update".pluralize(@unread_total) %> from the last day</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px 24px 0;">
+          <ul style="list-style:none;padding:0;margin:0;">
+            <% @notifications.each do |n| %>
+              <li style="border-top:1px solid #e2e8f0;padding:14px 0;">
+                <a href="<%= URI.join(root_url, n.url.presence || '/').to_s %>" style="color:#0a0e1a;text-decoration:none;display:block;">
+                  <p style="margin:0;font-size:15px;color:#0f172a;line-height:1.45;"><%= n.body %></p>
+                  <p style="margin:4px 0 0;font-size:12px;color:#94a3b8;"><%= n.created_at.strftime("%b %-d · %-l:%M %p") %></p>
+                </a>
+              </li>
+            <% end %>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:20px 24px 24px;">
+          <a href="<%= notifications_url %>"
+             style="display:inline-block;padding:10px 16px;background:#f59e0b;color:#0a0e1a;font-weight:600;border-radius:8px;text-decoration:none;font-size:14px;">
+            Open in Plan My Trip →
+          </a>
+          <p style="margin:18px 0 0;font-size:12px;color:#94a3b8;">
+            You're getting this because you have unread updates on shared trips.
+            Don't want these? <a href="<%= edit_user_registration_url %>" style="color:#64748b;">Turn off daily digest</a>.
+          </p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

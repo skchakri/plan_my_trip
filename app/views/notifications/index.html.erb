@@ -1,0 +1,37 @@
+<% content_for :title, "Notifications" %>
+
+<div class="max-w-2xl mx-auto px-4 sm:px-6 py-10">
+  <div class="flex items-center justify-between mb-6 flex-wrap gap-2">
+    <h1 class="font-display text-3xl text-slate-50">Notifications</h1>
+    <% if @unread_count.positive? %>
+      <%= button_to "Mark all read", read_all_notifications_path,
+            method: :post,
+            class: "text-sm px-3 py-1.5 rounded-md bg-amber-500/10 text-amber-200 border border-amber-500/30 hover:bg-amber-500/20 transition-colors" %>
+    <% end %>
+  </div>
+
+  <% if @notifications.empty? %>
+    <p class="text-slate-400">No notifications yet. You'll see updates here when collaborators comment on stops, accept invites, or share trips with you.</p>
+  <% else %>
+    <ul class="divide-y divide-slate-800 rounded-xl border border-slate-800 bg-slate-900/40">
+      <% @notifications.each do |n| %>
+        <li>
+          <%= button_to read_notification_path(n),
+                method: :post,
+                form: { class: "block w-full" },
+                class: "w-full text-left px-4 py-3 hover:bg-white/5 transition-colors flex items-start gap-3 #{'bg-amber-500/5' if n.unread?}" do %>
+            <% if n.unread? %>
+              <span class="mt-2 shrink-0 w-2 h-2 rounded-full bg-amber-400"></span>
+            <% else %>
+              <span class="mt-2 shrink-0 w-2 h-2 rounded-full bg-transparent"></span>
+            <% end %>
+            <div class="min-w-0 flex-1">
+              <p class="text-slate-200"><%= n.body %></p>
+              <p class="text-xs text-slate-500 mt-0.5"><%= time_ago_in_words(n.created_at) %> ago</p>
+            </div>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+</div>
