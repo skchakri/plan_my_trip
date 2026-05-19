@@ -7,42 +7,15 @@
 <div class="mb-6">
   <h1 class="font-display text-2xl font-semibold"><%= @tag.humanize %></h1>
   <p class="text-sm text-slate-400">
-    <%= pluralize(@chains.size, "story chain") %> · <%= pluralize(@standalone.size, "stand-alone question") %>
+    <%= pluralize(@total_roots, "chain root") %> total ·
+    showing <%= pluralize(@chains.size, "story chain") %> + <%= pluralize(@standalone.size, "stand-alone") %>
+    <% if @total_pages > 1 %>
+      · page <%= @page %> of <%= @total_pages %>
+    <% end %>
   </p>
 </div>
 
-<%# ---- Render one question card. Used inside chains and stand-alones. ---- %>
-<% render_question = ->(q, prefix: "#") do %>
-  <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
-    <div class="flex items-start justify-between gap-3 mb-2">
-      <p class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">
-        <%= prefix %> · <%= q.source %><% if q.trip %> · trip <%= q.trip.title.to_s.truncate(30) %><% end %>
-      </p>
-      <% if q.difficulty.present? %>
-        <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-semibold uppercase"><%= q.difficulty %></span>
-      <% end %>
-    </div>
-    <p class="font-medium text-slate-100 mb-3"><%= q.question %></p>
-    <ul class="space-y-1 mb-3">
-      <% Array(q.options).each_with_index do |opt, oi| %>
-        <li class="text-sm flex items-center gap-2">
-          <span class="inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-semibold <%= oi == q.answer_index ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-slate-800 text-slate-400 border border-slate-700' %>">
-            <%= ("A".ord + oi).chr %>
-          </span>
-          <span class="<%= oi == q.answer_index ? 'text-emerald-200 font-medium' : 'text-slate-300' %>"><%= opt %></span>
-          <% if oi == q.answer_index %>
-            <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 font-semibold uppercase ml-1">answer</span>
-          <% end %>
-        </li>
-      <% end %>
-    </ul>
-    <% if q.fun_fact.present? %>
-      <p class="text-xs text-amber-200/80 italic border-l-2 border-amber-500/40 pl-3">
-        <span class="font-semibold not-italic">Fun fact:</span> <%= q.fun_fact %>
-      </p>
-    <% end %>
-  </div>
-<% end %>
+<%# Card markup lives in admin/trivia/_question.html.erb — used by chains and stand-alones. %>
 
 <% if @chains.any? %>
   <section class="mb-8">
@@ -78,7 +51,7 @@
                 <p class="text-[10px] uppercase tracking-widest text-amber-200 font-semibold mb-1.5">
                   Step <%= si + 1 %> of <%= chain.size %>
                 </p>
-                <%= render_question.call(q, prefix: "step #{si + 1}") %>
+                <%= render "admin/trivia/question", q: q, prefix: "step #{si + 1}" %>
               </li>
             <% end %>
           </ol>
@@ -95,8 +68,24 @@
     </h2>
     <div class="space-y-3">
       <% @standalone.each_with_index do |q, idx| %>
-        <%= render_question.call(q, prefix: "##{idx + 1}") %>
+        <%= render "admin/trivia/question", q: q, prefix: "##{idx + 1}" %>
       <% end %>
     </div>
   </section>
+<% end %>
+
+<% if @total_pages > 1 %>
+  <nav class="mt-8 flex items-center justify-between gap-3 text-sm">
+    <% if @page > 1 %>
+      <%= link_to "← Previous", admin_trivium_path(@tag, page: @page - 1), class: "px-3 py-1.5 rounded-lg border border-slate-700 text-slate-200 hover:border-amber-500/50" %>
+    <% else %>
+      <span></span>
+    <% end %>
+    <span class="text-slate-500">Page <%= @page %> of <%= @total_pages %></span>
+    <% if @page < @total_pages %>
+      <%= link_to "Next →", admin_trivium_path(@tag, page: @page + 1), class: "px-3 py-1.5 rounded-lg border border-slate-700 text-slate-200 hover:border-amber-500/50" %>
+    <% else %>
+      <span></span>
+    <% end %>
+  </nav>
 <% end %>

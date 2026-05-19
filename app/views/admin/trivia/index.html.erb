@@ -66,15 +66,14 @@
         </tr>
       </thead>
       <tbody class="divide-y divide-slate-800/60">
-        <% @tags.each do |tag, count|
-             preview = TriviaQuestion.kept.for_tag(tag).order(:created_at).first %>
+        <% @tags.each do |tag, count| %>
           <tr class="hover:bg-slate-900/40">
             <td class="px-3 py-2">
               <%= link_to tag.humanize, admin_trivium_path(tag), class: "text-amber-300 hover:text-amber-200 font-medium" %>
               <div class="text-[11px] text-slate-500"><%= tag %></div>
             </td>
             <td class="px-3 py-2 text-right tabular-nums"><%= count %></td>
-            <td class="px-3 py-2 text-xs text-slate-400 truncate max-w-md"><%= preview&.question %></td>
+            <td class="px-3 py-2 text-xs text-slate-400 truncate max-w-md"><%= @previews[tag] %></td>
             <td class="px-3 py-2 text-right">
               <%= link_to "view all", admin_trivium_path(tag), class: "text-xs text-slate-400 hover:text-amber-300" %>
             </td>

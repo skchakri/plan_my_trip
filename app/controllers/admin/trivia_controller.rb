@@ -4,32 +4,56 @@ module Admin
     # the trivia_questions table — seeded from TriviaPool::SEED_POOL,
     # augmented by AI runs and manual entries.
     def index
-      @tags = TriviaQuestion.kept.group(:tag).count.sort_by { |_, c| -c }
-      @sources = TriviaQuestion.kept.group(:source).count
+      kept = TriviaQuestion.kept
+      @tags = kept.group(:tag).count.sort_by { |_, c| -c }
+      @sources = kept.group(:source).count
       @stats = {
-        total:    TriviaQuestion.kept.count,
-        global:   TriviaQuestion.kept.global.count,
-        trip:     TriviaQuestion.kept.where.not(trip_id: nil).count,
+        total:    kept.count,
+        global:   kept.global.count,
+        trip:     kept.where.not(trip_id: nil).count,
         answered: TriviaResponse.count
       }
+      # Single DISTINCT ON query in place of N per-tag LIMIT 1 lookups.
+      @previews = kept
+        .select("DISTINCT ON (tag) tag, question")
+        .order(:tag, :created_at)
+        .each_with_object({}) { |q, h| h[q.tag] = q.question }
     end
+
+    PER_PAGE = 25
 
     def show
       @tag = params[:id]
-      questions = TriviaQuestion.kept.for_tag(@tag).includes(:trip).order(:created_at).to_a
-      redirect_to admin_trivia_path, alert: "Unknown category." and return if questions.empty?
+      @page = [ params[:page].to_i, 1 ].max
 
-      # Walk parent_id links so chained word-problem stories render as one
-      # card with the intro + each step in order, instead of looking like
-      # disconnected one-offs.
+      roots_scope = TriviaQuestion.kept.for_tag(@tag).chain_roots.order(:created_at)
+      @total_roots = roots_scope.count
+
+      if @total_roots.zero?
+        redirect_to admin_trivia_path, alert: "Unknown category." and return
+      end
+
+      @total_pages = (@total_roots / PER_PAGE.to_f).ceil
+      @page = [ @page, @total_pages ].min
+
+      page_roots = roots_scope.includes(:trip)
+        .offset((@page - 1) * PER_PAGE)
+        .limit(PER_PAGE)
+        .to_a
+
+      # Walk descendants for just this page's roots — a single query per
+      # depth level, indexed by parent_id. Replaces the prior O(N²) scan
+      # of every loaded question.
+      child_by_parent = collect_descendants(page_roots.map(&:id))
+
       @chains = []
       @standalone = []
-      questions.reject(&:parent_id).each do |root|
+      page_roots.each do |root|
         chain = [ root ]
         cur = root
-        while (next_step = questions.find { |q| q.parent_id == cur.id })
-          chain << next_step
-          cur = next_step
+        while (nxt = child_by_parent[cur.id])
+          chain << nxt
+          cur = nxt
         end
         chain.size > 1 ? (@chains << chain) : (@standalone << root)
       end
@@ -85,6 +109,24 @@ module Admin
 
       redirect_to admin_trivium_path("riddles"),
         notice: "Generated #{inserted} new riddle(s) via Claude CLI subscription (#{skipped} skipped)."
+    end
+
+    private
+
+    # Returns a { parent_id => child_question } map covering every descendant
+    # reachable from the given root ids. Runs one indexed query per chain
+    # depth, so the cost is O(rows_loaded), not O(roots × all_questions).
+    def collect_descendants(root_ids)
+      return {} if root_ids.empty?
+      found = {}
+      frontier = root_ids
+      until frontier.empty?
+        next_level = TriviaQuestion.kept.where(parent_id: frontier).to_a
+        break if next_level.empty?
+        next_level.each { |q| found[q.parent_id] = q }
+        frontier = next_level.map(&:id)
+      end
+      found
     end
   end
 end

@@ -23,7 +23,11 @@ module Ai
   #   - `--bare` would skip the overhead BUT also disables OAuth/keychain
   #     auth — we explicitly DON'T pass it so the subscription is used.
   class ClaudeCliProvider
-    DEFAULT_TIMEOUT_SECONDS = 1500
+    # 60 minutes. The trip_structure.v1 prompt is the long-pole (20+
+    # activities × narration scripts × web-search-augmented details).
+    # Has hit 25min in production; 60min buys runway without leaving
+    # zombies if the CLI truly hangs.
+    DEFAULT_TIMEOUT_SECONDS = 3600
 
     def initialize(prompt)
       @prompt = prompt
@@ -43,7 +47,24 @@ module Ai
       args = [
         cli, "-p",
         "--model", model_alias(@prompt.model),
-        "--output-format", "json"
+        # Stream-json over plain json so we don't lose huge responses to
+        # the CLI's `result`-field truncation. Verified case: trip_structure
+        # generated 35k output_tokens but `--output-format json` only kept
+        # ~3k tokens worth of `result`. Stream-json delivers each assistant
+        # message as its own NDJSON line; we accumulate the text ourselves.
+        # --verbose is required by the CLI when pairing -p with stream-json.
+        "--output-format", "stream-json",
+        "--verbose",
+        # Web tools — let the model look up niche / locally-known spots
+        # (canyoneering blogs, Reddit, AllTrails trip reports) that aren't
+        # in its training data. Surfacing things like Hanksville's
+        # "Moonscape Overlook" or "Bentonite Hills Viewpoint" requires
+        # live search — Wikipedia/training doesn't have them. Using
+        # --settings to pre-grant the tools rather than --permission-mode
+        # bypassPermissions, because the latter is refused when the CLI
+        # runs as root (which Puma does in our docker container).
+        "--allowed-tools", "WebSearch,WebFetch",
+        "--settings", '{"permissions":{"allow":["WebSearch","WebFetch"]}}'
       ]
       if rendered[:system].to_s.strip.present?
         args.push("--system-prompt", rendered[:system].to_s)
@@ -77,16 +98,48 @@ module Ai
         return [ nil, {}, "claude CLI exit #{thr.value.exitstatus}: #{err.to_s.truncate(400).presence || out.to_s.truncate(400)}" ]
       end
 
-      payload = JSON.parse(out)
-      if payload["is_error"]
-        return [ nil, {}, "claude CLI error: #{payload["api_error_status"] || payload["result"]}" ]
+      # Parse stream-json NDJSON. Each line is a CLI event. The model can
+      # emit MULTIPLE `assistant` events for one prompt (think-then-output
+      # or tool-use turns), and concatenating them produces duplicated
+      # content — we hit this on trip_structure where two assistant turns
+      # both contained the full JSON object, yielding a corrupted blob.
+      # So we keep only the LAST assistant message's text (final answer)
+      # and pull usage from the `result` event.
+      last_assistant_text = nil
+      usage = {}
+      final_error = nil
+      out.each_line do |line|
+        line = line.strip
+        next if line.empty?
+        begin
+          ev = JSON.parse(line)
+        rescue JSON::ParserError
+          next
+        end
+        case ev["type"]
+        when "assistant"
+          chunks = Array(ev.dig("message", "content")).select { |c| c.is_a?(Hash) && c["type"] == "text" }
+          combined = chunks.map { |c| c["text"].to_s }.join
+          last_assistant_text = combined unless combined.empty?
+        when "result"
+          if ev["is_error"]
+            final_error = "claude CLI error: #{ev["api_error_status"] || ev["result"]}"
+          end
+          usage = {
+            input_tokens: ev.dig("usage", "input_tokens"),
+            output_tokens: ev.dig("usage", "output_tokens")
+          }
+          # Prefer the explicit `result` field when it's substantial — the
+          # CLI's final summary is usually the cleanest version. Fall back
+          # to the streamed assistant text when `result` is empty.
+          result_text = ev["result"].to_s
+          last_assistant_text = result_text if result_text.length > last_assistant_text.to_s.length
+        end
       end
+      text = last_assistant_text.to_s
 
-      text = payload["result"].to_s
-      usage = {
-        input_tokens: payload.dig("usage", "input_tokens"),
-        output_tokens: payload.dig("usage", "output_tokens")
-      }
+      return [ nil, usage, final_error ] if final_error
+      return [ nil, usage, "claude CLI returned no text (raw stderr=#{err.to_s.truncate(300)})" ] if text.empty?
       [ text, usage, nil ]
     rescue JSON::ParserError => e
       [ nil, {}, "JSON parse: #{e.message}; raw=#{out.to_s.truncate(300)}" ]

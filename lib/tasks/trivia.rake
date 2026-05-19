@@ -964,6 +964,262 @@ namespace :trivia do
     end
   end
 
+  # Procedurally generates and seeds a bulk pool of math word-problem chains
+  # via MathChainGenerator. Defaults to 100 chains × 10 steps = 1000 questions.
+  # Idempotent: each step is upserted by (tag: "math", question: "...", trip_id: nil),
+  # and the generator is deterministic — re-running yields the same questions.
+  desc "Seed procedurally generated math chains (default: 100 chains, 1000 questions)."
+  task :seed_math_bulk, [ :count ] => :environment do |_t, args|
+    count = (args[:count] || 100).to_i
+    chains = MathChainGenerator.generate(target_count: count)
+
+    inserted = updated = 0
+    chains.each do |chain|
+      tag = chain[:tag] || "math"
+      prev = nil
+      chain[:steps].each_with_index do |step, idx|
+        # Scope the lookup by chain identity so duplicate step-text across
+        # different chains doesn't collapse into one row:
+        # - root step (idx 0) is identified by its unique chain_intro
+        # - subsequent steps are identified by their parent_id
+        finder = { tag: tag, trip_id: nil, question: step[:q] }
+        if idx.zero?
+          finder[:chain_intro] = chain[:intro]
+        else
+          finder[:parent_id] = prev.id
+        end
+        rec = TriviaQuestion.find_or_initialize_by(finder)
+        attrs = {
+          options: step[:options],
+          answer_index: step[:answer],
+          fun_fact: step[:fun_fact],
+          difficulty: chain[:difficulty],
+          source: "seed",
+          parent_id: prev&.id,
+          chain_intro: (idx.zero? ? chain[:intro] : nil)
+        }
+        if rec.new_record?
+          rec.assign_attributes(attrs)
+          rec.save!
+          inserted += 1
+        else
+          rec.update!(attrs)
+          updated += 1
+        end
+        prev = rec
+      end
+    end
+
+    total_steps = chains.sum { |c| c[:steps].size }
+    puts "trivia:seed_math_bulk → #{chains.size} chains, #{total_steps} questions (#{inserted} inserted, #{updated} updated)."
+    puts "  math pool now: #{TriviaQuestion.kept.where(tag: 'math', trip_id: nil).count} total, #{TriviaQuestion.kept.chain_roots.where(tag: 'math', trip_id: nil).count} chain roots."
+  end
+
+  # Procedurally generates fact-quiz chains for all 21 non-math, non-riddle
+  # tags via TopicTriviaGenerator, then seeds them. Each tag gets `count`
+  # questions by combining its FACTS pool into chains. Idempotent: chains
+  # are keyed by (chain_intro, question) for the root and (parent_id, question)
+  # for follow-ups.
+  desc "Bulk-seed procedural fact-quiz chains for all non-math tags (default 1000 per tag)."
+  task :seed_factquiz_bulk, [ :count ] => :environment do |_t, args|
+    count = (args[:count] || 1000).to_i
+    grand_inserted = grand_updated = 0
+    per_tag = {}
+
+    TopicTriviaGenerator.categories.each do |tag|
+      inserted = updated = 0
+      chains = TopicTriviaGenerator.generate(tag, target_count: count)
+      chains.each do |chain|
+        prev = nil
+        chain[:steps].each_with_index do |step, idx|
+          finder = { tag: tag, trip_id: nil, question: step[:q] }
+          if idx.zero?
+            finder[:chain_intro] = chain[:intro]
+          else
+            finder[:parent_id] = prev.id
+          end
+          rec = TriviaQuestion.find_or_initialize_by(finder)
+          attrs = {
+            options: step[:options],
+            answer_index: step[:answer],
+            fun_fact: step[:fun_fact],
+            difficulty: chain[:difficulty],
+            source: "seed",
+            parent_id: prev&.id,
+            chain_intro: (idx.zero? ? chain[:intro] : nil)
+          }
+          if rec.new_record?
+            rec.assign_attributes(attrs)
+            rec.save!
+            inserted += 1
+          else
+            rec.update!(attrs)
+            updated += 1
+          end
+          prev = rec
+        end
+      end
+      grand_inserted += inserted
+      grand_updated += updated
+      per_tag[tag] = TriviaQuestion.kept.where(tag: tag).count
+    end
+
+    puts "trivia:seed_factquiz_bulk → #{grand_inserted} inserted, #{grand_updated} updated."
+    puts "  Tag totals after seed:"
+    per_tag.sort.each { |tag, total| puts "    #{tag.ljust(14)} #{total}" }
+  end
+
+  # Calls the riddle_pack.v1 AI prompt repeatedly via Claude CLI until at
+  # least `count` riddle rows exist (the prompt asks for 10 per call).
+  # Idempotent: existing rows are skipped by (tag: "riddles", question:).
+  # Run in background — each AI call takes ~10-30s.
+  # Themes vary the prompt across batches so each call produces a different
+  # set of 10 riddles — and so the Ai::Caller 30-day cache keys by rendered
+  # prompt give each batch its own cache entry instead of collapsing into one.
+  RIDDLE_BATCH_THEMES = [
+    "everyday objects", "kitchen and food", "school and learning", "weather and seasons",
+    "animals you might meet on a road trip", "vehicles and travel", "tools and gadgets",
+    "musical instruments", "clothes and shoes", "sports gear", "garden and plants",
+    "books and writing", "letters of the alphabet and numbers", "buildings and places",
+    "shadows, mirrors, and reflections", "time, clocks, and calendars",
+    "natural wonders (mountains, rivers, caves)", "art and colors",
+    "communication (phones, mail, signs)", "money, coins, and shopping",
+    "puzzles and games", "the human body", "the night sky and stars",
+    "doors, keys, locks, and windows", "boats, ships, and the sea",
+    "winter and snow", "summer and beaches", "fall leaves and autumn",
+    "spring flowers and rain", "trees and forests", "deserts and dunes",
+    "farms and barns", "birds and feathers", "fish and underwater life",
+    "bugs and insects", "machines that move", "wordplay and double meanings",
+    "what has X but no Y patterns", "things that come in pairs", "things you wear",
+    "things in a classroom"
+  ].freeze
+
+  desc "AI-generate riddles in batches until pool has at least N (default 1000)."
+  task :seed_riddles_bulk, [ :target ] => :environment do |_t, args|
+    require "set"
+    target = (args[:target] || 1000).to_i
+    starting = TriviaQuestion.kept.where(tag: "riddles", trip_id: nil).count
+    puts "Starting riddles in pool: #{starting} → target: #{target}"
+
+    normalize = ->(text) { text.to_s.downcase.gsub(/[^a-z0-9]+/, " ").strip }
+    # Build a Set of normalized existing questions up front so cross-batch
+    # dedup is O(1). Updated as we insert.
+    seen_normalized = Set.new(
+      TriviaQuestion.where(tag: "riddles", trip_id: nil).pluck(:question).map(&normalize)
+    )
+
+    batches_run = inserted_total = dup_skipped = 0
+    while TriviaQuestion.kept.where(tag: "riddles", trip_id: nil).count < target
+      theme = "#{RIDDLE_BATCH_THEMES[batches_run % RIDDLE_BATCH_THEMES.size]} (batch ##{batches_run + 1} · seen #{seen_normalized.size})"
+      batches_run += 1
+      # cache: false — every call must hit Claude live so the pool actually
+      # grows on re-runs. The 30-day Ai::Caller cache is meant for stable
+      # lookups (highlight_detail, destination_brief), not bulk generation.
+      result = Ai::Caller.call(
+        slug: "riddle_pack.v1",
+        variables: { count: 10, theme: theme },
+        cache: false
+      )
+      if result.error || result.text.blank?
+        puts "  batch #{batches_run} failed: #{result.error.to_s.presence || 'empty'}"
+        break
+      end
+      payload = result.json
+      payload = payload["riddles"] if payload.is_a?(Hash) && payload["riddles"].is_a?(Array)
+      unless payload.is_a?(Array)
+        puts "  batch #{batches_run}: bad JSON shape, stopping."
+        break
+      end
+      batch_in = batch_dup = 0
+      payload.each do |row|
+        next unless row.is_a?(Hash)
+        q = row["question"].to_s.strip
+        opts = Array(row["options"]).map { |o| o.to_s.strip }.reject(&:blank?)
+        idx = row["answer_index"].to_i
+        fact = row["fun_fact"].to_s.strip
+        next if q.blank? || opts.size < 2 || idx.negative? || idx >= opts.size
+
+        norm = normalize.call(q)
+        if seen_normalized.include?(norm)
+          batch_dup += 1
+          next
+        end
+
+        # Belt-and-suspenders: also check DB with exact text in case another
+        # process inserted concurrently, then add to in-memory set on save.
+        rec = TriviaQuestion.find_or_initialize_by(tag: "riddles", question: q, trip_id: nil)
+        if rec.persisted?
+          batch_dup += 1
+          seen_normalized << norm
+          next
+        end
+        rec.assign_attributes(options: opts, answer_index: idx, fun_fact: fact, source: "ai")
+        if rec.save
+          batch_in += 1
+          seen_normalized << norm
+        end
+      end
+      inserted_total += batch_in
+      dup_skipped += batch_dup
+      puts "  batch #{batches_run}: +#{batch_in} new, #{batch_dup} dup (pool now #{TriviaQuestion.kept.where(tag: 'riddles', trip_id: nil).count})"
+      break if batches_run > 500
+    end
+
+    puts "trivia:seed_riddles_bulk → ran #{batches_run} batches, inserted #{inserted_total} riddles, skipped #{dup_skipped} dups."
+    puts "  Riddles pool now: #{TriviaQuestion.kept.where(tag: 'riddles', trip_id: nil).count}."
+  end
+
+  # Seeds the hand-curated topic packs from TriviaTopicPacks::PACKS — one or
+  # more multi-step chains per interest tag. Idempotent: each chain is keyed
+  # by (chain_intro, question) for the root and (parent_id, question) for
+  # follow-ups, matching the bulk math seeder's strategy.
+  desc "Seed hand-curated topic-pack chains for all non-math tags."
+  task seed_topic_packs: :environment do
+    inserted = updated = 0
+    tag_changes = Hash.new { |h, k| h[k] = { inserted: 0, updated: 0 } }
+
+    TriviaTopicPacks::PACKS.each do |tag, packs|
+      packs.each do |chain|
+        prev = nil
+        chain[:steps].each_with_index do |step, idx|
+          finder = { tag: tag, trip_id: nil, question: step[:q] }
+          if idx.zero?
+            finder[:chain_intro] = chain[:intro]
+          else
+            finder[:parent_id] = prev.id
+          end
+          rec = TriviaQuestion.find_or_initialize_by(finder)
+          attrs = {
+            options: step[:options],
+            answer_index: step[:answer],
+            fun_fact: step[:fun_fact],
+            difficulty: chain[:difficulty],
+            source: "seed",
+            parent_id: prev&.id,
+            chain_intro: (idx.zero? ? chain[:intro] : nil)
+          }
+          if rec.new_record?
+            rec.assign_attributes(attrs)
+            rec.save!
+            inserted += 1
+            tag_changes[tag][:inserted] += 1
+          else
+            rec.update!(attrs)
+            updated += 1
+            tag_changes[tag][:updated] += 1
+          end
+          prev = rec
+        end
+      end
+    end
+
+    puts "trivia:seed_topic_packs → #{inserted} inserted, #{updated} updated across #{tag_changes.size} tags."
+    tag_changes.sort.each do |tag, h|
+      total = TriviaQuestion.kept.where(tag: tag).count
+      puts "  #{tag.ljust(14)} +#{h[:inserted]} new (#{h[:updated]} updated) → #{total} total"
+    end
+  end
+
   # Riddles share the trivia_questions table — they're rows with tag="riddles".
   # The picker (TriviaPool.pick_riddle_for) bypasses the interest-tag filter
   # so riddles don't have to compete with topic trivia for selection.

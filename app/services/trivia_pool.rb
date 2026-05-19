@@ -131,25 +131,36 @@ module TriviaPool
   # interest tags + trip-specific (or global) AI questions. Falls back to
   # GENERIC seeds when the table is empty or the person has exhausted
   # everything matching their interests.
+  #
+  # Selection bias: questions that start a multi-step chain are preferred
+  # over single-shot standalones. This makes the chained word problems
+  # actually surface — without the bias, with hundreds of standalones in
+  # the pool a player would rarely roll into a chain.
   def self.pick_for(person)
     interests = Array(person.interests).map(&:to_s).reject(&:blank?)
-    answered_ids = TriviaResponse.where(person_id: person.id).pluck(:trivia_question_id)
 
-    # ORDER BY RANDOM() returns the same row across calls within a request
-    # because Rails' QueryCache keys on the SQL string. Pluck IDs and
-    # sample in Ruby to get fresh randomness on every call.
-    #
-    # Only chain ROOTS are pickable as starting points — follow-up steps
-    # are reached via the "Continue the story →" link after the parent
-    # is answered correctly.
-    candidate_ids = TriviaQuestion.kept.chain_roots
+    # Two layers of exclusion: by row id (the exact row the user answered)
+    # AND by question TEXT (any other row with the same text). The text
+    # filter is what prevents a fact from re-appearing inside a different
+    # procedurally-generated chain that happens to reuse the same step.
+    answered_ids = TriviaResponse.where(person_id: person.id).pluck(:trivia_question_id)
+    answered_texts = TriviaQuestion.where(id: answered_ids).distinct.pluck(:question)
+
+    base = TriviaQuestion.kept.chain_roots
       .where(tag: interests)
       .where("trip_id IS NULL OR trip_id = ?", person.trip_id)
       .where.not(id: answered_ids)
-      .pluck(:id)
+    base = base.where.not(question: answered_texts) if answered_texts.any?
 
-    if (id = candidate_ids.sample)
-      return as_hash(TriviaQuestion.find(id))
+    # Prefer chain roots that actually have a follow-up — the multi-step
+    # word problems. Fall back to any unanswered root if those are exhausted.
+    follow_up_owner_ids = TriviaQuestion.where(parent_id: base.select(:id)).distinct.pluck(:parent_id)
+    chained_ids = follow_up_owner_ids & base.pluck(:id)
+
+    pick_id = chained_ids.sample || base.pluck(:id).sample
+
+    if pick_id
+      return as_hash(TriviaQuestion.find(pick_id))
     end
 
     # Exhausted matching pool — fall back to the in-memory GENERIC list so
@@ -162,14 +173,15 @@ module TriviaPool
   # "riddles". Same anti-repeat behavior as `pick_for`.
   def self.pick_riddle_for(person)
     answered_ids = TriviaResponse.where(person_id: person.id).pluck(:trivia_question_id)
+    answered_texts = TriviaQuestion.where(id: answered_ids).distinct.pluck(:question)
 
-    candidate_ids = TriviaQuestion.kept.chain_roots
+    base = TriviaQuestion.kept.chain_roots
       .where(tag: RIDDLE_TAG)
       .where("trip_id IS NULL OR trip_id = ?", person.trip_id)
       .where.not(id: answered_ids)
-      .pluck(:id)
+    base = base.where.not(question: answered_texts) if answered_texts.any?
 
-    if (id = candidate_ids.sample)
+    if (id = base.pluck(:id).sample)
       return as_hash(TriviaQuestion.find(id))
     end
 

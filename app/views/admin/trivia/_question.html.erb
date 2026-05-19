@@ -1,0 +1,31 @@
+<%# Locals: q, prefix (default "#") -%>
+<% prefix ||= "#" -%>
+<div class="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
+  <div class="flex items-start justify-between gap-3 mb-2">
+    <p class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">
+      <%= prefix %> · <%= q.source %><% if q.trip %> · trip <%= q.trip.title.to_s.truncate(30) %><% end %>
+    </p>
+    <% if q.difficulty.present? %>
+      <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-semibold uppercase"><%= q.difficulty %></span>
+    <% end %>
+  </div>
+  <p class="font-medium text-slate-100 mb-3"><%= q.question %></p>
+  <ul class="space-y-1 mb-3">
+    <% Array(q.options).each_with_index do |opt, oi| %>
+      <li class="text-sm flex items-center gap-2">
+        <span class="inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-semibold <%= oi == q.answer_index ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-slate-800 text-slate-400 border border-slate-700' %>">
+          <%= ("A".ord + oi).chr %>
+        </span>
+        <span class="<%= oi == q.answer_index ? 'text-emerald-200 font-medium' : 'text-slate-300' %>"><%= opt %></span>
+        <% if oi == q.answer_index %>
+          <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 font-semibold uppercase ml-1">answer</span>
+        <% end %>
+      </li>
+    <% end %>
+  </ul>
+  <% if q.fun_fact.present? %>
+    <p class="text-xs text-amber-200/80 italic border-l-2 border-amber-500/40 pl-3">
+      <span class="font-semibold not-italic">Fun fact:</span> <%= q.fun_fact %>
+    </p>
+  <% end %>
+</div>
