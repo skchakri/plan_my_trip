@@ -312,16 +312,32 @@ module Trips
       end
     end
 
+    # The wizard persists state in a DraftTrip row (one per user) so a
+    # deploy / cookie eviction mid-flow doesn't wipe progress. `@draft`
+    # exposes the same hash-style interface the rest of this controller
+    # already expects, backed by DraftTrip#payload.
+    #
+    # Migration note: an in-flight session hash (legacy storage) is
+    # adopted on first hit so users mid-wizard during deploy don't lose
+    # their draft.
     def load_draft
-      @draft = (session[SESSION_KEY] || {}).deep_dup
+      @draft_record = DraftTrip.fetch_or_build(current_user)
+      legacy = session.delete(SESSION_KEY)
+      if legacy.is_a?(Hash) && legacy.any? && @draft_record.payload.blank?
+        @draft_record.payload = legacy.deep_stringify_keys
+      end
+      @draft = @draft_record
     end
 
     def persist_draft!
-      session[SESSION_KEY] = @draft
+      @draft_record.save_step!(action_name)
     end
 
     def reset_session_draft!
       session.delete(SESSION_KEY)
+      DraftTrip.where(user_id: current_user.id).delete_all
+      @draft_record = DraftTrip.fetch_or_build(current_user)
+      @draft = @draft_record
     end
 
     def require_destination

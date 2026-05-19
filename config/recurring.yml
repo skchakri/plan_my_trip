@@ -19,3 +19,8 @@ production:
   daily_digest:
     class: DailyDigestJob
     schedule: at 8am every day
+
+  # Reap abandoned wizard drafts past their TTL.
+  sweep_expired_draft_trips:
+    class: DraftTripSweeperJob
+    schedule: at 3am every day
