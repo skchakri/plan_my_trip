@@ -29,6 +29,7 @@ class NearbyIdeas
     :place_id, :usage_count,
     :community_rating, :community_rating_count,
     :rank, :score, :tier, :rating, :score_breakdown,
+    :best_time, :duration_hours,
     keyword_init: true
   ) do
     def to_h
@@ -71,12 +72,14 @@ class NearbyIdeas
     new(...).call
   end
 
-  def initialize(anchor_label:, lat:, lng:, radius_km: 80, interests: [])
+  def initialize(anchor_label:, lat:, lng:, radius_km: 80, interests: [], user_query: nil, trip_date: nil)
     @anchor_label = anchor_label.to_s.strip
     @lat = lat.is_a?(Numeric) ? lat.to_f : (Float(lat) rescue nil)
     @lng = lng.is_a?(Numeric) ? lng.to_f : (Float(lng) rescue nil)
     @radius_km = [ [ radius_km.to_i, 10 ].max, 400 ].min
     @interests = Array(interests).map { |i| i.to_s.strip.downcase }.reject(&:blank?).uniq
+    @user_query = user_query.to_s.strip
+    @trip_date = trip_date.to_s.strip
   end
 
   def call
@@ -88,9 +91,18 @@ class NearbyIdeas
 
   def cache_key
     digest = Digest::SHA256.hexdigest(
-      "#{@anchor_label.downcase}|#{@lat.round(3)},#{@lng.round(3)}|#{@radius_km}|#{@interests.sort.join(',')}"
+      [
+        @anchor_label.downcase,
+        "#{@lat.round(3)},#{@lng.round(3)}",
+        @radius_km,
+        @interests.sort.join(","),
+        @user_query.downcase,
+        @trip_date
+      ].join("|")
     )
-    "nearby_ideas/v2/#{digest}"
+    # Bumped to v3 when the prompt gained coverage-floor + user_query support
+    # — invalidates older 17-item SLC responses that dropped Donut Falls.
+    "nearby_ideas/v3/#{digest}"
   end
 
   def fetch_ideas
@@ -159,7 +171,9 @@ class NearbyIdeas
         anchor_lat: @lat,
         anchor_lng: @lng,
         radius_km: @radius_km,
-        interests: @interests
+        interests: @interests,
+        user_query: @user_query,
+        trip_date: @trip_date
       }
     )
     items = result.json
@@ -186,7 +200,9 @@ class NearbyIdeas
         drive_minutes: item["drive_minutes"]&.to_i || estimate_drive_minutes(distance_km),
         distance_km: distance_km,
         latitude: lat,
-        longitude: lng
+        longitude: lng,
+        best_time: item["best_time"].to_s.strip.presence,
+        duration_hours: (Float(item["duration_hours"]) rescue nil)
       )
     end
   rescue StandardError => e

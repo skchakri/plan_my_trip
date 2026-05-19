@@ -8,7 +8,7 @@
 class DayTripsController < ApplicationController
   before_action :authenticate_user!
   before_action :load_user_defaults, only: %i[new suggestions]
-  before_action :require_anchor,     only: %i[suggestions create]
+  before_action :require_anchor,     only: %i[suggestions create idea_detail]
 
   # GET /day_trips/new — anchor + interests + date picker.
   def new
@@ -29,13 +29,19 @@ class DayTripsController < ApplicationController
     @anchor_lng   = params[:anchor_lng].to_f
     @radius_km    = params[:radius_km].to_i.nonzero? || 80
     @interests    = Array(params[:interests]).map(&:to_s).reject(&:blank?)
+    # `q` is the free-form ask box on the suggestions page — voice or typed
+    # ("any waterfalls nearby?", "events this weekend"). When present, it
+    # gets its own cache slot via NearbyIdeas#cache_key.
+    @user_query   = params[:q].to_s.strip
 
     @ideas = NearbyIdeas.call(
       anchor_label: @anchor_label,
       lat: @anchor_lat,
       lng: @anchor_lng,
       radius_km: @radius_km,
-      interests: @interests
+      interests: @interests,
+      user_query: @user_query,
+      trip_date: @date.iso8601
     )
 
     # Optional "save as my home base" affordance: surface a flag the view
@@ -43,6 +49,35 @@ class DayTripsController < ApplicationController
     @diff_from_home = current_user.home_base? &&
                       (current_user.home_lat.to_f.round(3) != @anchor_lat.round(3) ||
                        current_user.home_lng.to_f.round(3) != @anchor_lng.round(3))
+  end
+
+  # GET /day_trips/idea_detail — renders a single idea's full details inside
+  # the day-trip-idea-modal turbo-frame. Re-runs NearbyIdeas (cache hit), then
+  # picks the idea by slug. Kept independent of any persistent record so the
+  # LLM-only ideas (not yet seeded to Place) can still open in a modal.
+  def idea_detail
+    @date         = (Date.parse(params[:date].to_s) rescue Date.current)
+    @anchor_label = params[:anchor_label].to_s.strip
+    @anchor_lat   = params[:anchor_lat].to_f
+    @anchor_lng   = params[:anchor_lng].to_f
+    @radius_km    = params[:radius_km].to_i.nonzero? || 80
+    @interests    = Array(params[:interests]).map(&:to_s).reject(&:blank?)
+    @user_query   = params[:q].to_s.strip
+    slug          = params[:slug].to_s
+
+    ideas = NearbyIdeas.call(
+      anchor_label: @anchor_label,
+      lat: @anchor_lat, lng: @anchor_lng,
+      radius_km: @radius_km, interests: @interests,
+      user_query: @user_query, trip_date: @date.iso8601
+    )
+
+    @idea = ideas.find { |i| i.slug == slug }
+    if @idea.nil?
+      render plain: "Not found", status: :not_found
+    else
+      render layout: false
+    end
   end
 
   # POST /day_trips — persist the chosen ideas as a same-day Trip.
@@ -68,7 +103,8 @@ class DayTripsController < ApplicationController
 
     all_ideas = NearbyIdeas.call(
       anchor_label: @anchor_label, lat: @anchor_lat, lng: @anchor_lng,
-      radius_km: @radius_km, interests: @interests
+      radius_km: @radius_km, interests: @interests,
+      user_query: params[:q].to_s.strip, trip_date: @date.iso8601
     )
     chosen = all_ideas.select { |i| selected_slugs.include?(i.slug) }
 

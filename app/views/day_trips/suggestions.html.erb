@@ -12,6 +12,55 @@
   <p class="text-sm text-slate-400 mt-1.5"><%= @date.strftime("%A %b %-d") %> · interests: <%= @interests.any? ? @interests.map(&:capitalize).join(" · ") : "balanced mix" %></p>
 </div>
 
+<%# ───── Ask-anything bar (voice + typed) ─────
+    Submits as GET to the same suggestions URL with `q=…`. NearbyIdeas
+    keys its cache on the query, so a typed/voiced ask gets its own
+    deterministic-ish slot and the page re-renders with bias toward
+    whatever the user asked for (waterfalls, events, taco joints, etc.). %>
+<%= form_with url: day_trip_suggestions_path, method: :get, local: true,
+      class: "mb-5",
+      data: { controller: "voice-input", voice_input_submit_on_end_value: true } do |f| %>
+  <%= hidden_field_tag :anchor_label, @anchor_label %>
+  <%= hidden_field_tag :anchor_lat,   @anchor_lat %>
+  <%= hidden_field_tag :anchor_lng,   @anchor_lng %>
+  <%= hidden_field_tag :radius_km,    @radius_km %>
+  <% @interests.each do |i| %><%= hidden_field_tag "interests[]", i %><% end %>
+  <%= hidden_field_tag :date, @date %>
+
+  <div class="relative rounded-2xl border border-emerald-500/30 bg-slate-900/60 focus-within:border-emerald-500/60 transition-colors">
+    <%= text_field_tag :q, @user_query,
+          placeholder: "Ask anything — \"waterfalls nearby\", \"family hikes\", \"events this weekend\"",
+          autocomplete: "off",
+          data: { voice_input_target: "input" },
+          class: "w-full bg-transparent text-slate-100 placeholder-slate-500 px-4 py-3 pr-24 rounded-2xl focus:outline-none" %>
+
+    <div class="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+      <button type="button"
+              data-action="click->voice-input#toggle"
+              data-voice-input-target="button"
+              aria-label="Voice search"
+              aria-pressed="false"
+              data-listening="false"
+              class="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-emerald-300 flex items-center justify-center transition-colors data-[listening=true]:bg-rose-500/90 data-[listening=true]:text-white data-[listening=true]:border-rose-400 data-[listening=true]:animate-pulse">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+      </button>
+      <button type="submit"
+              class="inline-flex items-center gap-1 px-3 h-9 rounded-full bg-emerald-500 text-slate-950 text-xs font-semibold hover:bg-emerald-400 transition-colors">
+        Ask
+      </button>
+    </div>
+  </div>
+  <p data-voice-input-target="status" hidden class="text-[11px] text-emerald-300 mt-2"></p>
+  <% if @user_query.present? %>
+    <p class="text-[11px] text-slate-500 mt-2">
+      Filtered by: <span class="text-slate-300 italic">"<%= @user_query %>"</span> ·
+      <%= link_to "clear",
+            day_trip_suggestions_path(anchor_label: @anchor_label, anchor_lat: @anchor_lat, anchor_lng: @anchor_lng, radius_km: @radius_km, interests: @interests, date: @date),
+            class: "text-emerald-300 hover:text-emerald-200 underline" %>
+    </p>
+  <% end %>
+<% end %>
+
 <% if @diff_from_home %>
   <div class="mb-5">
     <%= button_to day_trip_save_home_base_path(anchor_label: @anchor_label, anchor_lat: @anchor_lat, anchor_lng: @anchor_lng),
@@ -37,6 +86,7 @@
     <%= hidden_field_tag :radius_km,    @radius_km %>
     <% @interests.each do |i| %><%= hidden_field_tag "interests[]", i %><% end %>
     <%= hidden_field_tag :date, @date %>
+    <%= hidden_field_tag :q,    @user_query %>
 
     <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
       <div>
@@ -51,65 +101,81 @@
 
     <div class="flex items-center justify-between text-xs text-slate-500">
       <span data-idea-picker-target="counter">0 selected</span>
-      <span>tap cards to add · 3-6 is the sweet spot for a day</span>
+      <span>tap card for details · + to add · 3-6 is the sweet spot</span>
     </div>
 
     <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
       <% @ideas.each do |idea| %>
-        <li>
-          <label class="group block h-full cursor-pointer">
-            <input type="checkbox" name="selected_slugs[]" value="<%= idea.slug %>"
-                   data-idea-picker-target="checkbox"
-                   data-action="change->idea-picker#update"
-                   class="sr-only">
-            <div class="h-full rounded-2xl border border-slate-800 bg-slate-900/40 overflow-hidden group-has-[:checked]:border-emerald-500/60 group-has-[:checked]:bg-emerald-500/5 hover:border-slate-600 transition-colors relative">
-              <% if idea.image_url.present? %>
-                <div class="aspect-[16/10] bg-slate-800 overflow-hidden relative">
-                  <img src="<%= idea.image_url %>" alt="<%= idea.name %>" loading="lazy" class="w-full h-full object-cover">
-                  <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent"></div>
-                </div>
-              <% else %>
-                <div class="aspect-[16/10] bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center text-slate-600 text-xs uppercase tracking-widest">No photo</div>
-              <% end %>
-              <div class="absolute top-2 left-2 flex flex-col items-start gap-1.5 z-10">
-                <%= place_rank_chip(idea) %>
-                <%= place_tier_badge(idea) %>
+        <li data-idea-card data-selected="false" class="relative group">
+          <%# Hidden checkbox is the source of truth for form submission;
+              the +/✓ button + modal "Add to plan" both flip it. %>
+          <input type="checkbox" name="selected_slugs[]" value="<%= idea.slug %>"
+                 data-idea-picker-target="checkbox"
+                 data-action="change->idea-picker#update"
+                 class="sr-only">
+
+          <%# Card body — clicking opens the modal in a turbo-frame. %>
+          <%= link_to day_trip_idea_detail_path(
+                slug: idea.slug,
+                anchor_label: @anchor_label, anchor_lat: @anchor_lat, anchor_lng: @anchor_lng,
+                radius_km: @radius_km, interests: @interests, date: @date, q: @user_query
+              ),
+              data: { turbo_frame: "day-trip-idea-modal" },
+              class: "block h-full rounded-2xl border border-slate-800 bg-slate-900/40 overflow-hidden hover:border-slate-600 transition-colors relative group-data-[selected=true]:border-emerald-500/60 group-data-[selected=true]:bg-emerald-500/5" do %>
+            <% if idea.image_url.present? %>
+              <div class="aspect-[16/10] bg-slate-800 overflow-hidden relative">
+                <img src="<%= idea.image_url %>" alt="<%= idea.name %>" loading="lazy" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent"></div>
               </div>
-              <div class="absolute top-2 right-2 w-7 h-7 rounded-full bg-slate-950/80 border border-slate-700 flex items-center justify-center group-has-[:checked]:bg-emerald-500 group-has-[:checked]:border-emerald-400 transition-colors z-10">
-                <%= icon :check, class: "w-4 h-4 text-slate-700 group-has-[:checked]:text-slate-950" %>
-              </div>
-              <div class="p-3.5">
-                <div class="flex items-start justify-between gap-2 mb-1.5">
-                  <h3 class="font-semibold text-slate-100 leading-snug text-[15px]"><%= idea.name %></h3>
-                  <% if idea.respond_to?(:has_real_rating?) && idea.has_real_rating? %>
-                    <span class="shrink-0 text-[11px] text-slate-400 inline-flex items-center gap-1 tabular-nums">
-                      <%= star_row(idea.rating, klass: "w-3 h-3") %>
-                      <%= idea.community_rating_count %>
-                    </span>
-                  <% end %>
-                </div>
-                <% if idea.summary.present? %>
-                  <p class="text-[13px] text-slate-400 leading-snug line-clamp-3"><%= idea.summary %></p>
+            <% else %>
+              <div class="aspect-[16/10] bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center text-slate-600 text-xs uppercase tracking-widest">No photo</div>
+            <% end %>
+            <div class="absolute top-2 left-2 flex flex-col items-start gap-1.5 z-10">
+              <%= place_rank_chip(idea) %>
+              <%= place_tier_badge(idea) %>
+            </div>
+            <div class="p-3.5">
+              <div class="flex items-start justify-between gap-2 mb-1.5">
+                <h3 class="font-semibold text-slate-100 leading-snug text-[15px]"><%= idea.name %></h3>
+                <% if idea.respond_to?(:has_real_rating?) && idea.has_real_rating? %>
+                  <span class="shrink-0 text-[11px] text-slate-400 inline-flex items-center gap-1 tabular-nums">
+                    <%= star_row(idea.rating, klass: "w-3 h-3") %>
+                    <%= idea.community_rating_count %>
+                  </span>
                 <% end %>
-                <div class="flex flex-wrap items-center gap-1.5 mt-2.5 text-[11px]">
-                  <% if idea.drive_minutes %>
-                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-200">
-                      <%= icon :clock, class: "w-3 h-3" %> <%= idea.drive_minutes %> min
-                    </span>
-                  <% end %>
-                  <% if idea.distance_km %>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-800/80 border border-slate-700 text-slate-400"><%= km_to_miles(idea.distance_km) %> mi</span>
-                  <% end %>
-                  <% if idea.interest.present? %>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-200"><%= idea.interest %></span>
-                  <% end %>
-                  <% Array(idea.tags).first(2).each do |tag| %>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-800/60 border border-slate-700 text-slate-400"><%= tag.to_s.tr("_", " ") %></span>
-                  <% end %>
-                </div>
+              </div>
+              <% if idea.summary.present? %>
+                <p class="text-[13px] text-slate-400 leading-snug line-clamp-3"><%= idea.summary %></p>
+              <% end %>
+              <div class="flex flex-wrap items-center gap-1.5 mt-2.5 text-[11px]">
+                <% if idea.drive_minutes %>
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-200">
+                    <%= icon :clock, class: "w-3 h-3" %> <%= idea.drive_minutes %> min
+                  </span>
+                <% end %>
+                <% if idea.distance_km %>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-800/80 border border-slate-700 text-slate-400"><%= km_to_miles(idea.distance_km) %> mi</span>
+                <% end %>
+                <% if idea.interest.present? %>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-200"><%= idea.interest %></span>
+                <% end %>
+                <% Array(idea.tags).first(2).each do |tag| %>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-800/60 border border-slate-700 text-slate-400"><%= tag.to_s.tr("_", " ") %></span>
+                <% end %>
               </div>
             </div>
-          </label>
+          <% end %>
+
+          <%# Selection toggle — sits on top of the card link with stopPropagation
+              so a tap only flips selection (doesn't open the modal). %>
+          <button type="button"
+                  data-action="click->idea-picker#toggle"
+                  data-slug="<%= idea.slug %>"
+                  aria-label="Add <%= idea.name %> to plan"
+                  class="absolute top-2 right-2 z-20 w-9 h-9 rounded-full bg-slate-950/85 border border-slate-700 text-slate-200 hover:bg-emerald-500 hover:text-slate-950 hover:border-emerald-400 group-data-[selected=true]:bg-emerald-500 group-data-[selected=true]:text-slate-950 group-data-[selected=true]:border-emerald-400 flex items-center justify-center transition-colors cursor-pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 group-data-[selected=true]:hidden"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 hidden group-data-[selected=true]:block"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          </button>
         </li>
       <% end %>
     </ul>
@@ -123,3 +189,20 @@
     </div>
   <% end %>
 <% end %>
+
+<%# ───── Idea-detail modal ─────
+    Reuses the existing place-modal Stimulus controller: card link targets
+    the inner turbo-frame, frame-load event fires when the server returns
+    the detail markup, controller flips the dialog visible. %>
+<div data-controller="place-modal">
+  <div data-place-modal-target="dialog"
+       data-action="click->place-modal#backdrop"
+       hidden
+       class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/70 backdrop-blur-sm transition-opacity duration-200 opacity-0 data-[open=true]:opacity-100">
+    <div class="w-full sm:max-w-2xl max-h-[92vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl">
+      <%= turbo_frame_tag "day-trip-idea-modal", data: { place_modal_target: "frame" } do %>
+        <div class="p-6 text-center text-sm text-slate-500">Loading…</div>
+      <% end %>
+    </div>
+  </div>
+</div>

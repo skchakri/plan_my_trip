@@ -18,6 +18,47 @@
             data-controller="nested-form">
     <legend class="px-2 text-xs uppercase tracking-widest text-amber-300 font-semibold">Travelers</legend>
 
+    <%
+      draft_names = Array(@draft["people"]).map { |p| p["name"].to_s.downcase.strip }.reject(&:blank?).to_set
+      suggestions = Array(@known_travelers).reject { |t| draft_names.include?(t[:name].to_s.downcase.strip) }
+    %>
+    <% if suggestions.any? %>
+      <div class="space-y-2">
+        <p class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">Travel with someone again?</p>
+        <div class="flex flex-wrap gap-2">
+          <% suggestions.each do |t| %>
+            <% initials = t[:name].to_s.split(/\s+/).first(2).map { |w| w[0] }.join.upcase %>
+            <div data-known-traveler class="group">
+              <button type="button"
+                      data-action="nested-form#addFrom"
+                      data-name="<%= t[:name] %>"
+                      data-age="<%= t[:age] %>"
+                      data-interests="<%= Array(t[:interests]).to_json %>"
+                      class="flex items-start gap-2.5 text-left rounded-xl border border-slate-700/60 bg-slate-900/70 hover:border-amber-500/50 hover:bg-slate-900 transition-colors px-3 py-2.5 cursor-pointer min-w-[180px]">
+                <span class="shrink-0 w-8 h-8 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-200 text-xs font-semibold flex items-center justify-center">
+                  <%= initials.presence || "?" %>
+                </span>
+                <span class="flex-1 min-w-0">
+                  <span class="block text-sm font-medium text-slate-100 truncate">
+                    <%= t[:name] %><% if t[:age].present? %><span class="text-slate-400 font-normal"> · <%= t[:age] %></span><% end %>
+                  </span>
+                  <% if Array(t[:interests]).any? %>
+                    <span class="block text-[11px] text-slate-400 truncate mt-0.5">
+                      <%= Array(t[:interests]).first(3).map { |i| i.to_s.tr("_", " ") }.join(" · ") %>
+                    </span>
+                  <% else %>
+                    <span class="block text-[11px] text-slate-500 mt-0.5 italic">no interests yet</span>
+                  <% end %>
+                </span>
+                <span class="shrink-0 text-amber-300/70 group-hover:text-amber-300 text-lg leading-none mt-0.5">+</span>
+              </button>
+            </div>
+          <% end %>
+        </div>
+        <p class="text-[10px] text-slate-500">Tap to add — you can edit the age and interests for this trip.</p>
+      </div>
+    <% end %>
+
     <div data-nested-form-target="container" class="space-y-3">
       <% Array(@draft["people"]).each_with_index do |person, idx| %>
         <%= render "trips/wizard/person_row",

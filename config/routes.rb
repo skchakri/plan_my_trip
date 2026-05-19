@@ -26,6 +26,7 @@ Rails.application.routes.draw do
   scope "day_trips", controller: "day_trips" do
     get  "new",            action: :new,            as: :day_trips_new
     get  "suggestions",    action: :suggestions,    as: :day_trip_suggestions
+    get  "idea_detail",    action: :idea_detail,    as: :day_trip_idea_detail
     post "",               action: :create,         as: :day_trips
     post "save_home_base", action: :save_home_base, as: :day_trip_save_home_base
   end

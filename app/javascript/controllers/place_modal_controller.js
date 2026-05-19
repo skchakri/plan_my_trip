@@ -19,11 +19,20 @@ export default class extends Controller {
     document.addEventListener("keydown", this._escHandler)
 
     this._frameHandler = (event) => {
-      if (event.target?.id !== "sandbox-place-modal") return
       // turbo:frame-load fires on Turbo-driven frame navigations (a user
       // click that targets this frame), not on initial server-rendered
       // placeholder. So this opens precisely when the modal content has
       // been fetched in.
+      //
+      // Match against our own frameTarget (any frame ID works) instead of
+      // a hardcoded string so multiple modals across the app reuse this
+      // controller without ID coupling. Falls back to a frame-id allowlist
+      // (sandbox-place-modal, day-trip-idea-modal) when no target is bound.
+      const loadedId = event.target?.id
+      if (!loadedId) return
+      const ourId = this.hasFrameTarget ? this.frameTarget.id : null
+      const allowlist = ["sandbox-place-modal", "day-trip-idea-modal"]
+      if (ourId ? loadedId !== ourId : !allowlist.includes(loadedId)) return
       this.open()
     }
     document.addEventListener("turbo:frame-load", this._frameHandler)

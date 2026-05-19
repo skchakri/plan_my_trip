@@ -23,6 +23,25 @@ class Person < ApplicationRecord
     end
   end
 
+  # Returns [{ name:, age:, interests: }, ...] — one entry per unique
+  # traveler name across all kept trips owned by `user`. Most recent row
+  # per name wins, so its age + interests become the pre-fill when the
+  # user clicks a suggestion card in the wizard.
+  def self.known_travelers_for(user)
+    return [] unless user
+    by_name = {}
+    joins(:trip)
+      .where(trips: { owner_id: user.id, discarded_at: nil })
+      .order(:updated_at)
+      .each do |p|
+        name = p.name.to_s.strip
+        key = name.downcase
+        next if key.blank?
+        by_name[key] = { name: name, age: p.age, interests: Array(p.interests) }
+      end
+    by_name.values.sort_by { |h| h[:name].downcase }
+  end
+
   def initials
     name.to_s.split(/\s+/).first(2).map { |w| w[0] }.join.upcase
   end

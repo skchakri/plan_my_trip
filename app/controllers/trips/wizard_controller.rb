@@ -38,6 +38,7 @@ module Trips
     def travelers
       @draft["people"] ||= default_people(@draft["traveler_count"].to_i)
       @known_traveler_interests = Person.known_interests_for(current_user)
+      @known_travelers = Person.known_travelers_for(current_user)
     end
 
     def save_travelers
@@ -57,6 +58,7 @@ module Trips
         flash.now[:alert] = "Add at least one traveler — names power the podcast intro and drive game."
         @draft["people"] = rows.presence || default_people(@draft["traveler_count"].to_i)
         @known_traveler_interests = Person.known_interests_for(current_user)
+        @known_travelers = Person.known_travelers_for(current_user)
         return render :travelers, status: :unprocessable_entity
       end
 
