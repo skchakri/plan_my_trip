@@ -1,1 +1,13 @@
 # See https://www.robotstxt.org/robotstxt.html for documentation on how to use the robots.txt file
+
+User-agent: *
+Allow: /
+Allow: /p/
+Disallow: /admin/
+Disallow: /trips/
+Disallow: /trip_wizard/
+Disallow: /users/
+Disallow: /s/
+Disallow: /invitations/
+
+Sitemap: /places-sitemap.xml

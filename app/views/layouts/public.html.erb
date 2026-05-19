@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+  <head>
+    <title><%= content_for(:title) || "A trip on Plan My Trip" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+    <meta name="theme-color" content="#0a0e1a">
+    <%# Public share links are *shareable*, not *discoverable*. Block crawlers
+        so search engines don't index personal trip URLs. %>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <meta name="description" content="<%= content_for(:description) || 'A trip on Plan My Trip' %>">
+
+    <%= content_for(:og) %>
+
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= yield :head %>
+
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
+
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+
+    <style>
+      :root { --font-sans: 'Inter', system-ui, sans-serif; --font-display: 'Fraunces', Georgia, serif; }
+      html, body { font-family: var(--font-sans); }
+      .font-display { font-family: var(--font-display); letter-spacing: -0.02em; }
+
+      @media print {
+        .no-print, header.sticky, footer { display: none !important; }
+        html, body { background: #fff !important; color: #0a0e1a !important; }
+        * { color: #0a0e1a !important; background: transparent !important; box-shadow: none !important; }
+        a, a:visited { color: #0a0e1a !important; text-decoration: underline; }
+        body { font-size: 11pt; line-height: 1.4; }
+        h1 { font-size: 20pt; } h2 { font-size: 14pt; } h3 { font-size: 12pt; }
+        img { max-width: 100% !important; max-height: 2.2in; object-fit: contain; }
+        article { page-break-inside: avoid; break-inside: avoid; }
+        @page { margin: 0.6in 0.5in; }
+      }
+    </style>
+  </head>
+
+  <body class="bg-slate-950 text-slate-100 antialiased min-h-full flex flex-col">
+    <%# Conversion banner — every public viewer is a potential signup. %>
+    <div class="sticky top-0 z-30 bg-slate-900/90 backdrop-blur border-b border-slate-800 no-print">
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3 text-sm">
+        <div class="flex items-center gap-2.5">
+          <%= image_tag "/icon.svg", alt: "", width: 22, height: 22, class: "rounded" %>
+          <span class="text-slate-300">You're viewing a shared trip on
+            <span class="font-semibold text-amber-300">Plan My Trip</span>.</span>
+        </div>
+        <%= link_to "Plan your own →", new_user_registration_path,
+              class: "shrink-0 inline-flex items-center px-3 py-1.5 rounded-md bg-amber-500 text-slate-950 font-semibold hover:bg-amber-400 transition-colors" %>
+      </div>
+    </div>
+
+    <main class="flex-1"><%= yield %></main>
+
+    <footer class="mt-16 border-t border-slate-800 bg-slate-950">
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 py-8 text-sm text-slate-400 flex flex-wrap items-center justify-between gap-3">
+        <span>Trips your crew will remember.</span>
+        <%= link_to "Plan My Trip →", root_url, class: "text-amber-300 hover:text-amber-200" %>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,11 @@
+<% content_for :title, "Link no longer active · Plan My Trip" %>
+
+<div class="max-w-2xl mx-auto px-4 py-24 text-center">
+  <div class="inline-flex w-16 h-16 rounded-2xl bg-slate-900 border border-slate-800 items-center justify-center mb-6">
+    <span class="text-3xl">🔒</span>
+  </div>
+  <h1 class="font-display text-3xl sm:text-4xl text-slate-50">This share link is no longer active.</h1>
+  <p class="mt-3 text-slate-400">The owner may have revoked the link or rotated it to a new URL. Ask them for a fresh one.</p>
+  <%= link_to "Plan a trip of your own →", new_user_registration_path,
+        class: "mt-8 inline-flex items-center px-5 py-2.5 rounded-lg bg-amber-500 text-slate-950 font-semibold hover:bg-amber-400 transition-colors" %>
+</div>

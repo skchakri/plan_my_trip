@@ -11,6 +11,8 @@
   <p class="text-sm text-slate-400 mt-1.5">A destination and dates is all we need to start. We'll pull in highlights and a day-by-day plan in the next steps.</p>
 </div>
 
+<%= render "trips/wizard/trip_type_switch", active: :multi_day %>
+
 <%= render "trips/wizard/progress", step: 1 %>
 
 <%= form_with url: wizard_destination_path, method: :post, scope: :wizard, class: "space-y-6" do |f| %>

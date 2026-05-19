@@ -1,0 +1,83 @@
+<% content_for :title, "Plan a day trip" %>
+<% input_classes = "w-full rounded-lg bg-slate-800/70 border border-slate-700 px-3 py-2.5 text-slate-100 placeholder-slate-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none transition-colors" %>
+<% label_classes = "block text-xs uppercase tracking-widest text-slate-400 font-semibold mb-1.5" %>
+
+<div class="mb-6">
+  <%= link_to trips_path, class: "inline-flex items-center gap-1 text-sm text-slate-400 hover:text-emerald-300 transition-colors" do %>
+    <%= icon :arrow_left, class: "w-4 h-4" %> Trips
+  <% end %>
+  <p class="text-[11px] uppercase tracking-[0.18em] text-emerald-400 font-medium mt-3">Day trip · plan in 30 seconds</p>
+  <h1 class="font-display text-3xl sm:text-4xl font-semibold tracking-tight">What's near you today?</h1>
+  <p class="text-sm text-slate-400 mt-1.5">Tell us your home base + what you're into. We'll pull a fresh, ranked list of nearby spots you can do as a round-trip day.</p>
+</div>
+
+<%= render "trips/wizard/trip_type_switch", active: :day_trip %>
+
+<%= form_with url: day_trip_suggestions_path, method: :get, local: true, class: "space-y-5" do %>
+  <div class="rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/[0.04] via-slate-900/60 to-slate-900/40 p-5 sm:p-6 space-y-5">
+    <div data-controller="place-autocomplete"
+         data-place-autocomplete-search-url-value="<%= search_places_path %>"
+         class="relative">
+      <%= label_tag :anchor_label, "Home base", class: label_classes %>
+      <%= text_field_tag :anchor_label, @anchor_label,
+            placeholder: "e.g. Salt Lake City, UT",
+            autocomplete: "off",
+            required: true,
+            class: input_classes,
+            data: {
+              place_autocomplete_target: "input",
+              action: "input->place-autocomplete#query focus->place-autocomplete#query keydown->place-autocomplete#navigate blur->place-autocomplete#blur"
+            } %>
+      <%= hidden_field_tag :anchor_lat, @anchor_lat, data: { place_autocomplete_target: "lat" } %>
+      <%= hidden_field_tag :anchor_lng, @anchor_lng, data: { place_autocomplete_target: "lng" } %>
+      <ul data-place-autocomplete-target="results" hidden
+          class="absolute left-0 right-0 top-full mt-1.5 z-30 rounded-xl border border-slate-700 bg-slate-900/95 backdrop-blur shadow-2xl shadow-black/60 overflow-hidden max-h-80 overflow-y-auto"></ul>
+
+      <% if current_user.home_base? %>
+        <p class="text-[11px] text-slate-500 mt-1.5">Default: <strong class="text-emerald-300"><%= current_user.home_label %></strong> · change above to plan a trip from somewhere else (visiting family, on the road, etc.)</p>
+      <% else %>
+        <p class="text-[11px] text-amber-300/80 mt-1.5">Pro tip: <%= link_to "save a home base on your account", edit_user_registration_path, class: "underline hover:text-amber-200" %> and it'll auto-fill next time.</p>
+      <% end %>
+    </div>
+
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      <div>
+        <%= label_tag :date, "Date", class: label_classes %>
+        <%= date_field_tag :date, @date, class: input_classes %>
+      </div>
+      <div>
+        <%= label_tag :radius_km, "Drive radius", class: label_classes %>
+        <select name="radius_km" id="radius_km" class="<%= input_classes %>">
+          <% [ [ 40, "Close — 25 mi / ~45 min" ], [ 80, "Easy — 50 mi / ~1 hr" ], [ 120, "Stretch — 75 mi / ~1.5 hr" ], [ 200, "Big day — 125 mi / ~2.5 hr" ] ].each do |km, label| %>
+            <option value="<%= km %>" <%= "selected" if @radius_km == km %>><%= label %></option>
+          <% end %>
+        </select>
+      </div>
+      <div class="col-span-2 sm:col-span-1">
+        <p class="<%= label_classes %>">One-way</p>
+        <p class="text-xs text-slate-500 mt-2.5 leading-snug">We'll plan a round-trip back to your home base.</p>
+      </div>
+    </div>
+
+    <fieldset>
+      <legend class="<%= label_classes %>">What are you into?</legend>
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        <% User::DAY_TRIP_INTERESTS.each do |int| %>
+          <% checked = @interests.include?(int[:key]) %>
+          <label class="cursor-pointer">
+            <input type="checkbox" name="interests[]" value="<%= int[:key] %>" <%= "checked" if checked %> class="peer sr-only">
+            <span class="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-slate-700 bg-slate-800/40 text-sm text-slate-300 peer-checked:bg-emerald-500/15 peer-checked:border-emerald-500/50 peer-checked:text-emerald-100 hover:border-emerald-500/40 transition-colors">
+              <span class="text-base"><%= int[:emoji] %></span>
+              <span class="leading-tight"><%= int[:label] %></span>
+            </span>
+          </label>
+        <% end %>
+      </div>
+      <p class="text-[11px] text-slate-500 mt-2">Skip if you want a balanced mix — we'll surface the top picks across categories.</p>
+    </fieldset>
+  </div>
+
+  <div class="flex items-center justify-end gap-3">
+    <%= submit_tag "Find nearby ideas →", class: "inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-emerald-500 text-slate-950 font-semibold shadow-lg shadow-emerald-500/20 hover:bg-emerald-400 transition-colors cursor-pointer" %>
+  </div>
+<% end %>

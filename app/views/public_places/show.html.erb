@@ -1,0 +1,134 @@
+<% page_title = @place.canonical_name.presence || @place.name %>
+<% content_for :title, "#{page_title} · Plan My Trip" %>
+<% content_for :description, "#{page_title}#{" — #{@place.famous_for}" if @place.famous_for.present?}. Add it to a road-trip itinerary with day-by-day plans, drive-time games, and a podcast for the road." %>
+
+<% content_for :head do %>
+  <link rel="canonical" href="<%= public_place_url(@place.slug) %>">
+  <meta property="og:type"        content="article">
+  <meta property="og:title"       content="<%= page_title %>">
+  <meta property="og:description" content="<%= @place.famous_for.presence || @place.description.to_s[0, 200] %>">
+  <meta property="og:url"         content="<%= public_place_url(@place.slug) %>">
+  <% if @place.image_url.present? %>
+    <meta property="og:image"   content="<%= @place.image_url %>">
+    <meta name="twitter:card"   content="summary_large_image">
+  <% else %>
+    <meta name="twitter:card"   content="summary">
+  <% end %>
+
+  <%# Structured data — Schema.org TouristAttraction for rich results. %>
+  <script type="application/ld+json">
+  <%= raw({
+    "@context" => "https://schema.org",
+    "@type"    => "TouristAttraction",
+    "name"     => page_title,
+    "description" => @place.description.presence || @place.famous_for,
+    "image"       => @place.image_url,
+    "geo" => (if @place.latitude && @place.longitude
+      { "@type" => "GeoCoordinates", "latitude" => @place.latitude.to_f, "longitude" => @place.longitude.to_f }
+    end),
+    "address" => @place.region,
+    "url" => public_place_url(@place.slug)
+  }.compact.to_json) %>
+  </script>
+<% end %>
+
+<article class="relative">
+  <%# Hero %>
+  <div class="relative h-[55vh] min-h-[420px] max-h-[640px] overflow-hidden">
+    <% if @place.image_url.present? %>
+      <%= image_tag @place.image_url, alt: page_title, class: "absolute inset-0 w-full h-full object-cover" %>
+    <% else %>
+      <div class="absolute inset-0 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950"></div>
+    <% end %>
+    <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent"></div>
+
+    <div class="absolute inset-x-0 bottom-0 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 sm:pb-12">
+      <div class="flex flex-wrap items-center gap-2 mb-3 text-xs uppercase tracking-[0.18em] text-slate-300">
+        <% if @place.tier.present? %>
+          <span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-200 border border-amber-500/30"><%= @place.tier.humanize %></span>
+        <% end %>
+        <% if @place.kind.present? %>
+          <span class="px-2 py-0.5 rounded-full bg-slate-800/80 border border-slate-700"><%= @place.kind.humanize %></span>
+        <% end %>
+        <% if @place.region.present? %>
+          <span class="text-slate-400">· <%= @place.region %></span>
+        <% end %>
+      </div>
+      <h1 class="font-display text-4xl sm:text-5xl lg:text-6xl text-slate-50 leading-[1.05] max-w-3xl">
+        <%= page_title %>
+      </h1>
+      <% if @place.famous_for.present? %>
+        <p class="mt-3 text-lg sm:text-xl text-amber-200/90 max-w-2xl"><%= @place.famous_for %></p>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 grid gap-10 lg:grid-cols-3">
+    <%# Body %>
+    <div class="lg:col-span-2 space-y-8">
+      <% if @place.description.present? %>
+        <section>
+          <h2 class="font-display text-2xl text-slate-50 mb-3">About <%= page_title %></h2>
+          <p class="text-slate-300 leading-relaxed whitespace-pre-line"><%= @place.description %></p>
+        </section>
+      <% end %>
+
+      <%# Inline conversion CTA — this is the whole reason we SEO. %>
+      <section class="rounded-2xl bg-gradient-to-br from-amber-500/15 via-amber-500/5 to-transparent border border-amber-500/30 p-6 sm:p-8">
+        <h3 class="font-display text-2xl text-slate-50">Plan a trip that visits <%= page_title %>.</h3>
+        <p class="mt-2 text-slate-300">Day-by-day itineraries, drive-time games, and a podcast for the road — Plan My Trip builds the whole thing for you.</p>
+        <%= link_to "Plan your trip →", new_user_registration_path,
+              class: "mt-5 inline-flex items-center px-5 py-2.5 rounded-lg bg-amber-500 text-slate-950 font-semibold hover:bg-amber-400 transition-colors" %>
+      </section>
+
+      <% if @nearby.any? %>
+        <section>
+          <h2 class="font-display text-2xl text-slate-50 mb-4">Nearby places to add to a trip</h2>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <% @nearby.each do |np| %>
+              <%= link_to public_place_path(np.slug), class: "group rounded-xl overflow-hidden bg-slate-900/60 border border-slate-800 hover:border-amber-500/40 transition-colors block" do %>
+                <% if np.image_url.present? %>
+                  <div class="aspect-[16/9] overflow-hidden bg-slate-800">
+                    <%= image_tag np.image_url, alt: np.name, class: "w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300", loading: "lazy" %>
+                  </div>
+                <% end %>
+                <div class="p-4">
+                  <p class="text-slate-100 font-medium leading-tight"><%= np.name %></p>
+                  <% if np.famous_for.present? %>
+                    <p class="text-sm text-slate-400 mt-1 line-clamp-2"><%= np.famous_for %></p>
+                  <% end %>
+                </div>
+              <% end %>
+            <% end %>
+          </div>
+        </section>
+      <% end %>
+    </div>
+
+    <%# Sidebar %>
+    <aside class="space-y-5">
+      <% if @place.latitude && @place.longitude %>
+        <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
+          <p class="text-xs uppercase tracking-wider text-slate-500 mb-2">Location</p>
+          <p class="text-slate-100"><%= @place.region.presence || "#{@place.latitude.to_f.round(3)}, #{@place.longitude.to_f.round(3)}" %></p>
+          <%= link_to "Open in Google Maps →",
+                "https://www.google.com/maps/search/?api=1&query=#{CGI.escape(@place.canonical_name.presence || @place.name)}",
+                target: "_blank", rel: "noopener",
+                class: "mt-3 inline-flex text-sm text-amber-300 hover:text-amber-200" %>
+        </div>
+      <% end %>
+
+      <% if @place.usage_count.to_i.positive? %>
+        <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
+          <p class="text-xs uppercase tracking-wider text-slate-500 mb-1">On Plan My Trip</p>
+          <p class="text-slate-100 text-2xl font-display"><%= pluralize(@place.usage_count, "trip") %></p>
+          <p class="text-sm text-slate-400">have added this place to a plan.</p>
+        </div>
+      <% end %>
+
+      <% if @place.image_attribution.present? %>
+        <p class="text-xs text-slate-500">Image: <%= @place.image_attribution %></p>
+      <% end %>
+    </aside>
+  </div>
+</article>

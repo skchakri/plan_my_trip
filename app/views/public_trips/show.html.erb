@@ -1,0 +1,116 @@
+<% content_for :title, "#{@trip.title} · Plan My Trip" %>
+<% content_for :description, @trip.destination.presence || @trip.title %>
+
+<%# OG/Twitter unfurl card for iMessage / Slack / WhatsApp. Falls back gracefully
+    when there's no hero photo. %>
+<% hero_image = @trip.trip_days.flat_map(&:activities).map(&:hero_image_url).compact.first %>
+<% content_for :og do %>
+  <meta property="og:type"        content="article">
+  <meta property="og:title"       content="<%= @trip.title %>">
+  <meta property="og:description" content="<%= @trip.destination.presence || 'A trip on Plan My Trip' %>">
+  <meta property="og:url"         content="<%= public_trip_url(@trip.share_token) %>">
+  <% if hero_image %>
+    <meta property="og:image" content="<%= hero_image.start_with?('http') ? hero_image : request.base_url + hero_image %>">
+  <% end %>
+  <meta name="twitter:card" content="<%= hero_image ? 'summary_large_image' : 'summary' %>">
+<% end %>
+
+<div class="max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+  <header class="mb-10">
+    <p class="text-xs uppercase tracking-[0.22em] text-slate-500 mb-2">
+      <% if @trip.start_date && @trip.end_date %>
+        <%= @trip.start_date.strftime("%b %-d") %> – <%= @trip.end_date.strftime("%b %-d, %Y") %>
+        <% if @trip.nights %>· <%= pluralize(@trip.nights, "night") %><% end %>
+      <% else %>
+        Shared trip
+      <% end %>
+    </p>
+    <h1 class="font-display text-4xl sm:text-5xl text-slate-50 leading-tight"><%= @trip.title %></h1>
+    <% if @trip.destination.present? %>
+      <p class="mt-2 text-slate-300 text-lg"><%= @trip.destination %></p>
+    <% end %>
+    <p class="mt-4 text-sm text-slate-500">
+      Shared by <span class="text-slate-300"><%= @trip.owner.display_name %></span>
+    </p>
+  </header>
+
+  <% if @trip.body.present? %>
+    <section class="prose prose-invert prose-amber max-w-none mb-12 text-slate-200">
+      <%= sanitize Redcarpet::Markdown.new(Redcarpet::Render::HTML.new(filter_html: true, link_attributes: { rel: "noopener nofollow", target: "_blank" }), autolink: true, fenced_code_blocks: true, tables: true, no_intra_emphasis: true).render(@trip.body.to_s) %>
+    </section>
+  <% end %>
+
+  <% if @days.any? %>
+    <h2 class="font-display text-2xl text-slate-50 mb-5">Day by day</h2>
+    <div class="space-y-6">
+      <% @days.each_with_index do |day, idx| %>
+        <article class="rounded-2xl bg-slate-900/60 border border-slate-800 p-5 sm:p-6">
+          <div class="flex items-baseline justify-between gap-3 mb-3">
+            <h3 class="font-display text-xl text-slate-100">
+              Day <%= idx + 1 %><% if day.respond_to?(:title) && day.title.present? %> · <%= day.title %><% end %>
+            </h3>
+            <% if day.respond_to?(:date) && day.date %>
+              <span class="text-xs uppercase tracking-wider text-slate-500"><%= day.date.strftime("%a · %b %-d") %></span>
+            <% end %>
+          </div>
+
+          <% if day.activities.any? %>
+            <ol class="space-y-4">
+              <% day.activities.each do |a| %>
+                <li class="flex gap-3.5">
+                  <% if a.hero_image_url %>
+                    <div class="shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden bg-slate-800">
+                      <%= image_tag a.hero_image_url, alt: a.title, class: "w-full h-full object-cover", loading: "lazy" %>
+                    </div>
+                  <% else %>
+                    <div class="shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-lg bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/60"></div>
+                  <% end %>
+                  <div class="min-w-0 flex-1">
+                    <% if a.time_label.present? %>
+                      <span class="inline-block text-[11px] uppercase tracking-wider text-amber-300 mb-0.5"><%= a.time_label %></span>
+                    <% end %>
+                    <h4 class="text-slate-100 font-medium leading-tight"><%= a.title %></h4>
+                    <% if a.location_name.present? %>
+                      <p class="text-sm text-slate-400 mt-0.5"><%= a.location_name %></p>
+                    <% end %>
+                    <% if a.notes.present? %>
+                      <p class="text-sm text-slate-300 mt-1.5 line-clamp-3"><%= a.notes %></p>
+                    <% end %>
+                  </div>
+                </li>
+              <% end %>
+            </ol>
+          <% else %>
+            <p class="text-sm text-slate-500 italic">No stops added yet.</p>
+          <% end %>
+        </article>
+      <% end %>
+    </div>
+  <% end %>
+
+  <% webcal = public_trip_calendar_url(@trip.share_token).sub(%r{\Ahttps?://}, "webcal://") %>
+  <div class="mt-10 rounded-xl border border-slate-800 bg-slate-900/40 p-5 flex items-center justify-between gap-4 flex-wrap no-print">
+    <div class="min-w-0">
+      <p class="text-sm text-slate-200 font-medium">Take it with you</p>
+      <p class="text-xs text-slate-500 mt-0.5">Subscribe for live updates, or save a PDF for offline.</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button type="button" onclick="window.print()"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 text-slate-200 text-sm hover:border-amber-500/50 hover:bg-slate-800/50 transition-colors">
+        <%= icon :printer, class: "w-4 h-4" %> PDF
+      </button>
+      <%= link_to webcal,
+            class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-500/15 text-teal-200 border border-teal-500/30 text-sm hover:bg-teal-500/25 transition-colors" do %>
+        <%= icon :calendar, class: "w-4 h-4" %> Subscribe
+      <% end %>
+    </div>
+  </div>
+
+  <%# Inline conversion CTA — softer than the sticky banner. %>
+  <section class="mt-14 rounded-2xl bg-gradient-to-br from-amber-500/15 via-amber-500/5 to-transparent border border-amber-500/30 p-6 sm:p-8 text-center">
+    <h3 class="font-display text-2xl text-slate-50">Like this trip? Plan your own.</h3>
+    <p class="mt-2 text-slate-300 max-w-md mx-auto">Day-by-day plans, drive-time games, and a podcast for the road — all built around your crew.</p>
+    <%= link_to "Start planning →", new_user_registration_path,
+          class: "mt-5 inline-flex items-center px-5 py-2.5 rounded-lg bg-amber-500 text-slate-950 font-semibold hover:bg-amber-400 transition-colors" %>
+  </section>
+</div>

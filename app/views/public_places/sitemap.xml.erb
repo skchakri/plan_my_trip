@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+<% @places.find_each do |place| %>
+  <url>
+    <loc><%= public_place_url(place.slug) %></loc>
+    <lastmod><%= place.updated_at.utc.iso8601 %></lastmod>
+    <changefreq>monthly</changefreq>
+    <priority><%= place.usage_count.to_i.positive? ? "0.7" : "0.5" %></priority>
+    <% if place.image_url.present? %>
+      <image:image>
+        <image:loc><%= place.image_url %></image:loc>
+        <image:title><%= (place.canonical_name.presence || place.name).encode(xml: :text) %></image:title>
+      </image:image>
+    <% end %>
+  </url>
+<% end %>
+</urlset>

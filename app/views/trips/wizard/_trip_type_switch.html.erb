@@ -1,0 +1,66 @@
+<%# Two-option toggle at the top of trip creation: Multi-day (the wizard)
+    vs. Day trip (/day_trips/new). Pass `active: :multi_day` or `:day_trip`.
+    The active card looks selected; the inactive card is a link that routes
+    to the other flow. %>
+<% active ||= :multi_day %>
+<div class="grid grid-cols-2 gap-3 mb-6">
+  <% multi_active = active == :multi_day %>
+  <% if multi_active %>
+    <div class="rounded-xl border border-amber-500/60 bg-amber-500/[0.08] p-4 ring-2 ring-amber-500/20">
+      <div class="flex items-center gap-2.5">
+        <span class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-amber-500/15 text-amber-300">
+          <%= icon :calendar, class: "w-5 h-5" %>
+        </span>
+        <div class="min-w-0">
+          <p class="text-sm font-semibold text-amber-100">Multi-day trip</p>
+          <p class="text-[11px] text-amber-200/70 leading-tight">Itinerary + lodging + checklist</p>
+        </div>
+        <span class="ml-auto inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-500 text-slate-950">
+          <%= icon :check, class: "w-3.5 h-3.5", stroke_width: 2.5 %>
+        </span>
+      </div>
+    </div>
+  <% else %>
+    <%= link_to wizard_destination_path, class: "rounded-xl border border-slate-800 bg-slate-900/40 p-4 hover:border-amber-500/50 hover:bg-amber-500/[0.04] transition-colors group" do %>
+      <div class="flex items-center gap-2.5">
+        <span class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-slate-800 text-slate-400 group-hover:text-amber-300 group-hover:bg-amber-500/10 transition-colors">
+          <%= icon :calendar, class: "w-5 h-5" %>
+        </span>
+        <div class="min-w-0">
+          <p class="text-sm font-semibold text-slate-200 group-hover:text-amber-100">Multi-day trip</p>
+          <p class="text-[11px] text-slate-500 leading-tight">Itinerary + lodging + checklist</p>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
+
+  <% day_active = active == :day_trip %>
+  <% if day_active %>
+    <div class="rounded-xl border border-emerald-500/60 bg-emerald-500/[0.08] p-4 ring-2 ring-emerald-500/20">
+      <div class="flex items-center gap-2.5">
+        <span class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-emerald-500/15 text-emerald-300">
+          <%= icon :sun, class: "w-5 h-5" %>
+        </span>
+        <div class="min-w-0">
+          <p class="text-sm font-semibold text-emerald-100">Day trip</p>
+          <p class="text-[11px] text-emerald-200/70 leading-tight">Round-trip from home in one day</p>
+        </div>
+        <span class="ml-auto inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-500 text-slate-950">
+          <%= icon :check, class: "w-3.5 h-3.5", stroke_width: 2.5 %>
+        </span>
+      </div>
+    </div>
+  <% else %>
+    <%= link_to day_trips_new_path, class: "rounded-xl border border-slate-800 bg-slate-900/40 p-4 hover:border-emerald-500/50 hover:bg-emerald-500/[0.04] transition-colors group" do %>
+      <div class="flex items-center gap-2.5">
+        <span class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-slate-800 text-slate-400 group-hover:text-emerald-300 group-hover:bg-emerald-500/10 transition-colors">
+          <%= icon :sun, class: "w-5 h-5" %>
+        </span>
+        <div class="min-w-0">
+          <p class="text-sm font-semibold text-slate-200 group-hover:text-emerald-100">Day trip</p>
+          <p class="text-[11px] text-slate-500 leading-tight">Round-trip from home in one day</p>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
+</div>

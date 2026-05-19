@@ -1,0 +1,125 @@
+<% content_for :title, "Pick your stops" %>
+
+<div class="mb-6">
+  <%= link_to day_trips_new_path(date: @date, anchor_label: @anchor_label, anchor_lat: @anchor_lat, anchor_lng: @anchor_lng, radius_km: @radius_km, interests: @interests),
+        class: "inline-flex items-center gap-1 text-sm text-slate-400 hover:text-emerald-300 transition-colors" do %>
+    <%= icon :arrow_left, class: "w-4 h-4" %> Change anchor / interests
+  <% end %>
+  <p class="text-[11px] uppercase tracking-[0.18em] text-emerald-400 font-medium mt-3">Day trip · pick your stops</p>
+  <h1 class="font-display text-3xl sm:text-4xl font-semibold tracking-tight">
+    Within <%= km_to_miles(@radius_km, precision: 0) %> mi of <%= @anchor_label.presence || "your home base" %>
+  </h1>
+  <p class="text-sm text-slate-400 mt-1.5"><%= @date.strftime("%A %b %-d") %> · interests: <%= @interests.any? ? @interests.map(&:capitalize).join(" · ") : "balanced mix" %></p>
+</div>
+
+<% if @diff_from_home %>
+  <div class="mb-5">
+    <%= button_to day_trip_save_home_base_path(anchor_label: @anchor_label, anchor_lat: @anchor_lat, anchor_lng: @anchor_lng),
+          method: :post,
+          class: "text-xs text-emerald-300 hover:text-emerald-200 underline" do %>
+      Save "<%= @anchor_label %>" as my home base
+    <% end %>
+  </div>
+<% end %>
+
+<% if @ideas.empty? %>
+  <div class="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-6 text-sm text-amber-100">
+    <p class="font-medium mb-1">No ideas found yet.</p>
+    <p class="text-amber-200/70">Try expanding the radius, or pick a different home base. If you just set up, the AI lookup can take 30-90 seconds — refresh in a moment.</p>
+  </div>
+<% else %>
+  <%= form_with url: day_trips_path, method: :post, local: true,
+        data: { controller: "idea-picker" }, class: "space-y-5" do |f| %>
+
+    <%= hidden_field_tag :anchor_label, @anchor_label %>
+    <%= hidden_field_tag :anchor_lat,   @anchor_lat %>
+    <%= hidden_field_tag :anchor_lng,   @anchor_lng %>
+    <%= hidden_field_tag :radius_km,    @radius_km %>
+    <% @interests.each do |i| %><%= hidden_field_tag "interests[]", i %><% end %>
+    <%= hidden_field_tag :date, @date %>
+
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      <div>
+        <label class="block text-[11px] uppercase tracking-widest text-slate-400 font-semibold mb-1.5">Depart at</label>
+        <%= time_field_tag :depart_time, "08:00", class: "w-full rounded-lg bg-slate-800/70 border border-slate-700 px-3 py-2.5" %>
+      </div>
+      <div>
+        <label class="block text-[11px] uppercase tracking-widest text-slate-400 font-semibold mb-1.5">Return by</label>
+        <%= time_field_tag :return_time, "19:00", class: "w-full rounded-lg bg-slate-800/70 border border-slate-700 px-3 py-2.5" %>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-between text-xs text-slate-500">
+      <span data-idea-picker-target="counter">0 selected</span>
+      <span>tap cards to add · 3-6 is the sweet spot for a day</span>
+    </div>
+
+    <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <% @ideas.each do |idea| %>
+        <li>
+          <label class="group block h-full cursor-pointer">
+            <input type="checkbox" name="selected_slugs[]" value="<%= idea.slug %>"
+                   data-idea-picker-target="checkbox"
+                   data-action="change->idea-picker#update"
+                   class="sr-only">
+            <div class="h-full rounded-2xl border border-slate-800 bg-slate-900/40 overflow-hidden group-has-[:checked]:border-emerald-500/60 group-has-[:checked]:bg-emerald-500/5 hover:border-slate-600 transition-colors relative">
+              <% if idea.image_url.present? %>
+                <div class="aspect-[16/10] bg-slate-800 overflow-hidden relative">
+                  <img src="<%= idea.image_url %>" alt="<%= idea.name %>" loading="lazy" class="w-full h-full object-cover">
+                  <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent"></div>
+                </div>
+              <% else %>
+                <div class="aspect-[16/10] bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center text-slate-600 text-xs uppercase tracking-widest">No photo</div>
+              <% end %>
+              <div class="absolute top-2 left-2 flex flex-col items-start gap-1.5 z-10">
+                <%= place_rank_chip(idea) %>
+                <%= place_tier_badge(idea) %>
+              </div>
+              <div class="absolute top-2 right-2 w-7 h-7 rounded-full bg-slate-950/80 border border-slate-700 flex items-center justify-center group-has-[:checked]:bg-emerald-500 group-has-[:checked]:border-emerald-400 transition-colors z-10">
+                <%= icon :check, class: "w-4 h-4 text-slate-700 group-has-[:checked]:text-slate-950" %>
+              </div>
+              <div class="p-3.5">
+                <div class="flex items-start justify-between gap-2 mb-1.5">
+                  <h3 class="font-semibold text-slate-100 leading-snug text-[15px]"><%= idea.name %></h3>
+                  <% if idea.respond_to?(:has_real_rating?) && idea.has_real_rating? %>
+                    <span class="shrink-0 text-[11px] text-slate-400 inline-flex items-center gap-1 tabular-nums">
+                      <%= star_row(idea.rating, klass: "w-3 h-3") %>
+                      <%= idea.community_rating_count %>
+                    </span>
+                  <% end %>
+                </div>
+                <% if idea.summary.present? %>
+                  <p class="text-[13px] text-slate-400 leading-snug line-clamp-3"><%= idea.summary %></p>
+                <% end %>
+                <div class="flex flex-wrap items-center gap-1.5 mt-2.5 text-[11px]">
+                  <% if idea.drive_minutes %>
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-200">
+                      <%= icon :clock, class: "w-3 h-3" %> <%= idea.drive_minutes %> min
+                    </span>
+                  <% end %>
+                  <% if idea.distance_km %>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-800/80 border border-slate-700 text-slate-400"><%= km_to_miles(idea.distance_km) %> mi</span>
+                  <% end %>
+                  <% if idea.interest.present? %>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-200"><%= idea.interest %></span>
+                  <% end %>
+                  <% Array(idea.tags).first(2).each do |tag| %>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-800/60 border border-slate-700 text-slate-400"><%= tag.to_s.tr("_", " ") %></span>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          </label>
+        </li>
+      <% end %>
+    </ul>
+
+    <div class="sticky bottom-4 mt-6">
+      <div class="rounded-xl border border-emerald-500/40 bg-slate-900/90 backdrop-blur p-4 shadow-2xl shadow-emerald-500/10 flex items-center justify-between gap-3">
+        <p class="text-sm text-slate-300"><strong data-idea-picker-target="summary">0</strong> picked · ready to build your day plan</p>
+        <%= submit_tag "Build my day plan →", class: "inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-emerald-500 text-slate-950 font-semibold hover:bg-emerald-400 transition-colors cursor-pointer disabled:opacity-50",
+                       data: { idea_picker_target: "submit" }, disabled: true %>
+      </div>
+    </div>
+  <% end %>
+<% end %>

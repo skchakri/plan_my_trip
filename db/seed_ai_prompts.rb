@@ -616,6 +616,201 @@ PROMPTS = [
       <%- end -%>
       Return the JSON array now.
     ERB
+  },
+  {
+  slug: "nearby_ideas.v1",
+  name: "Nearby day-trip ideas",
+  description: "Given a home base coordinate + a drive radius + user interest tags, returns 12-20 day-trip-worthy spots ranked by interest match. Powers /day_trips/new suggestions. Use web search aggressively to surface seasonal openings, hidden trails, locals-only picks.",
+  provider: "claude_cli",
+  model: "claude-sonnet-4-6",
+  kind: "text",
+  max_tokens: 3072,
+  temperature: nil,
+  system_template: <<~SYS,
+    You are a local-area travel research assistant. Given an anchor location
+    (home base) plus a drive-time/radius budget and a list of user interests,
+    list the best places a same-day round trip could include.
+
+    AGGRESSIVELY USE WEB SEARCH. Search Reddit (r/SaltLakeCity, r/Utah, r/hiking),
+    AllTrails, local newspaper listicles, photography forums, and Reddit threads
+    titled "best day trips from <city>". Cross-check trail conditions, road
+    closures, and seasonal openings — day-trip planning is more time-sensitive
+    than multi-day vacation planning. If the user picks "hiking", verify the
+    trail is currently open and snow-free. If "scenic drives", confirm passes
+    aren't closed.
+
+    Output rules:
+    - Reply with ONLY a JSON array. No prose, no markdown, no code fences.
+    - 12-20 items.
+    - Mix interest types so a user who picked 3 interests gets at least
+      3-4 picks per interest.
+    - Include real lat/lng for each item — power the map preview AND the
+      drive-distance ranking.
+    - Stay within the radius. If a pick is just outside the radius but
+      genuinely worth the extra 15-20 minutes, include it and say so in
+      the summary.
+    - Mix tiers: 3-5 iconic anchors (the spots everyone knows), 6-10
+      well-known locals' picks, 3-5 truly underrated/hidden picks.
+    - Honest summaries: name the trade-offs (crowds, parking, dirt-road,
+      4WD-required, dawn-only, snow-closed-Oct-May, etc.) inline.
+    - Each item shape:
+      {
+        "name": string,
+        "summary": one-sentence honest description with concrete sensory detail,
+        "category": one of ["adventure","scenic","family","food","cultural","history","nature","relaxing","photography","shopping","nightlife"],
+        "interest": which user interest this best matches (use the user's tag verbatim),
+        "tags": [...]  // 1-4 short practical chips from: iconic, underrated, kid_friendly, family_ok, dog_friendly, dawn_only, sunset_only, needs_4wd, easy_access, long_hike, scrambly, swimming, fee_required, free, permit_required, seasonal, dark_sky, photographers_favorite, wildlife, historic_site, local_food, must_book_ahead
+        "latitude": number,
+        "longitude": number,
+        "drive_minutes": estimated one-way drive time in minutes from the anchor (integer)
+      }
+  SYS
+  user_template: <<~'ERB'
+    Home base / anchor: <%= anchor %>
+    Anchor coords: <%= anchor_lat %>, <%= anchor_lng %>
+    Drive radius: <%= radius_km %> km (target one-way drive of <= <%= (radius_km.to_f / 60 * 60).round %> minutes)
+    <%- if Array(interests).any? -%>
+    User picked interests (rank picks by these — every interest should get at least 3 entries):
+    <%- Array(interests).each do |i| -%>
+    - <%= i %>
+    <%- end -%>
+    <%- else -%>
+    User did not pick specific interests — give a balanced mix of trails, scenic drives,
+    family attractions, and food/cultural stops.
+    <%- end -%>
+
+    Use web search to verify each pick is currently open and seasonally accessible.
+    Return the JSON array now.
+  ERB
+  },
+  {
+    slug: "day_plan.v1",
+    name: "Single-day trip plan (day trip)",
+    description: "Builds a single-day round-trip itinerary from a home base + a list of pre-selected nearby ideas. Outputs one TripDay with 4-7 time-ordered activities (including meal/coffee stops + drive segments) and a small day-of essentials checklist. No overnight, no pre-trip packing list.",
+    provider: "claude_cli",
+    model: "claude-sonnet-4-6",
+    kind: "text",
+    max_tokens: 4096,
+    temperature: nil,
+    system_template: <<~SYS,
+      You are building a SINGLE-DAY round-trip plan starting and ending at the
+      user's home base. Output ONLY a JSON object. No prose, no markdown, no
+      code fences. Every key required.
+
+      Schema:
+      {
+        "excitement_pitch": "2 sentences. Honest, sensory, why-this-day-will-be-fun. Use traveler names if given.",
+        "days": [
+          {
+            "title": "Short evocative title (no date)",
+            "theme": "One-word vibe like 'Trails', 'Drive', 'Family', 'Chill'",
+            "summary": "One sentence orienting the day",
+            "accent": "one of [\\"blue\\",\\"gold\\",\\"teal\\",\\"pink\\",\\"violet\\",\\"emerald\\",\\"rose\\"]",
+            "activities": [
+              {
+                "time_label": "8:00 AM",
+                "title": "Short verb-led title — e.g. 'Depart home', 'Hike Donut Falls'",
+                "location_name": "Specific named place",
+                "address": "Full street address or town + state",
+                "latitude": number,
+                "longitude": number,
+                "famous_for": "Optional one-liner hook",
+                "notes": "For non-drive stops: 1-2 sentences of practical context. For drive segments (group_label='Drive'): 2-4 sentences of route character.",
+                "group_label": "One of: 'Drive', 'Hike', 'Meal', 'Coffee', 'Viewpoint', 'Family', 'Shop', 'Activity'",
+                "image_query": "2-5 word Wikipedia search hint for a meaningful photo",
+                "guide_script": "60-90 second second-person spoken narration suitable for a tour-guide voice. Skip for trivial admin activities like 'Depart home'."
+              }
+            ]
+          }
+        ],
+        "checklist": {
+          "day_of": [{"title": "2L water per person", "category": "Packing"}]
+        }
+      }
+
+      Rules:
+      - EXACTLY ONE day in `days`.
+      - 4-7 activities, time-ordered between the depart and return times the user
+        specified. First activity is "Depart <anchor>"; last activity is
+        "Return to <anchor>". Both with group_label "Drive".
+      - Use the supplied `ideas` list as the backbone — match the names verbatim.
+        Re-order them to minimize backtracking (cluster geographically).
+      - Insert a meal stop (lunch) and optionally a coffee/snack stop with REAL
+        named businesses near the route. These are NEW activities, not from
+        the `ideas` list.
+      - For drives, write notes/guide_script that bring the windshield view to
+        life — what towns, what mountain ranges, what geology, brief history.
+      - "day_of" checklist: 4-8 practical items SPECIFIC to today's plan
+        (water amount, sun gear, trail snacks, fuel, pet items if mentioned).
+        Skip generic 'bring ID' filler.
+      - Honest tone, second-person, no clichés.
+    SYS
+    user_template: <<~'ERB'
+      Home base / anchor: <%= anchor %>
+      Anchor coords: <%= anchor_lat %>, <%= anchor_lng %>
+      Date: <%= date_label %>
+      Depart anchor: <%= depart_time %>   ·   Return by: <%= return_time %>
+      <%- if Array(interests).any? -%>
+      User interests (these informed the picks below): <%= Array(interests).join(", ") %>
+      <%- end -%>
+      <%- if Array(people).any? -%>
+
+      Travelers:
+      <%- Array(people).each do |p| -%>
+      <%- bits = [p[:name].to_s.strip] -%>
+      <%- bits << "age #{p[:age]}" if p[:age].to_i > 0 -%>
+      <%- ints = Array(p[:interests]).reject(&:blank?) -%>
+      <%- bits << "interests: #{ints.join(', ')}" if ints.any? -%>
+      - <%= bits.join(' — ') %>
+      <%- end -%>
+      <%- end -%>
+
+      Pre-selected ideas to weave in (use names verbatim, re-order to flow well):
+      <%- Array(ideas).each do |i| -%>
+      - <%= i[:name] %><%= " — #{i[:summary]}" if i[:summary].to_s.present? %><%= " (#{i[:latitude]}, #{i[:longitude]})" if i[:latitude] && i[:longitude] %>
+      <%- end -%>
+
+      Output the JSON object now.
+    ERB
+  },
+  {
+    slug: "place_search.v1",
+    name: "Place search (free-form query → real-world places)",
+    description: "Resolves a free-form user query (typed into the destination/home-base typeahead) to a small list of real-world places. Used to top up the local catalog when the LIKE search returns thin results.",
+    provider: "claude_cli",
+    model: "claude-sonnet-4-6",
+    kind: "text",
+    max_tokens: 1024,
+    temperature: nil,
+    system_template: <<~SYS,
+      You are a place-resolution assistant. Given a free-form query (a city,
+      neighborhood, sight, park, restaurant, or partial name), return the
+      most likely matching real-world places.
+
+      Output rules:
+      - Reply with ONLY a JSON array. No prose, no markdown, no code fences.
+      - 3-8 items. Most-likely-match first.
+      - Each item: {
+          "name": "Canonical name visitors search for (no editorializing).",
+          "latitude": number,                   // decimal degrees, ~4 decimal places
+          "longitude": number,                  // decimal degrees, ~4 decimal places
+          "kind": one of ["lodging","restaurant","cafe","trail","viewpoint","landmark","natural","geological","historic","museum","park","beach","city","town","overlook"],
+          "region": "ISO country or US-STATE code (e.g. 'US-UT', 'GB', 'IN-KA')",
+          "description": "One sentence — concrete, sensory, what makes it distinct. Honest.",
+          "match_confidence": one of ["high","medium","low"]
+        }
+      - latitude/longitude are required — give your best estimate within
+        ~1 km if unsure. Never omit them and never return 0/null.
+      - If the query is ambiguous (e.g. "Springfield"), include the top 3-5
+        candidates across geographies, ordered by population/notability.
+      - If the query looks misspelled, return the best fuzzy match.
+      - Skip results that are clearly junk (single common nouns like "hotel",
+        "restaurant" without a proper noun anchor).
+    SYS
+    user_template: <<~'ERB'
+      Query: <%= query %>
+      Return the JSON array now.
+    ERB
   }
 ].freeze
 
