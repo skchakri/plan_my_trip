@@ -31,9 +31,17 @@
   <div class="px-5 sm:px-8 py-6 space-y-6">
     <%# Stats strip %>
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div class="rounded-xl border border-amber-500/20 bg-amber-500/[0.04] p-3">
+        <p class="text-[10px] uppercase tracking-widest text-amber-300 font-semibold flex items-center gap-1.5">
+          <%= icon :star, class: "w-3 h-3 text-amber-400 fill-current" %>Community rating
+        </p>
+        <div class="flex items-center gap-2 mt-1.5">
+          <%= star_row(@place.community_rating || 0, klass: "w-3.5 h-3.5") %>
+        </div>
+        <p class="text-xs mt-1"><%= rating_caption(@place.community_rating, @place.community_rating_count) %></p>
+      </div>
       <% [
         [ "Used in trips", @place.usage_count, :sparkles ],
-        [ "Verified",      @place.verified ? "Yes" : "Crowdsourced", @place.verified ? :check : :map_pin ],
         [ "Kind",          @place.kind || "—", :list ],
         [ "Coordinates",   @place.latitude && @place.longitude ? "#{@place.latitude.to_f.round(4)}, #{@place.longitude.to_f.round(4)}" : "—", :map_pin ]
       ].each do |label, value, icon_name| %>
@@ -115,5 +123,72 @@
     <% if @place.contributed_by %>
       <p class="text-[11px] text-slate-500">First catalogued by <span class="text-slate-400"><%= @place.contributed_by.display_name.presence || @place.contributed_by.email %></span> on <%= @place.created_at.strftime("%b %-d, %Y") %>.</p>
     <% end %>
+
+    <%# Ratings & reviews thread %>
+    <section class="pt-5 mt-3 border-t border-slate-800" id="reviews">
+      <div class="flex items-baseline justify-between gap-3 mb-4">
+        <h2 class="font-display text-xl font-semibold text-slate-100">Ratings &amp; reviews</h2>
+        <span class="text-xs text-slate-500"><%= rating_caption(@place.community_rating, @place.community_rating_count) %></span>
+      </div>
+
+      <%# My review — write or edit %>
+      <%= form_with model: (@my_review || PlaceReview.new), url: place_reviews_path(@place.slug.presence || @place.id), local: true, html: { class: "rounded-2xl border border-slate-800 bg-slate-900/40 p-4 sm:p-5 mb-5" } do |f| %>
+        <p class="text-[11px] uppercase tracking-widest text-slate-400 font-semibold mb-3">
+          <%= @my_review ? "Update your review" : "Write a review" %>
+        </p>
+        <div data-controller="star-input" data-star-input-value-value="<%= @my_review&.rating || 0 %>" class="flex items-center gap-2 mb-3">
+          <%= f.hidden_field :rating, data: { star_input_target: "input" } %>
+          <% 1.upto(5) do |n| %>
+            <button type="button"
+                    data-action="click->star-input#select mouseenter->star-input#preview mouseleave->star-input#reset"
+                    data-value="<%= n %>"
+                    data-star-input-target="star"
+                    aria-label="Rate <%= n %>"
+                    class="text-slate-700 hover:text-amber-300 transition-colors cursor-pointer">
+              <%= icon :star, class: "w-7 h-7 fill-current" %>
+            </button>
+          <% end %>
+          <span data-star-input-target="label" class="text-sm text-slate-400 ml-2"></span>
+        </div>
+        <%= f.text_area :body, rows: 3, placeholder: "What stood out? Practical tips? (optional)",
+              class: "w-full rounded-lg bg-slate-950/60 border border-slate-700 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-amber-500/60" %>
+        <div class="flex items-center justify-between mt-3 gap-2">
+          <% if @my_review %>
+            <%= button_to "Remove my review",
+                  place_review_path(@place.slug.presence || @place.id, @my_review),
+                  method: :delete,
+                  class: "text-xs text-slate-500 hover:text-rose-300 cursor-pointer",
+                  data: { turbo_confirm: "Remove your review?" } %>
+          <% else %>
+            <span></span>
+          <% end %>
+          <%= f.submit(@my_review ? "Update" : "Post review",
+                class: "inline-flex items-center px-4 py-2 rounded-lg bg-amber-500 text-slate-950 font-semibold text-sm shadow-lg shadow-amber-500/20 hover:bg-amber-400 cursor-pointer") %>
+        </div>
+      <% end %>
+
+      <%# Others' reviews %>
+      <% others = @reviews.reject { |r| r.author_id == current_user.id } %>
+      <% if others.any? %>
+        <ul class="space-y-3">
+          <% others.each do |r| %>
+            <li class="rounded-2xl border border-slate-800 bg-slate-900/30 p-4">
+              <div class="flex items-center justify-between gap-3 mb-1.5">
+                <div class="flex items-center gap-2">
+                  <%= star_row(r.rating, klass: "w-3.5 h-3.5") %>
+                  <span class="text-sm font-medium text-slate-200"><%= r.author.display_name.presence || r.author.email.split("@").first %></span>
+                </div>
+                <span class="text-[11px] text-slate-500 tabular-nums"><%= time_ago_in_words(r.created_at) %> ago</span>
+              </div>
+              <% if r.body.present? %>
+                <p class="text-sm text-slate-300 leading-relaxed mt-1"><%= simple_format(r.body) %></p>
+              <% end %>
+            </li>
+          <% end %>
+        </ul>
+      <% elsif @my_review.nil? %>
+        <p class="text-sm text-slate-500 italic">Be the first to rate this place — your stars will help everyone planning a trip here.</p>
+      <% end %>
+    </section>
   </div>
 </article>

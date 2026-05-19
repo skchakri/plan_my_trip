@@ -9,9 +9,23 @@ class Place < ApplicationRecord
   include Discard::Model
 
   has_many :activities, dependent: :nullify
+  has_many :reviews, -> { kept.ordered }, class_name: "PlaceReview", dependent: :destroy
   belongs_to :contributed_by, class_name: "User", optional: true
 
   validates :name, presence: true
+  validates :slug, uniqueness: true, allow_nil: true
+  before_validation :assign_slug
+
+  # SEO-friendly URL fragment, falls back to UUID if no slug was set yet.
+  def to_param
+    slug.presence || id
+  end
+
+  # Public SEO route helper — Place rows are global, so the URL is stable
+  # across users.
+  def public_path
+    slug.present? ? "/p/#{slug}" : nil
+  end
 
   IMAGE_SOURCES = %w[wikipedia ai user google_places admin].freeze
   validates :image_source, inclusion: { in: IMAGE_SOURCES }, allow_nil: true
@@ -61,6 +75,22 @@ class Place < ApplicationRecord
     Place.haversine_m(latitude.to_f, longitude.to_f, lat.to_f, lng.to_f)
   end
 
+  private
+
+  def assign_slug
+    return if slug.present?
+    base = (canonical_name.presence || name.to_s).parameterize
+    return if base.blank?
+    # Mint the UUID client-side so the slug suffix is stable on first save.
+    # Without this, `id` is nil during before_validation on new records and
+    # the suffix would be empty, allowing collisions on duplicate names.
+    self.id ||= SecureRandom.uuid
+    suffix = id.to_s.delete("-")[0, 6]
+    self.slug = "#{base}-#{suffix}".gsub(/-+/, "-").chomp("-")
+  end
+
+  public
+
   def self.haversine_m(lat1, lng1, lat2, lng2)
     r = 6_371_000.0
     to_rad = ->(d) { d * Math::PI / 180.0 }
@@ -77,5 +107,15 @@ class Place < ApplicationRecord
     self.usage_count = (usage_count || 0) + 1
     self.contributed_by ||= by
     save!
+  end
+
+  # Refreshes the denormalized community rating columns from kept reviews.
+  # Called from PlaceReview callbacks — keeps card-grid queries cheap by
+  # avoiding a per-card AVG aggregate.
+  def recompute_community_rating!
+    scope = PlaceReview.where(place_id: id).kept
+    count = scope.count
+    avg   = count.zero? ? nil : scope.average(:rating)&.to_f&.round(2)
+    update_columns(community_rating: avg, community_rating_count: count)
   end
 end

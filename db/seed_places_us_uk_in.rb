@@ -63,6 +63,11 @@ PLACES = [
   { name: "Multnomah Falls",                 lat: 45.5760, lng: -122.1158, kind: "natural",    tier: "underrated", region: "US-OR", famous_for: "620-ft two-tiered waterfall on the Columbia River Gorge, with the photogenic Benson Footbridge." },
   { name: "White Sands National Park",       lat: 32.7872, lng: -106.3257, kind: "natural",    tier: "underrated", region: "US-NM", famous_for: "275 sq mi of pure white gypsum dunes — sledding, sunset hikes, surreal photographs." },
 
+  # ─── HANKSVILLE / ROBBERS ROOST (trip-report icons, no Wikipedia article) ──
+  { name: "Moon Overlook",                   lat: 38.1430, lng: -110.4920, kind: "viewpoint",  tier: "hidden_gem", region: "US-UT", famous_for: "End-of-Burr-Point sandstone perch above the Dirty Devil — surreal moonscape views, no facilities, last 4 miles need high clearance 4×4." },
+  { name: "Bentonite Hills",                 lat: 38.4467, lng: -110.9617, kind: "geological", tier: "underrated", region: "US-UT", famous_for: "Mars-on-Earth striped pink-blue-lavender bentonite mounds along Cathedral Valley road west of Hanksville — backdrop of the Mars Desert Research Station." },
+  { name: "Long Dong Silver",                lat: 38.2497, lng: -110.4453, kind: "trail",      tier: "hidden_gem", region: "US-UT", famous_for: "Robbers Roost technical slot canyon — rappels through silver-burnished sandstone narrows, canyoneering-only, full-day commitment." },
+
   # ═══════════════════════════════════════════════════════════════
   # 🇬🇧 UNITED KINGDOM
   # ═══════════════════════════════════════════════════════════════

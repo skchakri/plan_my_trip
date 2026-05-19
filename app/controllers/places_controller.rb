@@ -9,13 +9,23 @@ class PlacesController < ApplicationController
     return render(json: { results: [] }) if q.length < 2
 
     pattern = "%#{q.downcase}%"
-    matches = Place.kept
+    catalog = Place.kept
                    .where("lower(name) LIKE ? OR lower(canonical_name) LIKE ?", pattern, pattern)
                    .order(usage_count: :desc, name: :asc)
                    .limit(limit)
+                   .to_a
+
+    # Top up with AI-discovered places when the catalog is thin. Discoverer
+    # caches per query 30d and persists every result through Places::Seeder
+    # so subsequent searches hit the catalog directly.
+    discovered = []
+    if catalog.size < 4 && q.length >= Places::Discoverer::MIN_QUERY_LENGTH
+      seen_ids = catalog.map(&:id).to_set
+      discovered = Places::Discoverer.call(q, user: current_user).reject { |p| seen_ids.include?(p.id) }
+    end
 
     render json: {
-      results: matches.map do |p|
+      results: (catalog + discovered).first(limit).map do |p|
         {
           id: p.id,
           name: p.name,
@@ -25,14 +35,15 @@ class PlacesController < ApplicationController
           lat: p.latitude&.to_f,
           lng: p.longitude&.to_f,
           usage_count: p.usage_count,
-          summary: p.description.to_s[0, 140]
+          summary: p.description.to_s[0, 140],
+          ai_discovered: discovered.include?(p)
         }
       end
     }
   end
 
   def show
-    @place = Place.kept.find(params[:id])
+    @place = Place.kept.find_by(slug: params[:id]) || Place.kept.find(params[:id])
     # "Trips that visited" — only those the current user has access to.
     # Catalog reuse is shared across users, but trip-level details are
     # still per-membership.
@@ -48,5 +59,50 @@ class PlacesController < ApplicationController
     # platform (not filtered). Useful "1,247 trips visited here" copy.
     @total_visits = @place.usage_count
     @other_trip_count = [ @total_visits - @visiting_activities.size, 0 ].max
+
+    @reviews = @place.reviews.includes(:author).to_a
+    @my_review = @reviews.find { |r| r.author_id == current_user.id }
+  end
+
+  # POST /places/rate
+  # Accepts a card payload (name + coords + optional metadata) plus
+  # rating and optional body. Resolves to a catalog Place (creating
+  # one when the card came purely from the LLM), then upserts the
+  # current_user's review. Returns JSON the modal uses to refresh
+  # the stars + rating chip inline.
+  def rate
+    rating = params[:rating].to_i
+    return render(json: { error: "rating must be 1..5" }, status: :unprocessable_entity) unless (1..5).include?(rating)
+
+    place = Places.find_or_create_from_card!(
+      name:          params[:name],
+      lat:           params[:latitude],
+      lng:           params[:longitude],
+      summary:       params[:summary],
+      image_url:     params[:image_url],
+      wikipedia_url: params[:wikipedia_url],
+      kind:          params[:kind],
+      user:          current_user
+    )
+    return render(json: { error: "could not resolve place" }, status: :unprocessable_entity) unless place
+
+    review = PlaceReview.where(place_id: place.id, author_id: current_user.id).kept.first ||
+             PlaceReview.new(place_id: place.id, author_id: current_user.id)
+    review.rating = rating
+    review.body   = params[:body].to_s.strip.presence
+    if review.save
+      place.reload
+      render json: {
+        place_id: place.id,
+        slug: place.slug,
+        path: place.slug.present? ? place_path(place.slug) : place_path(place.id),
+        rating: place.community_rating&.to_f,
+        rating_count: place.community_rating_count.to_i,
+        my_rating: review.rating,
+        my_body: review.body
+      }
+    else
+      render json: { error: review.errors.full_messages.first }, status: :unprocessable_entity
+    end
   end
 end
