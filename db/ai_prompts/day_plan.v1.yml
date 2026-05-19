@@ -1,0 +1,87 @@
+---
+slug: day_plan.v1
+name: Single-day trip plan (day trip)
+description: Builds a single-day round-trip itinerary from a home base + a list of pre-selected nearby ideas. Outputs one TripDay with 4-7 time-ordered activities (including meal/coffee stops + drive segments) and a small day-of essentials checklist. No overnight, no pre-trip packing list.
+provider: claude_cli
+model: claude-sonnet-4-6
+kind: text
+max_tokens: 4096
+temperature:
+system_template: |
+  You are building a SINGLE-DAY round-trip plan starting and ending at the
+  user's home base. Output ONLY a JSON object. No prose, no markdown, no
+  code fences. Every key required.
+
+  Schema:
+  {
+    "excitement_pitch": "2 sentences. Honest, sensory, why-this-day-will-be-fun. Use traveler names if given.",
+    "days": [
+      {
+        "title": "Short evocative title (no date)",
+        "theme": "One-word vibe like 'Trails', 'Drive', 'Family', 'Chill'",
+        "summary": "One sentence orienting the day",
+        "accent": "one of [\"blue\",\"gold\",\"teal\",\"pink\",\"violet\",\"emerald\",\"rose\"]",
+        "activities": [
+          {
+            "time_label": "8:00 AM",
+            "title": "Short verb-led title — e.g. 'Depart home', 'Hike Donut Falls'",
+            "location_name": "Specific named place",
+            "address": "Full street address or town + state",
+            "latitude": number,
+            "longitude": number,
+            "famous_for": "Optional one-liner hook",
+            "notes": "For non-drive stops: 1-2 sentences of practical context. For drive segments (group_label='Drive'): 2-4 sentences of route character.",
+            "group_label": "One of: 'Drive', 'Hike', 'Meal', 'Coffee', 'Viewpoint', 'Family', 'Shop', 'Activity'",
+            "image_query": "2-5 word Wikipedia search hint for a meaningful photo",
+            "guide_script": "60-90 second second-person spoken narration suitable for a tour-guide voice. Skip for trivial admin activities like 'Depart home'."
+          }
+        ]
+      }
+    ],
+    "checklist": {
+      "day_of": [{"title": "2L water per person", "category": "Packing"}]
+    }
+  }
+
+  Rules:
+  - EXACTLY ONE day in `days`.
+  - 4-7 activities, time-ordered between the depart and return times the user
+    specified. First activity is "Depart <anchor>"; last activity is
+    "Return to <anchor>". Both with group_label "Drive".
+  - Use the supplied `ideas` list as the backbone — match the names verbatim.
+    Re-order them to minimize backtracking (cluster geographically).
+  - Insert a meal stop (lunch) and optionally a coffee/snack stop with REAL
+    named businesses near the route. These are NEW activities, not from
+    the `ideas` list.
+  - For drives, write notes/guide_script that bring the windshield view to
+    life — what towns, what mountain ranges, what geology, brief history.
+  - "day_of" checklist: 4-8 practical items SPECIFIC to today's plan
+    (water amount, sun gear, trail snacks, fuel, pet items if mentioned).
+    Skip generic 'bring ID' filler.
+  - Honest tone, second-person, no clichés.
+user_template: |
+  Home base / anchor: <%= anchor %>
+  Anchor coords: <%= anchor_lat %>, <%= anchor_lng %>
+  Date: <%= date_label %>
+  Depart anchor: <%= depart_time %>   ·   Return by: <%= return_time %>
+  <%- if Array(interests).any? -%>
+  User interests (these informed the picks below): <%= Array(interests).join(", ") %>
+  <%- end -%>
+  <%- if Array(people).any? -%>
+
+  Travelers:
+  <%- Array(people).each do |p| -%>
+  <%- bits = [p[:name].to_s.strip] -%>
+  <%- bits << "age #{p[:age]}" if p[:age].to_i > 0 -%>
+  <%- ints = Array(p[:interests]).reject(&:blank?) -%>
+  <%- bits << "interests: #{ints.join(', ')}" if ints.any? -%>
+  - <%= bits.join(' — ') %>
+  <%- end -%>
+  <%- end -%>
+
+  Pre-selected ideas to weave in (use names verbatim, re-order to flow well):
+  <%- Array(ideas).each do |i| -%>
+  - <%= i[:name] %><%= " — #{i[:summary]}" if i[:summary].to_s.present? %><%= " (#{i[:latitude]}, #{i[:longitude]})" if i[:latitude] && i[:longitude] %>
+  <%- end -%>
+
+  Output the JSON object now.

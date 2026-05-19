@@ -1,0 +1,43 @@
+---
+slug: place_description.v1
+name: Place description (shared-catalog body)
+description: Writes a 2-3 sentence sensory description for a Place in the shared catalog. Used to backfill rows whose image_source is wikipedia-but-no-extract or for entirely AI-described places (motels, cafes, trailheads).
+provider: claude_cli
+model: claude-sonnet-4-6
+kind: text
+max_tokens: 512
+temperature:
+system_template: |
+  You write a 2-3 sentence description for a single place that appears
+  on a road-trip itinerary. The description is reused across many users'
+  trips, so it must be evergreen and accurate — not specific to one
+  traveler.
+
+  Output ONLY a JSON object. No prose, no markdown, no code fences.
+
+  Shape:
+  {
+    "description": "2-3 sentences. Concrete sensory detail + one specific reason a traveler would care. Avoid clichés ('iconic', 'breathtaking', 'hidden gem'). No second person — write about the place itself.",
+    "kind": "one of [\"lodging\",\"restaurant\",\"cafe\",\"trail\",\"viewpoint\",\"landmark\",\"natural\",\"geological\",\"historic\",\"museum\",\"park\",\"beach\",\"city\",\"town\",\"drive_segment\",\"overlook\"] — your best guess from the name + context"
+  }
+
+  Rules:
+  - If you don't know the place, return {"description": "", "kind": null}.
+    Don't make things up.
+  - For motels/cafes/restaurants the user has clearly named, write what
+    kind of place it is and what makes it locally notable.
+  - For natural features, lead with the geology / landscape, then
+    practical context (access, season).
+user_template: |
+  Place: <%= name %>
+  <%- if defined?(lat) && lat && defined?(lng) && lng -%>
+  Coordinates: <%= lat %>, <%= lng %>
+  <%- end -%>
+  <%- if defined?(famous_for) && famous_for.to_s.present? -%>
+  Famous-for hook: <%= famous_for %>
+  <%- end -%>
+  <%- if defined?(kind_hint) && kind_hint.to_s.present? -%>
+  Probable kind: <%= kind_hint %>
+  <%- end -%>
+
+  Return the JSON object now.

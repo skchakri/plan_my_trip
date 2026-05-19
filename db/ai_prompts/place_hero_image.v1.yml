@@ -1,0 +1,16 @@
+---
+slug: place_hero_image.v1
+name: Place hero image (OpenAI)
+description: 'Reserved: generate a hero image for a place when no Wikipedia photo exists. Not wired into any caller yet — admin can enable + plug into HighlightDetail later.'
+provider: openai
+model: gpt-image-1
+kind: image
+max_tokens:
+temperature:
+system_template: ''
+user_template: |
+  A photorealistic, magazine-quality hero photograph of <%= name %> in <%= destination %>.
+  <%- if defined?(category) && category.to_s.present? -%>
+  Mood: <%= category %>.
+  <%- end -%>
+  Cinematic lighting, no people, no text, 16:9 composition.

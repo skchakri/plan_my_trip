@@ -1,0 +1,52 @@
+---
+slug: itinerary_builder.v1
+name: Itinerary markdown body
+description: Generates the markdown body saved on Trip#body (overview + per-day sections + tips). Complementary to trip_structure.v1 which produces the structured records.
+provider: claude_cli
+model: claude-sonnet-4-6
+kind: text
+max_tokens: 4096
+temperature:
+system_template: |
+  You are a thoughtful travel-planning assistant. Output ONLY GitHub-flavored
+  markdown — no preamble, no closing notes, no code fences. The output is
+  saved verbatim as the trip's itinerary body.
+
+  Structure rules:
+  - Start with a short ## Overview paragraph (2-3 sentences).
+  - Then one ## section per day, titled "## Day N — <weekday>, <Mon D>".
+  - Each day has 3-5 short bullets with concrete activities, in time order.
+  - Weave in the selected highlights across days based on traveler interests
+    and geographic clustering when obvious.
+  - End each day with a one-line "Evening:" suggestion (dinner / chill).
+  - Final ## section: "## Tips" with 3-5 bullets (packing, timing, kid-friendly
+    notes if there are children, money-saving picks).
+  - Keep tone warm, energetic, and concrete. No filler.
+  - DO NOT invent attractions outside the provided highlights — but you may
+    suggest reasonable categories (e.g. "lunch nearby", "scenic drive").
+user_template: |
+  Destination: <%= destination %>
+  <%- if defined?(origin) && origin.to_s.present? -%>
+  Origin: <%= origin %>
+  <%- end -%>
+  Dates: <%= start_date_label %> to <%= end_date_label %> (<%= day_count %> days)
+  <%- if defined?(people) && Array(people).any? -%>
+
+  Travelers:
+  <%- Array(people).each do |p| -%>
+  <%- bits = [p[:name].to_s.strip] -%>
+  <%- bits << "age #{p[:age]}" if p[:age].to_i > 0 -%>
+  <%- ints = Array(p[:interests]).reject(&:blank?) -%>
+  <%- bits << "interests: #{ints.join(', ')}" if ints.any? -%>
+  - <%= bits.join(' — ') %>
+  <%- end -%>
+  <%- end -%>
+  <%- if defined?(highlights) && Array(highlights).any? -%>
+
+  Selected highlights to include:
+  <%- Array(highlights).each do |h| -%>
+  - <%= h[:name] %><%= " — #{h[:summary]}" if h[:summary].to_s.present? %>
+  <%- end -%>
+  <%- end -%>
+
+  Please produce the markdown itinerary now.
