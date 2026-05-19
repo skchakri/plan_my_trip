@@ -52,6 +52,7 @@ module Ai
       }
       [ text, usage, nil ]
     rescue StandardError => e
+      ErrorTracker.report(e, source: "Ai::AnthropicProvider", context: { model: @prompt&.model })
       [ nil, {}, "#{e.class}: #{e.message}" ]
     end
   end

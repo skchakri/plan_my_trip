@@ -78,11 +78,11 @@ class AppError < ApplicationRecord
 
   def recalculate_severity!
     new_severity = case occurrences_count
-                   when 0..5    then "low"
-                   when 6..20   then "medium"
-                   when 21..100 then "high"
-                   else              "critical"
-                   end
+    when 0..5    then "low"
+    when 6..20   then "medium"
+    when 21..100 then "high"
+    else              "critical"
+    end
     update_columns(severity: new_severity) if severity != new_severity
   end
 

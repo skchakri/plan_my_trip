@@ -142,8 +142,10 @@ module Ai
       return [ nil, usage, "claude CLI returned no text (raw stderr=#{err.to_s.truncate(300)})" ] if text.empty?
       [ text, usage, nil ]
     rescue JSON::ParserError => e
+      ErrorTracker.report(e, source: "Ai::ClaudeCliProvider", context: { model: @prompt&.model, raw: out.to_s.truncate(300) })
       [ nil, {}, "JSON parse: #{e.message}; raw=#{out.to_s.truncate(300)}" ]
     rescue StandardError => e
+      ErrorTracker.report(e, source: "Ai::ClaudeCliProvider", context: { model: @prompt&.model })
       [ nil, {}, "#{e.class}: #{e.message}" ]
     end
 

@@ -24,6 +24,7 @@ module Ai
       return [ nil, {}, "OPENAI_API_KEY missing" ] if api_key.blank?
       @prompt.kind == "image" ? call_image(rendered) : call_text(rendered)
     rescue StandardError => e
+      ErrorTracker.report(e, source: "Ai::OpenaiProvider", context: { model: @prompt&.model, kind: @prompt&.kind })
       [ nil, {}, "#{e.class}: #{e.message}" ]
     end
 
