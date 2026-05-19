@@ -7,6 +7,10 @@ model: claude-sonnet-4-6
 kind: text
 max_tokens: 3072
 temperature:
+# Day-trip suggestions hinge on time-sensitive web search (seasonal openings,
+# road closures). 7-day TTL keeps recent results cheap without serving
+# stale "snow-closed" picks in summer.
+cache_ttl_seconds: 604800
 system_template: |
   You are a local-area travel research assistant. Given an anchor location
   (home base) plus a drive-time/radius budget and a list of user interests,

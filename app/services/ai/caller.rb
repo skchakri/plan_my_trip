@@ -41,8 +41,9 @@ module Ai
       end
 
       rendered = prompt.render(@variables)
+      use_cache = @cache && cacheable?(prompt)
       key = cache_key_for(prompt, rendered)
-      if @cache
+      if use_cache
         cached = Rails.cache.read(key)
         return cache_hit_result(prompt, rendered, cached) if cached
       end
@@ -72,7 +73,7 @@ module Ai
       end
       audit.update!(attrs)
 
-      write_cache(key, prompt, text_or_url) if @cache
+      write_cache(key, prompt, text_or_url) if use_cache
 
       Result.new(text: prompt.kind == "image" ? nil : text_or_url, image_url: prompt.kind == "image" ? text_or_url : nil, call: audit)
     rescue StandardError => e
@@ -133,7 +134,18 @@ module Ai
         else
           { text: text_or_url }
         end
-      Rails.cache.write(key, payload, expires_in: CACHE_TTL)
+      Rails.cache.write(key, payload, expires_in: ttl_for(prompt))
+    end
+
+    def cacheable?(prompt)
+      # New columns default to (cacheable: true, cache_ttl_seconds: nil) so
+      # prompts created before this migration keep the prior 30-day behavior.
+      prompt.respond_to?(:cacheable) ? prompt.cacheable != false : true
+    end
+
+    def ttl_for(prompt)
+      seconds = prompt.respond_to?(:cache_ttl_seconds) ? prompt.cache_ttl_seconds : nil
+      seconds.to_i.positive? ? seconds.seconds : CACHE_TTL
     end
 
     def cache_hit_result(prompt, rendered, cached)

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_19_180000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_19_180200) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -97,6 +97,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_19_180000) do
 
   create_table "ai_prompts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.boolean "active", default: true, null: false
+    t.integer "cache_ttl_seconds"
+    t.boolean "cacheable", default: true, null: false
     t.datetime "created_at", null: false
     t.text "description"
     t.string "kind", default: "text", null: false
@@ -175,6 +177,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_19_180000) do
     t.index ["activity_id"], name: "index_comments_on_activity_id"
     t.index ["author_id"], name: "index_comments_on_author_id"
     t.index ["discarded_at"], name: "index_comments_on_discarded_at"
+  end
+
+  create_table "draft_trips", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "expires_at", null: false
+    t.datetime "last_step_at"
+    t.jsonb "payload", default: {}, null: false
+    t.string "step"
+    t.datetime "updated_at", null: false
+    t.uuid "user_id", null: false
+    t.index ["expires_at"], name: "index_draft_trips_on_expires_at"
+    t.index ["user_id"], name: "index_draft_trips_on_user_id", unique: true
   end
 
   create_table "notifications", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -457,6 +471,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_19_180000) do
   add_foreign_key "checklist_items", "trips"
   add_foreign_key "comments", "activities"
   add_foreign_key "comments", "users", column: "author_id"
+  add_foreign_key "draft_trips", "users"
   add_foreign_key "notifications", "users", column: "actor_id"
   add_foreign_key "notifications", "users", column: "recipient_id"
   add_foreign_key "people", "trips"

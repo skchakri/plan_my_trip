@@ -7,6 +7,9 @@ model: claude-sonnet-4-6
 kind: text
 max_tokens: 4096
 temperature:
+# Riddles cycle through 41 themes — every call is meant to be NEW content.
+# Caching them defeats the point and balloons the cache store.
+cacheable: false
 system_template: |
   You write classic, kid-friendly riddles for a road-trip game where one
   person reads the riddle aloud and the others guess from four options.

@@ -28,16 +28,22 @@ files.each do |path|
   end
 
   rec = AiPrompt.find_or_initialize_by(slug: slug)
+  cache_attrs = {}
+  cache_attrs[:cacheable]          = attrs["cacheable"]          unless attrs["cacheable"].nil?
+  cache_attrs[:cache_ttl_seconds]  = attrs["cache_ttl_seconds"]  unless attrs["cache_ttl_seconds"].nil?
+
   rec.assign_attributes(
-    name:            attrs["name"],
-    description:     attrs["description"],
-    provider:        attrs["provider"],
-    model:           attrs["model"],
-    kind:            attrs["kind"] || "text",
-    max_tokens:      attrs["max_tokens"],
-    temperature:     attrs["temperature"],
-    system_template: attrs["system_template"].to_s,
-    user_template:   attrs["user_template"].to_s
+    {
+      name:            attrs["name"],
+      description:     attrs["description"],
+      provider:        attrs["provider"],
+      model:           attrs["model"],
+      kind:            attrs["kind"] || "text",
+      max_tokens:      attrs["max_tokens"],
+      temperature:     attrs["temperature"],
+      system_template: attrs["system_template"].to_s,
+      user_template:   attrs["user_template"].to_s
+    }.merge(cache_attrs)
   )
   rec.active = true if rec.active.nil?
 
