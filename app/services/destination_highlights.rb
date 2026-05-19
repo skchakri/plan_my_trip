@@ -19,7 +19,10 @@ require "json"
 class DestinationHighlights
   Highlight = Struct.new(
     :slug, :name, :summary, :image_url, :wikipedia_url, :category, :tags,
-    :place_id, :usage_count, keyword_init: true
+    :place_id, :usage_count, :latitude, :longitude,
+    :community_rating, :community_rating_count,
+    :rank, :score, :tier, :rating, :score_breakdown,
+    keyword_init: true
   ) do
     def to_h
       {
@@ -32,6 +35,10 @@ class DestinationHighlights
 
     def from_catalog?
       place_id.present?
+    end
+
+    def has_real_rating?
+      community_rating_count.to_i.positive?
     end
   end
 
@@ -85,7 +92,7 @@ class DestinationHighlights
   def cache_key
     coords = (@lat && @lng) ? "|#{@lat.round(3)},#{@lng.round(3)}" : ""
     digest = Digest::SHA256.hexdigest("#{@destination.downcase}|#{@vibes.sort.join(',')}#{coords}")
-    "destination_highlights/v8/#{digest}"
+    "destination_highlights/v11/#{digest}"
   end
 
   def fetch_highlights
@@ -119,10 +126,51 @@ class DestinationHighlights
       merged << h
     end
 
-    merged.first(MAX_RESULTS)
+    merged = persist_new_highlights!(merged)
+    PlaceRanker.rank!(merged.first(MAX_RESULTS), interests: @vibes)
   rescue => e
     Rails.logger.warn("[DestinationHighlights] #{@destination}: #{e.class}: #{e.message}")
     []
+  end
+
+  # Walks the merged list and persists every highlight that isn't already
+  # a catalog row (place_id blank) AND carries usable coordinates. The
+  # returned list keeps the same order but rewrites each persisted entry
+  # so its place_id, image_url (from Wikipedia/Wikimedia geosearch via
+  # PlaceImageLookup), and from_catalog? state are correct — meaning on
+  # the next call for this destination the row comes back through
+  # catalog_highlights instead of the LLM tier.
+  def persist_new_highlights!(highlights)
+    highlights.map do |h|
+      next h if h.place_id.present?
+      next h unless h.latitude && h.longitude
+
+      place = Places::Seeder.call(
+        name: h.name,
+        lat: h.latitude,
+        lng: h.longitude,
+        kind: CATEGORY_TO_KIND[h.category.to_s],
+        description: h.summary,
+        image_query: h.name
+      )
+      next h unless place
+
+      Highlight.new(
+        slug: "place-#{place.id}",
+        name: place.name,
+        summary: h.summary.presence || place.description.presence || place.famous_for.presence,
+        image_url: h.image_url.presence || place.image_url,
+        wikipedia_url: h.wikipedia_url.presence || (place.source_urls.is_a?(Hash) ? place.source_urls["wikipedia"] : nil),
+        category: h.category.presence || KIND_TO_CATEGORY[place.kind],
+        tags: (Array(h.tags) + [ "from_catalog" ]).uniq,
+        place_id: place.id,
+        usage_count: place.usage_count,
+        latitude: place.latitude&.to_f || h.latitude,
+        longitude: place.longitude&.to_f || h.longitude,
+        community_rating: place.community_rating,
+        community_rating_count: place.community_rating_count.to_i
+      )
+    end
   end
 
   # Pulls Place rows near the destination coords (when known) and turns
@@ -152,7 +200,11 @@ class DestinationHighlights
       category: KIND_TO_CATEGORY[place.kind] || "scenic",
       tags: [ "from_catalog", ("crowd_favorite" if place.usage_count.to_i >= 3) ].compact,
       place_id: place.id,
-      usage_count: place.usage_count
+      usage_count: place.usage_count,
+      latitude: place.latitude&.to_f,
+      longitude: place.longitude&.to_f,
+      community_rating: place.community_rating,
+      community_rating_count: place.community_rating_count.to_i
     )
   end
 
@@ -164,6 +216,17 @@ class DestinationHighlights
     "museum" => "cultural", "park" => "nature", "beach" => "relaxing",
     "overlook" => "scenic"
   }.freeze
+
+  # Inverse — collapses the wizard's VIBES list to a Place kind so newly-
+  # seeded LLM rows get a sensible default kind (Place#kind enum allows
+  # nil, but a guess is better than nothing for downstream filtering).
+  CATEGORY_TO_KIND = {
+    "adventure" => "trail", "scenic" => "viewpoint", "history" => "historic",
+    "nature" => "natural", "cultural" => "museum", "relaxing" => "beach",
+    "photography" => "viewpoint", "family" => "park", "food" => "restaurant",
+    "nightlife" => "landmark", "shopping" => "landmark"
+  }.freeze
+  private_constant :KIND_TO_CATEGORY, :CATEGORY_TO_KIND
 
   # Asks the configured AI prompt (slug `destination_highlights_research.v1`,
   # admin-editable) for up to MAX_RESULTS highlights tuned to the picked
@@ -183,6 +246,8 @@ class DestinationHighlights
       next if name.blank? || junk_name?(name)
 
       wiki = enrich_with_wikipedia(name)
+      llm_lat = numeric_or_nil(item["latitude"])
+      llm_lng = numeric_or_nil(item["longitude"])
       Highlight.new(
         slug: slugify(name),
         name: wiki&.name || name,
@@ -190,7 +255,9 @@ class DestinationHighlights
         image_url: wiki&.image_url,
         wikipedia_url: wiki&.wikipedia_url,
         category: item["category"].to_s.strip.presence,
-        tags: clean_tags(item["tags"])
+        tags: clean_tags(item["tags"]),
+        latitude: wiki&.latitude || llm_lat,
+        longitude: wiki&.longitude || llm_lng
       )
     end
   rescue => e
@@ -329,8 +396,15 @@ class DestinationHighlights
       name: canonical,
       summary: clean_extract(json["extract"]),
       image_url: json.dig("thumbnail", "source") || json.dig("originalimage", "source"),
-      wikipedia_url: json.dig("content_urls", "desktop", "page")
+      wikipedia_url: json.dig("content_urls", "desktop", "page"),
+      latitude: numeric_or_nil(json.dig("coordinates", "lat")),
+      longitude: numeric_or_nil(json.dig("coordinates", "lon"))
     )
+  end
+
+  def numeric_or_nil(value)
+    return nil if value.nil? || value == ""
+    Float(value) rescue nil
   end
 
   def clean_extract(text)

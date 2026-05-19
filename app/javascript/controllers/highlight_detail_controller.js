@@ -15,8 +15,12 @@ export default class extends Controller {
     "modalOverview", "modalLove", "modalBestTime", "modalTips", "modalPerfectFor",
     "modalWikipedia", "modalMaps", "modalToggle", "modalToggleLabel",
     "modalSkeleton", "modalBody",
-    "selectedContainer", "card", "selectedCount"
+    "selectedContainer", "card", "selectedCount",
+    "ratingStar", "ratingLabel", "ratingBody", "ratingStatus",
+    "modalRatingCaption", "modalAllReviews"
   ]
+
+  static RATING_LABELS = ["", "Bad", "Meh", "OK", "Great", "Loved it"]
   static values = {
     detailUrlTemplate: String,  // e.g. "/trip_wizard/highlights/SLUG/details"
     initialSlugs: Array,        // slugs preselected on render
@@ -36,6 +40,11 @@ export default class extends Controller {
     const card = event.currentTarget
     const data = card.dataset
     this._currentSlug = data.slug
+    this._currentCard = data
+    this._myRating = 0
+    this._resetRatingUi()
+    this._renderRatingCaption(parseFloat(data.rating || "0"), parseInt(data.ratingCount || "0", 10))
+    this._renderAllReviewsLink(data.placeId)
 
     // Reset modal content to "loading" state
     this.modalImageTarget.style.backgroundImage = data.image ? `url(${this._cssEscape(data.image)})` : ""
@@ -216,5 +225,101 @@ export default class extends Controller {
 
   _cssEscape(str) {
     return String(str).replace(/'/g, "\\'").replace(/"/g, '\\"')
+  }
+
+  // --- Rate this place ---
+
+  previewRating(event) {
+    const n = parseInt(event.currentTarget.dataset.value, 10)
+    this._paintStars(n)
+    if (this.hasRatingLabelTarget) this.ratingLabelTarget.textContent = this.constructor.RATING_LABELS[n]
+  }
+
+  resetRatingPreview() {
+    this._paintStars(this._myRating)
+    if (this.hasRatingLabelTarget) this.ratingLabelTarget.textContent = this._myRating ? this.constructor.RATING_LABELS[this._myRating] : ""
+  }
+
+  async submitRating(event) {
+    const rating = parseInt(event.currentTarget.dataset.value, 10)
+    if (!this._currentCard) return
+    this._myRating = rating
+    this._paintStars(rating)
+    this.ratingStatusTarget.textContent = "Saving…"
+
+    const payload = new FormData()
+    payload.append("rating", rating)
+    payload.append("name", this._currentCard.name || "")
+    if (this._currentCard.lat) payload.append("latitude", this._currentCard.lat)
+    if (this._currentCard.lng) payload.append("longitude", this._currentCard.lng)
+    payload.append("summary", this._currentCard.summary || "")
+    if (this._currentCard.image) payload.append("image_url", this._currentCard.image)
+    if (this._currentCard.wikipediaUrl) payload.append("wikipedia_url", this._currentCard.wikipediaUrl)
+    if (this.hasRatingBodyTarget && this.ratingBodyTarget.value.trim()) {
+      payload.append("body", this.ratingBodyTarget.value.trim())
+    }
+
+    try {
+      const csrf = document.querySelector('meta[name="csrf-token"]')?.content
+      const res = await fetch("/places/rate", {
+        method: "POST",
+        headers: { Accept: "application/json", "X-CSRF-Token": csrf || "" },
+        body: payload,
+        credentials: "same-origin"
+      })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const data = await res.json()
+      this.ratingStatusTarget.textContent = "Thanks — saved."
+      this._renderRatingCaption(data.rating || rating, data.rating_count || 1)
+      // Cache the new aggregate on the card so reopening shows it.
+      const card = this.cardTargets.find(c => c.dataset.slug === this._currentSlug)
+      if (card) {
+        card.dataset.rating = data.rating || rating
+        card.dataset.ratingCount = data.rating_count || 1
+        if (data.place_id) card.dataset.placeId = data.place_id
+      }
+      if (data.path) {
+        this.modalAllReviewsTarget.href = data.path
+        this.modalAllReviewsTarget.hidden = false
+      }
+    } catch (e) {
+      console.warn("[highlight-detail] rate failed", e)
+      this.ratingStatusTarget.textContent = "Couldn't save — try again."
+    }
+  }
+
+  _resetRatingUi() {
+    if (!this.hasRatingStarTarget) return
+    this._paintStars(0)
+    if (this.hasRatingLabelTarget)  this.ratingLabelTarget.textContent  = ""
+    if (this.hasRatingBodyTarget)   this.ratingBodyTarget.value         = ""
+    if (this.hasRatingStatusTarget) this.ratingStatusTarget.textContent = ""
+  }
+
+  _paintStars(n) {
+    if (!this.hasRatingStarTarget) return
+    this.ratingStarTargets.forEach((s, i) => {
+      s.classList.toggle("text-amber-300", i < n)
+      s.classList.toggle("text-slate-700", i >= n)
+    })
+  }
+
+  _renderRatingCaption(rating, count) {
+    if (!this.hasModalRatingCaptionTarget) return
+    if (!count || count < 1) {
+      this.modalRatingCaptionTarget.textContent = "No ratings yet — be first."
+    } else {
+      this.modalRatingCaptionTarget.textContent = `★ ${rating.toFixed(1)} · ${count} review${count === 1 ? "" : "s"}`
+    }
+  }
+
+  _renderAllReviewsLink(placeId) {
+    if (!this.hasModalAllReviewsTarget) return
+    if (placeId) {
+      this.modalAllReviewsTarget.href = `/places/${placeId}#reviews`
+      this.modalAllReviewsTarget.hidden = false
+    } else {
+      this.modalAllReviewsTarget.hidden = true
+    }
   }
 }
