@@ -1,0 +1,76 @@
+<% content_for :title, "Settings" %>
+<% input = "w-full rounded-lg bg-slate-900/60 border border-slate-700 px-3 py-2 text-sm text-slate-100 focus:border-amber-500 focus:outline-none" %>
+<% label = "block text-sm font-medium text-slate-100" %>
+
+<div class="max-w-3xl">
+  <div class="mb-6">
+    <h1 class="text-2xl font-semibold text-white">Settings</h1>
+    <p class="text-sm text-slate-400 mt-1">
+      API keys, affiliate IDs, and paths. Values are encrypted at rest. Stored
+      here they override any matching <code>.env</code> / process variable.
+      Secret values are write-only — leave a field blank to keep the current
+      value, or tick <em>Clear</em> to remove it.
+    </p>
+  </div>
+
+  <%= form_with url: admin_app_settings_path, method: :patch, class: "space-y-8" do %>
+    <% @registry.group_by(&:category).each do |category, defs| %>
+      <section class="rounded-xl border border-slate-800 bg-slate-900/40 overflow-hidden">
+        <h2 class="px-4 py-2.5 text-[11px] uppercase tracking-widest text-amber-400/90 font-semibold border-b border-slate-800 bg-slate-900/60">
+          <%= category %>
+        </h2>
+        <div class="divide-y divide-slate-800">
+          <% defs.each do |d| %>
+            <% row = @rows[d.key] %>
+            <div class="p-4">
+              <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                  <label for="app_settings_<%= d.key %>" class="<%= label %>"><%= d.label %></label>
+                  <p class="text-xs text-slate-500 mt-0.5"><%= d.description %></p>
+                  <code class="text-[10px] text-slate-600"><%= d.key %></code>
+                </div>
+                <div class="shrink-0 text-right">
+                  <% if row&.set? %>
+                    <span class="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-200">● set</span>
+                    <% if d.secret %>
+                      <div class="text-[11px] text-slate-500 mt-1 tabular-nums"><%= row.masked_hint %></div>
+                    <% end %>
+                  <% elsif AppSetting.get(d.key).present? %>
+                    <span class="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-sky-500/15 border border-sky-500/30 text-sky-200" title="Coming from ENV or a default — save here to take ownership.">env / default</span>
+                  <% else %>
+                    <span class="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-slate-700/40 border border-slate-600 text-slate-400">not set</span>
+                  <% end %>
+                </div>
+              </div>
+
+              <div class="mt-3 flex items-center gap-3">
+                <% if d.secret %>
+                  <%= password_field_tag "app_settings[#{d.key}]", nil,
+                        id: "app_settings_#{d.key}", autocomplete: "new-password",
+                        placeholder: row&.set? ? "•••••••• (unchanged)" : (d.placeholder || "Enter value"),
+                        class: input %>
+                <% else %>
+                  <%= text_field_tag "app_settings[#{d.key}]", row&.value,
+                        id: "app_settings_#{d.key}",
+                        placeholder: d.placeholder || (d.default.present? ? "default: #{d.default}" : "Enter value"),
+                        class: input %>
+                <% end %>
+                <% if row&.set? %>
+                  <label class="shrink-0 inline-flex items-center gap-1.5 text-[11px] text-rose-300">
+                    <%= check_box_tag "remove[#{d.key}]", "1", false, class: "rounded border-slate-600 bg-slate-900 text-rose-500" %>
+                    Clear
+                  </label>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </section>
+    <% end %>
+
+    <div class="flex items-center gap-3">
+      <%= submit_tag "Save settings", class: "px-4 py-2 rounded-lg bg-amber-500 text-slate-950 text-sm font-semibold hover:bg-amber-400 cursor-pointer" %>
+      <span class="text-xs text-slate-500">Changes take effect immediately — no restart needed.</span>
+    </div>
+  <% end %>
+</div>

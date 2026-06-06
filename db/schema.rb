@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_19_180200) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_06_110000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -136,6 +136,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_19_180200) do
     t.index ["last_occurred_at"], name: "index_app_errors_on_last_occurred_at"
     t.index ["resolved"], name: "index_app_errors_on_resolved"
     t.index ["severity"], name: "index_app_errors_on_severity"
+  end
+
+  create_table "app_settings", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "encrypted_value"
+    t.string "key", null: false
+    t.datetime "updated_at", null: false
+    t.index ["key"], name: "index_app_settings_on_key", unique: true
   end
 
   create_table "booking_claims", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -376,6 +384,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_19_180200) do
     t.decimal "anchor_lat", precision: 9, scale: 6
     t.decimal "anchor_lng", precision: 9, scale: 6
     t.text "body"
+    t.string "budget"
+    t.jsonb "build_args", default: {}, null: false
+    t.text "build_error"
+    t.string "build_status", default: "ready", null: false
     t.datetime "created_at", null: false
     t.boolean "day_trip", default: false, null: false
     t.time "departure_time"
@@ -387,6 +399,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_19_180200) do
     t.integer "max_radius_km"
     t.string "origin"
     t.uuid "owner_id", null: false
+    t.string "pace"
+    t.text "preferences"
     t.string "pwa_packing_url"
     t.string "pwa_plan_url"
     t.time "return_time"
@@ -397,6 +411,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_19_180200) do
     t.string "transport_mode"
     t.integer "traveler_count", default: 2, null: false
     t.datetime "updated_at", null: false
+    t.index ["build_status"], name: "index_trips_on_build_status"
     t.index ["day_trip"], name: "index_trips_on_day_trip"
     t.index ["discarded_at"], name: "index_trips_on_discarded_at"
     t.index ["owner_id"], name: "index_trips_on_owner_id"

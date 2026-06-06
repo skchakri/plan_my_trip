@@ -16,7 +16,7 @@ module Ai
     end
 
     def api_key
-      ENV["OPENAI_API_KEY"].presence ||
+      AppSetting.get("OPENAI_API_KEY").presence ||
         (Rails.application.credentials.respond_to?(:openai) && Rails.application.credentials.openai&.dig(:api_key))
     end
 

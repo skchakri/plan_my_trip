@@ -13,6 +13,29 @@ class Trip < ApplicationRecord
   TRANSPORT_MODES = %w[own_car rental flying mixed].freeze
   validates :transport_mode, inclusion: { in: TRANSPORT_MODES }, allow_nil: true
 
+  # Planning levers fed to TripStructureBuilder so the itinerary honors the
+  # group's style, not just where/when/who.
+  PACES = %w[relaxed balanced packed].freeze
+  BUDGETS = %w[shoestring moderate comfortable luxury].freeze
+  validates :pace, inclusion: { in: PACES }, allow_blank: true
+  validates :budget, inclusion: { in: BUDGETS }, allow_blank: true
+
+  # Async build lifecycle. New wizard trips are persisted as a shell in
+  # "building" while BuildTripJob assembles days/activities/checklist off the
+  # request; it flips to "ready" (or "failed") and broadcasts a Turbo refresh.
+  # Existing + day-trip + manually-created trips default to "ready".
+  BUILD_STATUSES = %w[building ready failed].freeze
+  validates :build_status, inclusion: { in: BUILD_STATUSES }
+  scope :building, -> { where(build_status: "building") }
+
+  def building?
+    build_status == "building"
+  end
+
+  def build_failed?
+    build_status == "failed"
+  end
+
   belongs_to :owner, class_name: "User"
   has_many :trip_memberships, dependent: :destroy
   has_many :members, through: :trip_memberships, source: :user

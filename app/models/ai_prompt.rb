@@ -1,5 +1,5 @@
 class AiPrompt < ApplicationRecord
-  PROVIDERS = %w[anthropic openai claude_cli].freeze
+  PROVIDERS = %w[anthropic openai claude_cli perplexity].freeze
   KINDS = %w[text image].freeze
 
   has_many :ai_calls, dependent: :nullify

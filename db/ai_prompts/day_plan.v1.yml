@@ -2,7 +2,9 @@
 slug: day_plan.v1
 name: Single-day trip plan (day trip)
 description: Builds a single-day round-trip itinerary from a home base + a list of pre-selected nearby ideas. Outputs one TripDay with 4-7 time-ordered activities (including meal/coffee stops + drive segments) and a small day-of essentials checklist. No overnight, no pre-trip packing list.
-provider: claude_cli
+# Anthropic API (not claude_cli): plans a day from already-chosen ideas, so no
+# web search is needed — far faster for the (synchronous) day-trip create.
+provider: anthropic
 model: claude-sonnet-4-6
 kind: text
 max_tokens: 4096
@@ -32,8 +34,7 @@ system_template: |
             "famous_for": "Optional one-liner hook",
             "notes": "For non-drive stops: 1-2 sentences of practical context. For drive segments (group_label='Drive'): 2-4 sentences of route character.",
             "group_label": "One of: 'Drive', 'Hike', 'Meal', 'Coffee', 'Viewpoint', 'Family', 'Shop', 'Activity'",
-            "image_query": "2-5 word Wikipedia search hint for a meaningful photo",
-            "guide_script": "60-90 second second-person spoken narration suitable for a tour-guide voice. Skip for trivial admin activities like 'Depart home'."
+            "image_query": "2-5 word Wikipedia search hint for a meaningful photo"
           }
         ]
       }
@@ -53,8 +54,9 @@ system_template: |
   - Insert a meal stop (lunch) and optionally a coffee/snack stop with REAL
     named businesses near the route. These are NEW activities, not from
     the `ideas` list.
-  - For drives, write notes/guide_script that bring the windshield view to
-    life — what towns, what mountain ranges, what geology, brief history.
+  - For drives, write `notes` that bring the windshield view to life — what
+    towns, what mountain ranges, what geology, brief history. (Spoken
+    narration is generated separately — don't write a guide_script here.)
   - "day_of" checklist: 4-8 practical items SPECIFIC to today's plan
     (water amount, sun gear, trail snacks, fuel, pet items if mentioned).
     Skip generic 'bring ID' filler.

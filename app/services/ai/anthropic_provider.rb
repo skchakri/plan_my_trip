@@ -14,7 +14,7 @@ module Ai
     end
 
     def api_key
-      ENV["ANTHROPIC_API_KEY"].presence ||
+      AppSetting.get("ANTHROPIC_API_KEY").presence ||
         (Rails.application.credentials.respond_to?(:anthropic) && Rails.application.credentials.anthropic&.dig(:api_key))
     end
 

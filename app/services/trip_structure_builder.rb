@@ -15,7 +15,7 @@ class TripStructureBuilder
     new(...).call
   end
 
-  def initialize(destination:, origin: nil, start_date:, end_date:, people: [], highlights: [], transport_mode: nil)
+  def initialize(destination:, origin: nil, start_date:, end_date:, people: [], highlights: [], transport_mode: nil, pace: nil, budget: nil, preferences: nil)
     @destination = destination.to_s.strip
     @origin = origin.to_s.strip
     @start_date = parse_date(start_date)
@@ -23,6 +23,9 @@ class TripStructureBuilder
     @people = people || []
     @highlights = highlights || []
     @transport_mode = transport_mode.to_s.presence
+    @pace = pace.to_s.presence
+    @budget = budget.to_s.presence
+    @preferences = preferences.to_s.strip.presence
   end
 
   def call
@@ -52,6 +55,9 @@ class TripStructureBuilder
       end_date_label: @end_date.strftime("%A %b %-d, %Y"),
       day_count: day_count,
       transport_mode: @transport_mode,
+      pace: @pace,
+      budget: @budget,
+      preferences: @preferences,
       people: @people.map { |p| { name: p[:name], age: p[:age], interests: Array(p[:interests]) } },
       highlights: @highlights.map { |h| { name: h[:name], summary: h[:summary] } }
     }

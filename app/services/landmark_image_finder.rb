@@ -104,7 +104,7 @@ class LandmarkImageFinder
   # GET https://api.pexels.com/v1/search?query=Zion+National+Park&per_page=1&orientation=landscape
   # Header: Authorization: <api_key>
   def pexels
-    key = ENV["PEXELS_API_KEY"].presence
+    key = AppSetting.get("PEXELS_API_KEY").presence
     return nil if key.blank?
 
     query_terms.each do |q|
@@ -140,7 +140,7 @@ class LandmarkImageFinder
   # GET https://api.unsplash.com/search/photos?query=Zion&per_page=1&orientation=landscape
   # Header: Authorization: Client-ID <access_key>
   def unsplash
-    key = ENV["UNSPLASH_ACCESS_KEY"].presence
+    key = AppSetting.get("UNSPLASH_ACCESS_KEY").presence
     return nil if key.blank?
 
     query_terms.each do |q|
@@ -176,7 +176,7 @@ class LandmarkImageFinder
   # ─── Pixabay ───────────────────────────────────────────────────
   # GET https://pixabay.com/api/?key=<key>&q=Zion&per_page=3&orientation=horizontal&image_type=photo
   def pixabay
-    key = ENV["PIXABAY_API_KEY"].presence
+    key = AppSetting.get("PIXABAY_API_KEY").presence
     return nil if key.blank?
 
     query_terms.each do |q|
