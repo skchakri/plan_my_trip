@@ -1,0 +1,65 @@
+<% content_for :title, @trip.title_for(current_user) %>
+
+<%# Subscribe to this trip's stream. BuildTripJob broadcasts a Turbo refresh
+    when the plan is ready (or failed), which reloads this page into the real
+    trip view. %>
+<%= turbo_stream_from @trip %>
+
+<div class="mb-5">
+  <%= link_to trips_path, class: "inline-flex items-center gap-1 text-sm text-slate-400 hover:text-amber-300 transition-colors" do %>
+    <%= icon :arrow_left, class: "w-4 h-4" %> All trips
+  <% end %>
+</div>
+
+<% if @trip.build_failed? %>
+  <section class="rounded-2xl border border-rose-500/30 bg-rose-500/5 p-8 text-center">
+    <div class="mx-auto w-12 h-12 rounded-full bg-rose-500/15 border border-rose-500/30 flex items-center justify-center mb-4">
+      <%= icon :alert_triangle, class: "w-6 h-6 text-rose-300" %>
+    </div>
+    <h1 class="font-display text-2xl font-semibold text-slate-50 mb-1">We couldn't finish this plan</h1>
+    <p class="text-sm text-slate-400 max-w-md mx-auto mb-5">
+      Something went wrong while building <strong><%= @trip.title %></strong>. Your trip is saved — try building it again.
+    </p>
+    <%= button_to "Try again", rebuild_trip_path(@trip), method: :post,
+          class: "inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-amber-500 text-slate-950 font-semibold hover:bg-amber-400 transition-colors cursor-pointer" %>
+    <% if @trip.build_error.present? %>
+      <p class="text-[11px] text-slate-600 mt-4 font-mono break-all"><%= @trip.build_error %></p>
+    <% end %>
+  </section>
+<% else %>
+  <section class="rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-900 to-slate-900/40 overflow-hidden">
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(232,160,79,0.10),transparent_60%)] pointer-events-none"></div>
+    <div class="relative p-8 sm:p-10 text-center">
+      <div class="mx-auto w-14 h-14 rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center mb-5">
+        <svg class="w-7 h-7 animate-spin text-amber-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.4 0 0 5.4 0 12h4z"></path></svg>
+      </div>
+      <p class="text-[11px] uppercase tracking-[0.18em] text-amber-400 font-medium mb-2"><%= @trip.day_trip? ? "Building your day plan" : "Building your plan" %></p>
+      <h1 class="font-display text-3xl sm:text-4xl font-semibold tracking-tight text-slate-50 mb-2"><%= @trip.title_for(current_user) %></h1>
+      <% if @trip.day_trip? %>
+        <p class="text-sm text-slate-400 max-w-md mx-auto">
+          We're routing your picks around <strong><%= @trip.anchor_label.presence || "your home base" %></strong> into a single-day plan with stops, photos, and day-of essentials. This usually takes a moment — the page updates automatically when it's ready.
+        </p>
+      <% else %>
+        <p class="text-sm text-slate-400 max-w-md mx-auto">
+          We're researching <strong><%= @trip.destination %></strong> and assembling a day-by-day plan with stops, photos, and a packing checklist. This usually takes a minute — the page updates automatically when it's ready.
+        </p>
+      <% end %>
+
+      <% steps = @trip.day_trip? ?
+           [ "Routing your stops to minimize backtracking", "Pinning coordinates + adding meal stops", "Finding photos for each stop", "Writing day-of essentials" ] :
+           [ "Sketching the day-by-day route", "Pinning real coordinates for each stop", "Finding photos + drive-by landmarks", "Writing your packing checklist" ] %>
+      <div class="mt-7 max-w-md mx-auto space-y-3 text-left">
+        <% steps.each do |step| %>
+          <div class="flex items-center gap-3 rounded-lg border border-slate-800 bg-slate-900/40 px-3.5 py-2.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-400/70 animate-pulse"></span>
+            <span class="text-[13px] text-slate-300"><%= step %></span>
+          </div>
+        <% end %>
+      </div>
+
+      <p class="text-[11px] text-slate-600 mt-6">
+        Taking too long? <%= link_to "Refresh", trip_path(@trip), class: "text-amber-300 hover:text-amber-200 underline" %>.
+      </p>
+    </div>
+  </section>
+<% end %>

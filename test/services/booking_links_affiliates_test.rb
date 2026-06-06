@@ -1,9 +1,21 @@
 require "test_helper"
 
-# Affiliate-tag injection for providers with a URL-param affiliate
-# scheme. When no ENV-driven IDs are configured (the default in tests),
+# Affiliate-tag injection for providers with a URL-param affiliate scheme.
+# Affiliate IDs now live in the AppSetting store (managed at /admin/app_settings),
+# resolved at request time. When none are configured (the default in tests),
 # links stay plain so we never accidentally ship someone else's tag.
 class BookingLinksAffiliatesTest < ActiveSupport::TestCase
+  # Maps the friendly symbol used in tests to the AppSetting key.
+  AFFILIATE_KEYS = {
+    booking_com_aid:         "AFFILIATE_BOOKING_COM_AID",
+    booking_com_label:       "AFFILIATE_BOOKING_COM_LABEL",
+    getyourguide_partner_id: "AFFILIATE_GETYOURGUIDE_PARTNER_ID",
+    viator_pid:              "AFFILIATE_VIATOR_PID",
+    viator_mcid:             "AFFILIATE_VIATOR_MCID",
+    skyscanner_associateid:  "AFFILIATE_SKYSCANNER_ASSOCIATEID",
+    travelpayouts_marker:    "AFFILIATE_TRAVELPAYOUTS_MARKER"
+  }.freeze
+
   setup do
     @user = User.create!(email: "a-#{SecureRandom.hex(4)}@test.example", password: "password123", name: "Alex")
     @trip = @user.owned_trips.create!(
@@ -13,13 +25,18 @@ class BookingLinksAffiliatesTest < ActiveSupport::TestCase
       start_date: Date.current,
       end_date: Date.current + 2
     )
-    @original = Rails.application.config.x.affiliates.dup
   end
 
-  teardown { Rails.application.config.x.affiliates = @original }
-
+  # Set the given affiliate IDs in AppSetting; clear any not provided so a
+  # registry default (e.g. label/mcid) doesn't leak an unintended tag.
   def with_affiliates(**overrides)
-    Rails.application.config.x.affiliates = ActiveSupport::OrderedOptions.new.merge!(@original.to_h.merge(overrides))
+    AFFILIATE_KEYS.each do |sym, key|
+      if overrides.key?(sym)
+        AppSetting.set(key, overrides[sym])
+      else
+        AppSetting.set(key, nil)
+      end
+    end
   end
 
   test "no affiliate IDs configured → links carry no affiliate params" do

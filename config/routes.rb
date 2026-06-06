@@ -13,6 +13,10 @@ Rails.application.routes.draw do
     get  "travelers",   action: :travelers,        as: :wizard_travelers
     post "travelers",   action: :save_travelers
     get  "highlights",  action: :highlights,       as: :wizard_highlights
+    # Lazy turbo-frame body: the highlights step renders instantly with a
+    # skeleton; this endpoint runs the (slow) DestinationHighlights + brief
+    # research and streams the picker back into the frame.
+    get  "highlights/results", action: :highlights_results, as: :wizard_highlights_results
     post "highlights",  action: :save_highlights
     get  "highlights/:slug/details", action: :highlight_details, as: :wizard_highlight_details
     get  "review",      action: :review,           as: :wizard_review
@@ -26,6 +30,10 @@ Rails.application.routes.draw do
   scope "day_trips", controller: "day_trips" do
     get  "new",            action: :new,            as: :day_trips_new
     get  "suggestions",    action: :suggestions,    as: :day_trip_suggestions
+    # Lazy turbo-frame target: the suggestions page renders instantly with a
+    # skeleton, then this endpoint runs the (slow) NearbyIdeas research and
+    # streams the cards back into the frame — no multi-minute blocked page load.
+    get  "suggestions_results", action: :suggestions_results, as: :day_trip_suggestions_results
     get  "idea_detail",    action: :idea_detail,    as: :day_trip_idea_detail
     post "",               action: :create,         as: :day_trips
     post "save_home_base", action: :save_home_base, as: :day_trip_save_home_base
@@ -65,6 +73,7 @@ Rails.application.routes.draw do
     end
     member do
       patch :rename
+      post :rebuild
       get :plan
       get :checklist
       get :copilot
@@ -96,6 +105,8 @@ Rails.application.routes.draw do
       member { post :test_run }
     end
     resources :ai_calls, only: [ :index, :show, :destroy ]
+    # Central store for API keys / affiliate IDs / paths (AppSetting).
+    resource :app_settings, only: [ :show, :update ], controller: "app_settings"
     resources :places, only: [ :index, :show, :edit, :update, :destroy ] do
       member { post :verify }
     end

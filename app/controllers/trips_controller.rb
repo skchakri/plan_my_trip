@@ -1,7 +1,7 @@
 class TripsController < ApplicationController
   include MarkdownHelper
 
-  before_action :set_trip, only: %i[show edit update destroy rename plan checklist copilot copilot_question copilot_response duplicate calendar wallet]
+  before_action :set_trip, only: %i[show edit update destroy rename plan checklist copilot copilot_question copilot_response duplicate calendar wallet rebuild]
 
   def index
     @trips = policy_scope(Trip).ordered.includes(:owner).with_cover_data
@@ -9,10 +9,27 @@ class TripsController < ApplicationController
 
   def show
     authorize @trip
+    # While BuildTripJob assembles the plan, show a lightweight "building" page
+    # that streams in the finished trip via a Turbo refresh broadcast.
+    return render("trips/building", layout: "application") if @trip.building? || @trip.build_failed?
+
     @membership = @trip.trip_memberships.find_by(user: current_user)
     @rendered_body = render_markdown(@trip.body)
     @booking = BookingLinks.new(@trip, viewer: current_user)
     @known_traveler_interests = Person.known_interests_for(current_user)
+  end
+
+  # POST /trips/:id/rebuild — re-run the async assembler after a failed build.
+  def rebuild
+    authorize @trip, :update?
+    if @trip.building?
+      redirect_to @trip, notice: "Already building…"
+    else
+      @trip.update!(build_status: "building", build_error: nil)
+      # Both jobs replay from the trip's persisted build_args.
+      (@trip.day_trip? ? BuildDayTripJob : BuildTripJob).perform_later(@trip.id)
+      redirect_to @trip, notice: "Rebuilding your plan…"
+    end
   end
 
   def new

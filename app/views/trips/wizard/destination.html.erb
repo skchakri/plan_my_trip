@@ -86,6 +86,47 @@
     </div>
   </div>
 
+  <%# ---- Trip style: levers that actually change the plan ---- %>
+  <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 sm:p-6 space-y-5">
+    <p class="text-[11px] uppercase tracking-[0.18em] text-amber-400/90 font-semibold">Trip style <span class="text-slate-600 normal-case tracking-normal font-normal">optional · shapes the day-by-day plan</span></p>
+
+    <div>
+      <span class="<%= label_classes %>">Pace</span>
+      <div class="grid grid-cols-3 gap-2">
+        <% [["relaxed", "Relaxed", "fewer stops, more downtime"], ["balanced", "Balanced", "a comfortable mix"], ["packed", "Packed", "see as much as possible"]].each do |val, title, hint| %>
+          <% checked = (@draft["pace"].presence || "balanced") == val %>
+          <label class="cursor-pointer">
+            <input type="radio" name="wizard[pace]" value="<%= val %>" <%= "checked" if checked %> class="peer sr-only">
+            <span class="block rounded-lg border border-slate-700 bg-slate-800/60 px-3 py-2.5 text-center peer-checked:border-amber-500/60 peer-checked:bg-amber-500/10 peer-checked:text-amber-100 hover:border-amber-500/40 transition-colors">
+              <span class="block text-sm font-semibold"><%= title %></span>
+              <span class="block text-[11px] text-slate-500 mt-0.5 leading-tight"><%= hint %></span>
+            </span>
+          </label>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <%= f.label :budget, "Budget", class: label_classes %>
+        <% budget_labels = { "shoestring" => "Shoestring — free/cheap, budget stays", "moderate" => "Moderate — mid-range dining + hotels", "comfortable" => "Comfortable — nicer stays, some splurges", "luxury" => "Luxury — top dining + lodging" } %>
+        <select name="wizard[budget]" class="<%= input_classes %>">
+          <option value="">No preference</option>
+          <% Trip::BUDGETS.each do |b| %>
+            <option value="<%= b %>" <%= "selected" if @draft["budget"] == b %>><%= budget_labels[b] %></option>
+          <% end %>
+        </select>
+      </div>
+    </div>
+
+    <div>
+      <%= f.label :preferences, "Anything we should know?", class: label_classes %>
+      <%= f.text_area :preferences, value: @draft["preferences"], rows: 2,
+            placeholder: "Dietary needs, mobility/accessibility, must-dos, things to avoid — e.g. \"vegetarian, one wheelchair user, no long hikes, loves live music\"",
+            class: input_classes %>
+    </div>
+  </div>
+
   <div class="flex items-center justify-between gap-3">
     <%= link_to trips_path, class: "text-sm text-slate-400 hover:text-slate-200" do %>Cancel<% end %>
     <%= f.submit "Continue → Travelers", class: "inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-amber-500 text-slate-950 font-semibold shadow-lg shadow-amber-500/20 hover:bg-amber-400 transition-colors cursor-pointer" %>

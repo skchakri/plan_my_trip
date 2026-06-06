@@ -8,8 +8,8 @@ module Trips
     SESSION_KEY = :trip_wizard
 
     before_action :load_draft
-    before_action :require_destination, only: %i[travelers save_travelers highlights save_highlights highlight_details review create]
-    before_action :require_travelers,   only: %i[highlights save_highlights highlight_details review create]
+    before_action :require_destination, only: %i[travelers save_travelers highlights highlights_results save_highlights highlight_details review create]
+    before_action :require_travelers,   only: %i[highlights highlights_results save_highlights highlight_details review create]
     before_action :require_highlights,  only: %i[review create]
 
     # ---- Step 1: destination + dates -----------------------------------
@@ -19,7 +19,7 @@ module Trips
     end
 
     def save_destination
-      attrs = params.require(:wizard).permit(:title, :origin, :destination, :start_date, :end_date, :departure_time, :return_time, :traveler_count, :place_id, :destination_lat, :destination_lng)
+      attrs = params.require(:wizard).permit(:title, :origin, :destination, :start_date, :end_date, :departure_time, :return_time, :traveler_count, :place_id, :destination_lat, :destination_lng, :pace, :budget, :preferences)
       errors = validate_destination(attrs)
       if errors.any?
         @draft = @draft.merge(attrs.to_h)
@@ -69,7 +69,17 @@ module Trips
 
     # ---- Step 3: pick highlights --------------------------------------
 
+    # Step 3 shell — renders instantly with a lazy turbo-frame. The slow
+    # DestinationHighlights + DestinationBrief research happens in
+    # #highlights_results so the page never blocks on it.
     def highlights
+      @vibes = Array(params[:vibes]).map(&:to_s) & DestinationHighlights::VIBES
+      @selected_slugs = draft_selected_slug_set
+    end
+
+    # GET /trip_wizard/highlights/results — the lazy frame body: runs the
+    # research (cached 30 days) and renders the picker.
+    def highlights_results
       # Vibes are a *client-side* filter on the already-fetched list (instant
       # — no server round-trip per chip). We still read them from the query
       # string here so a deep-linked / reloaded page restores the chip state.
@@ -81,6 +91,7 @@ module Trips
       )
       @brief = DestinationBrief.call(@draft["destination"])
       @selected_slugs = draft_selected_slug_set
+      render partial: "trips/wizard/highlights_body"
     end
 
     def save_highlights
@@ -119,35 +130,14 @@ module Trips
       @selected_highlights = selected_highlights_from_cache
     end
 
+    # Persist a Trip *shell* immediately (status: building) and hand the slow
+    # AI assembly (structured itinerary + route landmarks, minutes long) to
+    # BuildTripJob. The user is redirected to the trip page right away, which
+    # streams in the finished plan when the job broadcasts a Turbo refresh.
+    # This keeps create from blocking the request for minutes and never wastes
+    # AI work on a record that failed to save.
     def create
       people = Array(@draft["people"]).map(&:symbolize_keys)
-      highlights = selected_highlights_from_cache.map { |h| h.to_h.symbolize_keys }
-
-      body = ItineraryBuilder.call(
-        destination: @draft["destination"],
-        origin: @draft["origin"],
-        start_date: @draft["start_date"],
-        end_date: @draft["end_date"],
-        people: people,
-        highlights: highlights
-      )
-
-      structure = TripStructureBuilder.call(
-        destination: @draft["destination"],
-        origin: @draft["origin"],
-        start_date: @draft["start_date"],
-        end_date: @draft["end_date"],
-        people: people,
-        highlights: highlights,
-        transport_mode: @draft["transport_mode"]
-      )
-
-      itinerary_stops = Array(structure["days"]).flat_map do |d|
-        Array(d["activities"]).filter_map do |a|
-          next unless a["latitude"].present? && a["longitude"].present?
-          { name: a["location_name"].presence || a["title"], lat: a["latitude"], lng: a["longitude"] }
-        end
-      end
 
       trip = current_user.owned_trips.new(
         title: @draft["title"].presence || derived_title(@draft),
@@ -157,37 +147,25 @@ module Trips
         end_date: @draft["end_date"],
         departure_time: @draft["departure_time"].presence,
         return_time: @draft["return_time"].presence,
+        transport_mode: @draft["transport_mode"].presence,
+        pace: @draft["pace"].presence,
+        budget: @draft["budget"].presence,
+        preferences: @draft["preferences"].presence,
         traveler_count: traveler_count_or_people,
-        body: body,
-        excitement_pitch: structure["excitement_pitch"].presence
+        build_status: "building",
+        # Saved so BuildTripJob (and #rebuild) can re-derive the chosen highlights.
+        build_args: { "selected_slugs" => draft_selected_slug_set.to_a }
       )
       authorize trip, :create?
 
       people.each_with_index do |p, i|
-        trip.people.build(
-          name: p[:name],
-          age: p[:age].presence,
-          interests: Array(p[:interests]),
-          position: i
-        )
+        trip.people.build(name: p[:name], age: p[:age].presence, interests: Array(p[:interests]), position: i)
       end
 
-      build_days_and_activities(trip, structure, highlights)
-      build_checklist(trip, structure)
-
       if trip.save
-        # Drive-by landmarks (RouteLandmark rows) — historic markers, scenic
-        # overlooks, geological features along the route. Created post-save
-        # so the builder can persist directly on the trip.
-        RouteLandmarksBuilder.call(
-          destination: @draft["destination"],
-          origin: @draft["origin"],
-          transport_mode: @draft["transport_mode"],
-          itinerary_stops: itinerary_stops,
-          trip: trip
-        )
+        BuildTripJob.perform_later(trip.id)
         reset_session_draft!
-        redirect_to trip, notice: "Trip created · #{trip.trip_days.size} days, #{trip.checklist_items.size} checklist items, #{highlights.size} highlights woven in."
+        redirect_to trip, notice: "Building your plan — this takes a moment. It'll fill in here automatically."
       else
         flash.now[:alert] = trip.errors.full_messages.to_sentence
         render :review, status: :unprocessable_entity
@@ -202,117 +180,6 @@ module Trips
     end
 
     private
-
-    # Builds (but does not save — trip.save cascades) TripDay + Activity
-    # rows from the structured TripStructureBuilder payload. Activities
-    # whose location matches a selected highlight inherit that highlight's
-    # photo + Wikipedia URL so the plan view shows real imagery.
-    def build_days_and_activities(trip, structure, highlights)
-      photo_by_name = highlights.each_with_object({}) do |h, acc|
-        key = h[:name].to_s.downcase.strip
-        acc[key] = h[:image_url] if key.present? && h[:image_url].present?
-      end
-      # Track images already used on this trip so two activities don't get
-      # the same hero photo when geosearch falls back to the nearest
-      # Wikipedia-documented landmark.
-      used_photo_urls = photo_by_name.values.compact.to_set
-      # Track places used on this trip so the shared catalog gets one
-      # Place row per real-world location, even when the same spot shows
-      # up across multiple days (e.g. lodging used for 3 nights).
-      seeded_places = {}
-
-      Array(structure["days"]).each_with_index do |day_data, di|
-        day = trip.trip_days.build(
-          label: day_data["label"].presence || "day-#{di + 1}",
-          title: day_data["title"].presence || "Day #{di + 1}",
-          theme: day_data["theme"],
-          summary: day_data["summary"],
-          accent: day_data["accent"],
-          date: (Date.parse(day_data["date"]) rescue nil),
-          position: di
-        )
-        Array(day_data["activities"]).each_with_index do |a, ai|
-          name_key = a["location_name"].to_s.downcase.strip
-          title_key = a["title"].to_s.downcase.strip
-
-          # Find-or-seed a Place in the shared catalog. The Seeder handles
-          # Wikipedia/AI image lookup once per real-world location; later
-          # trips reuse the row instead of re-fetching.
-          place = nil
-          if a["location_name"].to_s.strip.present? && a["latitude"].present? && a["longitude"].present?
-            place_key = "#{a["location_name"].to_s.downcase.strip}|#{a["latitude"].to_f.round(3)}|#{a["longitude"].to_f.round(3)}"
-            place = seeded_places[place_key] ||= Places::Seeder.call(
-              name: a["location_name"],
-              lat: a["latitude"],
-              lng: a["longitude"],
-              kind: kind_for(a["group_label"]),
-              image_query: a["image_query"],
-              famous_for: a["famous_for"],
-              user: current_user
-            )
-          end
-
-          # Per-activity photo: highlight match first (most accurate), then
-          # the Place's canonical image. Skip if already taken so a Day-1
-          # motel and Day-2 motel don't share the same hero when their
-          # Places happen to share an image (e.g. both linked to the
-          # same nearby town article).
-          photo = photo_by_name[name_key] || photo_by_name[title_key]
-          if photo.blank? && place&.image_url.present? && !used_photo_urls.include?(place.image_url)
-            photo = place.image_url
-          end
-          used_photo_urls << photo if photo.present?
-
-          day.activities.build(
-            time_label: a["time_label"],
-            title: a["title"].presence || "Activity",
-            location_name: a["location_name"],
-            address: a["address"],
-            latitude: a["latitude"],
-            longitude: a["longitude"],
-            famous_for: a["famous_for"],
-            notes: a["notes"],
-            group_label: a["group_label"],
-            photo_url: photo,
-            guide_script: a["guide_script"].to_s.strip.presence,
-            place: place,
-            position: ai
-          )
-        end
-      end
-    end
-
-    # Builds ChecklistItem rows (3 scopes) from the structured payload.
-    def build_checklist(trip, structure)
-      Array(structure.dig("checklist", "before_trip")).each_with_index do |item, i|
-        next if item["title"].blank?
-        trip.checklist_items.build(
-          scope: "before_trip",
-          title: item["title"],
-          category: item["category"].presence || "General",
-          position: i
-        )
-      end
-      Array(structure.dig("checklist", "day")).each_with_index do |item, i|
-        next if item["title"].blank? || item["day_label"].blank?
-        trip.checklist_items.build(
-          scope: "day",
-          day_label: item["day_label"],
-          title: item["title"],
-          position: i
-        )
-      end
-      Array(structure.dig("checklist", "activity")).each_with_index do |item, i|
-        next if item["title"].blank? || item["day_label"].blank? || item["activity_label"].blank?
-        trip.checklist_items.build(
-          scope: "activity",
-          day_label: item["day_label"],
-          activity_label: item["activity_label"],
-          title: item["title"],
-          position: i
-        )
-      end
-    end
 
     # The wizard persists state in a DraftTrip row (one per user) so a
     # deploy / cookie eviction mid-flow doesn't wipe progress. `@draft`
@@ -422,33 +289,6 @@ module Trips
 
     def traveler_count_or_people
       [ Array(@draft["people"]).size, @draft["traveler_count"].to_i ].max
-    end
-
-    # Maps Claude's group_label (free-form) to the Place model's
-    # canonical kind enum so the shared catalog stays clean.
-    GROUP_LABEL_TO_PLACE_KIND = {
-      "lodging"    => "lodging",
-      "hotel"      => "lodging",
-      "motel"      => "lodging",
-      "campsite"   => "lodging",
-      "meal"       => "restaurant",
-      "lunch"      => "restaurant",
-      "dinner"     => "restaurant",
-      "breakfast"  => "cafe",
-      "hike"       => "trail",
-      "trail"      => "trail",
-      "drive"      => "drive_segment",
-      "viewpoint"  => "viewpoint",
-      "overlook"   => "overlook",
-      "park"       => "park",
-      "museum"     => "museum",
-      "historic"   => "historic"
-    }.freeze
-    private_constant :GROUP_LABEL_TO_PLACE_KIND
-
-    def kind_for(group_label)
-      return nil if group_label.blank?
-      GROUP_LABEL_TO_PLACE_KIND[group_label.to_s.strip.downcase]
     end
   end
 end

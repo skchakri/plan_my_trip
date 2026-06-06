@@ -344,6 +344,12 @@ puts "Trips: #{Trip.count}, Trails: #{Trail.count}, Checklist items: #{Checklist
 puts "\nSeeding AI prompts…"
 load Rails.root.join("db/seed_ai_prompts.rb").to_s
 
+# Lift any settings still living in ENV (.env) into the AppSetting store so the
+# admin UI becomes the source of truth. Idempotent: only fills keys with an ENV
+# value and no DB row yet.
+imported = AppSetting.import_from_env!
+puts "AppSettings imported from ENV: #{imported.any? ? imported.join(', ') : 'none'}"
+
 if (admin = User.find_by(email: "skchakri@gmail.com"))
   admin.update_column(:admin, true) unless admin.admin?
   puts "Admin user: #{admin.email}"

@@ -88,6 +88,7 @@ module Ai
       when "anthropic"  then AnthropicProvider.new(prompt)
       when "openai"     then OpenaiProvider.new(prompt)
       when "claude_cli" then ClaudeCliProvider.new(prompt)
+      when "perplexity" then PerplexityProvider.new(prompt)
       else raise "Unknown provider #{prompt.provider}"
       end
     end

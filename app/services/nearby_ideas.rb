@@ -55,6 +55,12 @@ class NearbyIdeas
   CACHE_TTL = 7.days
   MAX_RESULTS = 24
   PROMPT_SLUG = "nearby_ideas.v1".freeze
+  # LLMs invent coordinates. We only spend a geocode lookup when a pick's
+  # model coords are missing or land implausibly far outside the radius
+  # (the cases that actually corrupt drive-time + distance ranking). Capped
+  # per call so a cold cache can't hammer Nominatim's 1-req/sec policy.
+  GEOCODE_BUDGET = 8
+  GEOCODE_OUT_OF_RANGE_FACTOR = 1.3
   CATALOG_HIGHLIGHT_KINDS = %w[
     trail viewpoint landmark natural geological historic
     museum park beach overlook
@@ -80,6 +86,7 @@ class NearbyIdeas
     @interests = Array(interests).map { |i| i.to_s.strip.downcase }.reject(&:blank?).uniq
     @user_query = user_query.to_s.strip
     @trip_date = trip_date.to_s.strip
+    @geocode_budget = GEOCODE_BUDGET
   end
 
   def call
@@ -182,9 +189,7 @@ class NearbyIdeas
     items.first(MAX_RESULTS).filter_map do |item|
       name = item["name"].to_s.strip
       next if name.blank?
-      lat = item["latitude"]&.to_f
-      lng = item["longitude"]&.to_f
-      distance_km = (lat && lng) ? haversine_km(@lat, @lng, lat, lng).round(1) : nil
+      lat, lng, distance_km = verified_coords(name, item["latitude"]&.to_f, item["longitude"]&.to_f)
 
       wiki = enrich_with_wikipedia(name)
 
@@ -208,6 +213,39 @@ class NearbyIdeas
   rescue StandardError => e
     Rails.logger.warn("[NearbyIdeas] claude_research #{@anchor_label}: #{e.class}: #{e.message}")
     []
+  end
+
+  # Returns [lat, lng, distance_km], replacing the LLM's coordinates with a
+  # geocoded truth when the model's are missing or land implausibly far
+  # outside the radius. Geocoding is budgeted + only consulted for the
+  # suspect minority, so the common (already-plausible) case stays free.
+  def verified_coords(name, lat, lng)
+    distance_km = (lat && lng) ? haversine_km(@lat, @lng, lat, lng).round(1) : nil
+    suspect = lat.nil? || lng.nil? || distance_km.nil? ||
+              distance_km > @radius_km * GEOCODE_OUT_OF_RANGE_FACTOR
+    return [ lat, lng, distance_km ] unless suspect && @geocode_budget.positive?
+
+    @geocode_budget -= 1
+    # Respect Nominatim's 1 req/sec policy between live lookups. Cache hits
+    # short-circuit inside Geocoder, so this only paces genuine network calls.
+    sleep(1) unless Rails.env.test?
+    geo = lookup_geocode(name)
+    return [ lat, lng, distance_km ] if geo.nil?
+
+    geo_distance = haversine_km(@lat, @lng, geo.lat, geo.lng).round(1)
+    # Only adopt the geocoded point if it's actually within reach — a name
+    # collision resolving to another state is worse than the model's guess.
+    if geo_distance <= @radius_km * GEOCODE_OUT_OF_RANGE_FACTOR
+      [ geo.lat, geo.lng, geo_distance ]
+    else
+      [ lat, lng, distance_km ]
+    end
+  end
+
+  # Seam over the geocoder so tests can inject a fake without hitting the
+  # network. Returns a Places::Geocoder::Result or nil.
+  def lookup_geocode(name)
+    Places::Geocoder.call(name, near_lat: @lat, near_lng: @lng, bias_km: (@radius_km * 1.5).round)
   end
 
   # Rough estimate: 60 km/h average across mixed road types. Used only as a

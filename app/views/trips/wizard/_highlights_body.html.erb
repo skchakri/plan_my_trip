@@ -1,0 +1,374 @@
+<%# Lazy turbo-frame body for the highlights step. Rendered by
+    WizardController#highlights_results once DestinationHighlights + the brief
+    resolve. The whole Stimulus subtree (highlight-detail / vibe-filter /
+    highlights-map) + modal lives here so the controllers connect with a fully
+    formed DOM. The matching frame in highlights.html.erb sets target: "_top",
+    so the picker's form submits navigate the full page (to review), not the
+    frame. %>
+<%= turbo_frame_tag "wizard-highlights" do %>
+  <%
+    selected_slugs_now = @selected_slugs.to_a
+    detail_url_template = wizard_highlight_details_path(slug: "__SLUG__").sub("__SLUG__", "SLUG")
+  %>
+
+  <div data-controller="highlight-detail vibe-filter"
+       data-highlight-detail-detail-url-template-value="<%= detail_url_template %>"
+       data-highlight-detail-initial-slugs-value="<%= selected_slugs_now.to_json %>">
+
+    <%# ---- Destination brief: honest one-card pitch ---- %>
+    <% if defined?(@brief) && @brief && !@brief.empty? %>
+      <div class="relative overflow-hidden rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-500/[0.06] via-slate-900/60 to-slate-900/40 p-5 sm:p-6 mb-5">
+        <div class="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-amber-500/10 blur-3xl pointer-events-none"></div>
+        <div class="relative">
+          <% if @brief.tagline.present? %>
+            <p class="text-[11px] uppercase tracking-[0.22em] text-amber-300/90 font-semibold mb-2">A real look at <%= @draft["destination"] %></p>
+            <h2 class="font-display text-xl sm:text-2xl font-semibold text-slate-50 leading-tight"><%= @brief.tagline %></h2>
+          <% end %>
+          <% if @brief.pitch.present? %>
+            <p class="text-sm sm:text-[15px] text-slate-300 leading-relaxed mt-2.5 max-w-3xl"><%= @brief.pitch %></p>
+          <% end %>
+
+          <% if @brief.best_for.any? %>
+            <div class="flex flex-wrap gap-1.5 mt-4">
+              <% @brief.best_for.each do |tag| %>
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium bg-amber-500/15 border border-amber-500/30 text-amber-100"><%= tag %></span>
+              <% end %>
+            </div>
+          <% end %>
+
+          <% if @brief.watchouts.any? %>
+            <div class="mt-4 pt-4 border-t border-amber-500/15">
+              <p class="text-[10px] uppercase tracking-[0.18em] text-slate-400 font-semibold mb-2">Before you book</p>
+              <ul class="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-1.5">
+                <% @brief.watchouts.each do |w| %>
+                  <li class="flex items-start gap-2 text-xs sm:text-[13px] text-slate-300 leading-snug">
+                    <%= icon :alert_triangle, class: "w-3.5 h-3.5 mt-0.5 shrink-0 text-amber-400/80" %>
+                    <span><%= w %></span>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <%# ---- Vibe filter chips (client-side, instant) ---- %>
+    <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-4 sm:p-5 mb-5">
+      <div class="flex items-baseline justify-between gap-3 mb-2.5">
+        <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500 font-semibold">What's the vibe? <span class="text-slate-600 normal-case tracking-normal font-normal">filters instantly · no reload</span></p>
+        <button type="button" data-action="vibe-filter#clear" class="text-[11px] text-slate-500 hover:text-rose-300 cursor-pointer">clear</button>
+      </div>
+      <div class="flex flex-wrap gap-1.5">
+        <% DestinationHighlights::VIBES.each do |vibe| %>
+          <% checked = @vibes.include?(vibe) %>
+          <label class="cursor-pointer">
+            <input type="checkbox" name="vibes[]" value="<%= vibe %>" <%= "checked" if checked %>
+                   data-action="vibe-filter#refresh" class="peer sr-only">
+            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs border border-slate-700 bg-slate-800/60 text-slate-300 peer-checked:bg-amber-500/20 peer-checked:border-amber-500/50 peer-checked:text-amber-200 hover:border-amber-500/40 transition-colors">
+              <%= vibe %>
+            </span>
+          </label>
+        <% end %>
+      </div>
+    </div>
+
+    <% if @highlights.empty? %>
+      <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-6 sm:p-8 text-center">
+        <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-slate-800/80 text-slate-400 mb-3">
+          <%= icon :map_pin, class: "w-6 h-6" %>
+        </div>
+        <h2 class="font-display text-lg text-slate-100">We couldn't surface highlights for <em><%= @draft["destination"] %></em></h2>
+        <p class="text-sm text-slate-400 max-w-md mx-auto mt-1.5">
+          Try a more specific destination (e.g. "Hanksville, Utah" instead of "Hanksville"), or skip ahead and write the plan yourself.
+        </p>
+        <div class="flex flex-wrap items-center justify-center gap-3 mt-5">
+          <%= link_to wizard_destination_path, class: "inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-slate-700 hover:border-amber-500/50 text-slate-200 text-sm" do %>
+            <%= icon :arrow_left, class: "w-4 h-4" %> Try a different destination
+          <% end %>
+          <%= button_to wizard_highlights_path, method: :post, params: { wizard: { selected_slugs: [] } }, data: { turbo_frame: "_top" }, class: "inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-100 text-sm cursor-pointer" do %>
+            Skip — I'll write the plan myself →
+          <% end %>
+        </div>
+      </div>
+    <% else %>
+      <div class="rounded-xl bg-slate-900/30 border border-slate-800 px-4 py-3 text-xs text-slate-400 flex items-center gap-2 mb-4">
+        <%= icon :sparkles, class: "w-3.5 h-3.5 text-amber-300" %>
+        <span><%= @highlights.size %> spots curated for you · <strong class="text-amber-200/90" data-highlight-detail-target="selectedCount" data-empty="<%= selected_slugs_now.empty? %>"><%= selected_slugs_now.size %></strong> in your plan</span>
+      </div>
+
+      <%# ---- Map of all highlight points ---- %>
+      <%
+        map_points = @highlights.filter_map do |h|
+          next unless h.latitude && h.longitude
+          {
+            slug: h.slug, name: h.name, lat: h.latitude.to_f, lng: h.longitude.to_f,
+            category: h.respond_to?(:category) ? h.category : nil,
+            image_url: h.image_url,
+            selected: @selected_slugs.include?(h.slug)
+          }
+        end
+      %>
+      <% if map_points.any? %>
+        <div data-controller="highlights-map"
+             data-highlights-map-points-value="<%= map_points.to_json %>"
+             class="rounded-2xl border border-slate-800 bg-slate-900/40 overflow-hidden mb-5">
+          <div data-highlights-map-target="map"
+               class="highlights-map h-64 sm:h-80 w-full"></div>
+          <div class="px-4 py-2.5 text-[11px] text-slate-500 border-t border-slate-800 flex items-center gap-3 flex-wrap">
+            <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span> nature</span>
+            <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-cyan-400 inline-block"></span> scenic</span>
+            <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-orange-500 inline-block"></span> adventure</span>
+            <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-violet-400 inline-block"></span> photography</span>
+            <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-400 inline-block"></span> history</span>
+            <span class="ml-auto text-slate-600">Hover a card to highlight its pin · click a pin to jump</span>
+          </div>
+        </div>
+      <% end %>
+
+      <p data-vibe-filter-target="empty" hidden class="text-sm text-slate-400 text-center py-8">
+        No spots match those vibes. Try fewer filters, or pick different vibes.
+      </p>
+
+      <%= form_with url: wizard_highlights_path, method: :post, scope: :wizard, data: { turbo_frame: "_top" }, class: "space-y-6" do |f| %>
+        <%# Hidden inputs container — Stimulus toggles selection by adding/removing <input>s here. %>
+        <div data-highlight-detail-target="selectedContainer" hidden>
+          <% selected_slugs_now.each do |slug| %>
+            <%= hidden_field_tag "wizard[selected_slugs][]", slug %>
+          <% end %>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <% @highlights.each do |h| %>
+            <% selected = @selected_slugs.include?(h.slug) %>
+            <% cat = (h.respond_to?(:category) ? h.category : nil).to_s %>
+            <div role="button" tabindex="0"
+                    data-highlight-detail-target="card"
+                    data-vibe-filter-target="card"
+                    data-action="click->highlight-detail#open keydown.enter->highlight-detail#open keydown.space->highlight-detail#open"
+                    data-slug="<%= h.slug %>"
+                    data-name="<%= h.name %>"
+                    data-summary="<%= h.summary %>"
+                    data-image="<%= h.image_url %>"
+                    data-wikipedia-url="<%= h.wikipedia_url %>"
+                    data-category="<%= cat %>"
+                    data-place-id="<%= h.place_id %>"
+                    data-lat="<%= h.latitude %>"
+                    data-lng="<%= h.longitude %>"
+                    data-rating="<%= h.rating %>"
+                    data-rating-count="<%= h.community_rating_count.to_i %>"
+                    data-tier="<%= h.tier %>"
+                    data-rank="<%= h.rank %>"
+                    data-destination="<%= @draft["destination"] %>"
+                    data-selected="<%= selected %>"
+                    class="group/card relative text-left block rounded-2xl border border-slate-800 bg-slate-900/40 overflow-hidden cursor-pointer hover:border-amber-500/40 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-amber-500/5 transition-all data-[selected=true]:border-amber-500 data-[selected=true]:bg-amber-500/[0.04] data-[selected=true]:shadow-lg data-[selected=true]:shadow-amber-500/10">
+              <% if h.image_url.present? %>
+                <div class="relative aspect-[16/10] bg-slate-800 overflow-hidden">
+                  <img src="<%= h.image_url %>" alt="<%= h.name %>" loading="lazy" class="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500" referrerpolicy="no-referrer">
+                  <div class="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/10 to-transparent"></div>
+                  <div class="absolute top-3 left-3 flex flex-col items-start gap-1.5 z-10">
+                    <%= place_rank_chip(h) %>
+                    <%= place_tier_badge(h) %>
+                  </div>
+                  <button type="button"
+                          data-action="click->highlight-detail#toggleFromCard"
+                          aria-label="Toggle selection"
+                          class="absolute top-3 right-3 inline-flex items-center justify-center w-8 h-8 z-10 rounded-full bg-slate-950/70 backdrop-blur-sm border border-slate-700/60 text-slate-300 hover:bg-slate-950 hover:text-white hover:border-amber-500/60 group-data-[selected=true]/card:bg-amber-500 group-data-[selected=true]/card:text-slate-950 group-data-[selected=true]/card:border-amber-400 group-data-[selected=true]/card:hover:bg-amber-400 cursor-pointer transition-all">
+                    <%= icon :check, class: "w-4 h-4" %>
+                  </button>
+                  <% if cat.present? %>
+                    <span class="absolute bottom-3 left-3 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] uppercase tracking-widest font-semibold bg-slate-950/70 backdrop-blur-sm border border-slate-700/60 text-amber-200/90"><%= cat %></span>
+                  <% end %>
+                  <span class="absolute bottom-3 right-3 inline-flex items-center gap-1 text-[10px] text-slate-200/80 font-medium opacity-0 group-hover/card:opacity-100 transition-opacity">
+                    tap for details <%= icon :arrow_right, class: "w-3 h-3" %>
+                  </span>
+                </div>
+              <% else %>
+                <% vis = highlight_visual_for(cat) %>
+                <div class="aspect-[16/10] bg-gradient-to-br <%= vis[:gradient] %> flex items-center justify-center text-white/30 relative">
+                  <%= icon vis[:icon], class: "w-12 h-12" %>
+                  <div class="absolute top-3 left-3 flex flex-col items-start gap-1.5 z-10">
+                    <%= place_rank_chip(h) %>
+                    <%= place_tier_badge(h) %>
+                  </div>
+                  <button type="button"
+                          data-action="click->highlight-detail#toggleFromCard"
+                          aria-label="Toggle selection"
+                          class="absolute top-3 right-3 inline-flex items-center justify-center w-8 h-8 z-10 rounded-full bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white hover:border-amber-500/60 group-data-[selected=true]/card:bg-amber-500 group-data-[selected=true]/card:text-slate-950 group-data-[selected=true]/card:border-amber-400 group-data-[selected=true]/card:hover:bg-amber-400 cursor-pointer transition-all">
+                    <%= icon :check, class: "w-4 h-4" %>
+                  </button>
+                  <% if cat.present? %>
+                    <span class="absolute bottom-3 left-3 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] uppercase tracking-widest font-semibold bg-slate-950/70 border border-slate-700/60 text-amber-200/90"><%= cat %></span>
+                  <% end %>
+                </div>
+              <% end %>
+
+              <div class="p-4">
+                <% from_catalog = h.respond_to?(:from_catalog?) && h.from_catalog? %>
+                <div class="flex items-center justify-between gap-2 mb-1.5">
+                  <% if from_catalog %>
+                    <p class="inline-flex items-center gap-1 text-[10px] uppercase tracking-widest text-emerald-300 font-semibold">
+                      <%= icon :check, class: "w-3 h-3" %>
+                      Catalog · <%= h.usage_count.to_i %><%= h.usage_count.to_i == 1 ? " trip" : " trips" %>
+                    </p>
+                  <% else %>
+                    <span></span>
+                  <% end %>
+                  <% if h.respond_to?(:has_real_rating?) && h.has_real_rating? %>
+                    <p class="text-[10px] tabular-nums text-slate-400 inline-flex items-center gap-1">
+                      <%= star_row(h.rating, klass: "w-2.5 h-2.5") %>
+                      <span class="ml-1"><%= h.community_rating_count %></span>
+                    </p>
+                  <% end %>
+                </div>
+                <h3 class="font-display text-base font-semibold text-slate-100 group-data-[selected=true]/card:text-amber-100"><%= h.name %></h3>
+                <% if h.summary.present? %>
+                  <p class="text-xs text-slate-400 mt-1.5 leading-relaxed line-clamp-3"><%= h.summary %></p>
+                <% end %>
+                <% tags = (h.respond_to?(:tags) ? Array(h.tags) : []).reject { |t| t == "from_catalog" }.first(3) %>
+                <% if tags.any? %>
+                  <div class="flex flex-wrap gap-1 mt-2.5">
+                    <% tags.each do |tag| %>
+                      <% accent = case tag
+                         when "iconic" then "bg-amber-500/15 border-amber-500/30 text-amber-200"
+                         when "underrated" then "bg-emerald-500/15 border-emerald-500/30 text-emerald-200"
+                         when "needs_4wd", "long_hike", "scrambly", "permit_required", "must_book_ahead" then "bg-rose-500/15 border-rose-500/30 text-rose-200"
+                         else "bg-slate-800/60 border-slate-700 text-slate-300"
+                         end %>
+                      <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border <%= accent %>"><%= tag.tr("_", " ") %></span>
+                    <% end %>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+
+        <div class="flex items-center justify-between gap-3 pt-2">
+          <%= link_to wizard_travelers_path, data: { turbo_frame: "_top" }, class: "text-sm text-slate-400 hover:text-slate-200" do %>← Back<% end %>
+          <%= f.submit "Continue → Review", class: "inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-amber-500 text-slate-950 font-semibold shadow-lg shadow-amber-500/20 hover:bg-amber-400 transition-colors cursor-pointer" %>
+        </div>
+      <% end %>
+    <% end %>
+
+    <%# ---- Detail modal ---- %>
+    <div data-highlight-detail-target="modal"
+         data-action="click->highlight-detail#closeOnBackdrop"
+         hidden
+         class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/80 backdrop-blur-sm opacity-0 transition-opacity duration-200 data-[is-open]:opacity-100">
+      <div class="relative w-full sm:max-w-3xl max-h-[92vh] sm:max-h-[88vh] overflow-y-auto bg-slate-900 sm:rounded-3xl border border-slate-800 shadow-2xl shadow-black/60 translate-y-4 sm:translate-y-2 opacity-0 transition-all duration-200 ease-out">
+        <%# Hero %>
+        <div data-highlight-detail-target="modalImage"
+             class="relative aspect-[21/10] bg-cover bg-center from-slate-800 to-slate-900">
+          <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/30 to-transparent"></div>
+          <button type="button"
+                  data-action="click->highlight-detail#close"
+                  aria-label="Close"
+                  class="absolute top-4 right-4 inline-flex items-center justify-center w-9 h-9 rounded-full bg-slate-950/70 backdrop-blur-sm border border-slate-700/60 text-slate-200 hover:bg-slate-950 hover:text-white cursor-pointer transition-colors">
+            <%= icon :x, class: "w-5 h-5" %>
+          </button>
+          <div class="absolute left-5 sm:left-8 bottom-4 sm:bottom-6 right-5 sm:right-8">
+            <span data-highlight-detail-target="modalCategory"
+                  class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] uppercase tracking-widest font-semibold bg-amber-500/20 border border-amber-500/50 text-amber-200 mb-2"></span>
+            <h2 data-highlight-detail-target="modalName"
+                class="font-display text-2xl sm:text-4xl font-semibold tracking-tight text-white leading-tight drop-shadow"></h2>
+            <p data-highlight-detail-target="modalTagline"
+               hidden
+               class="text-sm sm:text-base text-amber-100/90 italic mt-1.5 drop-shadow"></p>
+          </div>
+        </div>
+
+        <div class="px-5 sm:px-8 py-6 space-y-6">
+          <%# Overview %>
+          <p data-highlight-detail-target="modalOverview" class="text-base text-slate-200 leading-relaxed"></p>
+
+          <%# Skeleton loader (visible while Claude generates the rich body) %>
+          <div data-highlight-detail-target="modalSkeleton" class="space-y-3">
+            <div class="h-3 rounded-full bg-slate-800/80 w-3/4 animate-pulse"></div>
+            <div class="h-3 rounded-full bg-slate-800/80 w-5/6 animate-pulse"></div>
+            <div class="h-3 rounded-full bg-slate-800/80 w-2/3 animate-pulse"></div>
+            <div class="h-3 rounded-full bg-slate-800/80 w-4/5 animate-pulse"></div>
+            <p class="text-xs text-slate-500 pt-2">✨ Pulling together the best parts of this spot…</p>
+          </div>
+
+          <%# Rich body — populated async %>
+          <div data-highlight-detail-target="modalBody" hidden class="space-y-6">
+            <%# Perfect for pills %>
+            <div data-highlight-detail-target="modalPerfectFor" class="flex flex-wrap gap-1.5"></div>
+
+            <%# Why you'll love it %>
+            <div>
+              <p class="text-[11px] uppercase tracking-[0.18em] text-amber-300 font-semibold mb-2">Why you'll love it</p>
+              <ul data-highlight-detail-target="modalLove" class="space-y-2 text-sm text-slate-200 list-disc pl-5 marker:text-amber-400/70"></ul>
+            </div>
+
+            <%# Best time + pro tips %>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div class="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
+                <p class="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-semibold mb-1.5">Best time to visit</p>
+                <p data-highlight-detail-target="modalBestTime" hidden class="text-sm text-slate-200 leading-relaxed"></p>
+              </div>
+              <div class="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
+                <p class="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-semibold mb-1.5">Pro tips</p>
+                <ul data-highlight-detail-target="modalTips" class="space-y-1.5 text-sm text-slate-200 list-disc pl-5 marker:text-amber-400/70"></ul>
+              </div>
+            </div>
+          </div>
+
+          <%# Rate & review (community-powered, used to refine future rankings) %>
+          <div class="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:p-5">
+            <div class="flex items-baseline justify-between gap-3 mb-3">
+              <p class="text-[11px] uppercase tracking-[0.18em] text-amber-300 font-semibold">Rate this spot</p>
+              <span data-highlight-detail-target="modalRatingCaption" class="text-xs text-slate-400"></span>
+            </div>
+            <div class="flex items-center gap-1.5 mb-3">
+              <% 1.upto(5) do |n| %>
+                <button type="button"
+                        data-action="click->highlight-detail#submitRating mouseenter->highlight-detail#previewRating mouseleave->highlight-detail#resetRatingPreview"
+                        data-value="<%= n %>"
+                        data-highlight-detail-target="ratingStar"
+                        aria-label="Rate <%= n %>"
+                        class="text-slate-700 hover:text-amber-300 transition-colors cursor-pointer">
+                  <%= icon :star, class: "w-7 h-7 fill-current" %>
+                </button>
+              <% end %>
+              <span data-highlight-detail-target="ratingLabel" class="text-sm text-slate-400 ml-2"></span>
+            </div>
+            <textarea data-highlight-detail-target="ratingBody"
+                      rows="2"
+                      placeholder="Optional note — what stood out, tips, the catch…"
+                      class="w-full rounded-lg bg-slate-950/60 border border-slate-700 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-amber-500/60"></textarea>
+            <div class="flex items-center justify-between mt-2 gap-2">
+              <span data-highlight-detail-target="ratingStatus" class="text-xs text-slate-500"></span>
+              <a href="#" target="_blank" rel="noopener" data-highlight-detail-target="modalAllReviews" hidden
+                 class="text-xs text-amber-300 hover:text-amber-200">See all reviews →</a>
+            </div>
+          </div>
+
+          <%# Action row %>
+          <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-800">
+            <button type="button"
+                    data-highlight-detail-target="modalToggle"
+                    data-action="click->highlight-detail#toggleSelection"
+                    class="group/toggle inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm cursor-pointer transition-all
+                           data-[selected=false]:bg-amber-500 data-[selected=false]:text-slate-950 data-[selected=false]:hover:bg-amber-400 data-[selected=false]:shadow-lg data-[selected=false]:shadow-amber-500/20
+                           data-[selected=true]:bg-slate-800 data-[selected=true]:text-amber-200 data-[selected=true]:border data-[selected=true]:border-amber-500/40 data-[selected=true]:hover:bg-slate-700">
+              <%= icon :check, class: "w-4 h-4 hidden group-data-[selected=true]/toggle:inline" %>
+              <%= icon :plus, class: "w-4 h-4 group-data-[selected=true]/toggle:hidden" %>
+              <span data-highlight-detail-target="modalToggleLabel">Add to my plan</span>
+            </button>
+            <%= link_to "#", data: { highlight_detail_target: "modalMaps" }, target: "_blank", rel: "noopener", class: "inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg border border-slate-700 hover:border-amber-500/50 text-slate-200 text-sm" do %>
+              <%= icon :map_pin, class: "w-4 h-4" %> Open in Maps
+            <% end %>
+            <%= link_to "#", data: { highlight_detail_target: "modalWikipedia" }, target: "_blank", rel: "noopener", hidden: true, class: "inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg border border-slate-700 hover:border-amber-500/50 text-slate-200 text-sm" do %>
+              Wikipedia <%= icon :external_link, class: "w-3.5 h-3.5" %>
+            <% end %>
+            <button type="button" data-action="click->highlight-detail#close" class="ml-auto px-4 py-2.5 text-sm text-slate-400 hover:text-slate-200 cursor-pointer">
+              Done
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>

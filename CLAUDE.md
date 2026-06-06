@@ -64,6 +64,10 @@ Don't stand up another Postgres locally for this app. See workspace
 - **Trip** — `owner` (User), `title`, `destination`, `origin`,
   `start_date`, `end_date`, `traveler_count`, `body` (markdown),
   `pwa_plan_url`, `pwa_packing_url`, `discarded_at`. Owner via `owner_id`.
+  Planning levers fed to the itinerary builder: `pace` (relaxed/balanced/
+  packed), `budget` (shoestring/moderate/comfortable/luxury), `preferences`
+  (free-form: dietary, accessibility, must-dos, avoids). Async build lifecycle:
+  `build_status` (building/ready/failed, default ready), `build_error`.
 - **TripMembership** — join between Trip and User with `role` (owner/member)
   and `custom_title` (per-user title override). Created automatically for
   the owner on Trip creation; created by `TripSharesController#create` for
@@ -110,6 +114,102 @@ Don't stand up another Postgres locally for this app. See workspace
   Best Price Guarantee, AutoSlash). Card travel portals (Chase / Amex /
   Cap One) are surfaced as a separate "stack points" panel when the
   viewer marks the relevant card.
+
+- **`NearbyIdeas` (`app/services/nearby_ideas.rb`)** — day-trip research:
+  catalog hits (`Place.near`) merged with an LLM list (`nearby_ideas.v1`
+  prompt). LLM-returned coordinates are *verified* through
+  `Places::Geocoder` (OSM Nominatim, free) when they're missing or land
+  outside the radius — budgeted to `GEOCODE_BUDGET` lookups/call so the
+  Nominatim 1-req/sec policy is respected. Then ranked by `PlaceRanker`.
+- **`Places::Geocoder` (`app/services/places/geocoder.rb`)** — name → real
+  lat/lng via Nominatim, anchor-viewbox-biased, cached 90 days. The
+  coordinate source of truth (LLMs hallucinate coords).
+
+### AI providers & the Perplexity option
+
+AI calls go through `Ai::Caller` → a per-prompt provider (`AiPrompt.provider`):
+`anthropic`, `openai`, `claude_cli`, or **`perplexity`**. The provider is a DB
+field, so an admin can swap it per-prompt (`/admin/ai_prompts`) with no
+redeploy.
+
+- `claude_cli` (current default for `nearby_ideas.v1`) — uses the operator's
+  Claude subscription via the local CLI with agentic web search. Best
+  instruction-following, but **slow (minutes)** and unfit for the live web
+  path at scale. Good for seeding.
+- `perplexity` (`Ai::PerplexityProvider`, needs `PERPLEXITY_API_KEY`) — Sonar
+  models answer from a fresh web search in **one fast API call** with
+  citations. Flip `nearby_ideas.v1` to `provider: perplexity, model: sonar`
+  to trade some JSON-contract strictness for seconds-not-minutes latency.
+  `anthropic`/`openai` providers do **not** enable web search (training-data
+  only), so don't point a freshness-sensitive prompt at them.
+
+Day-trip suggestions load **async**: `/day_trips/suggestions` renders a shell
+with a lazy turbo-frame whose `src` is `/day_trips/suggestions_results`; that
+frame runs the (slow) research so the page never blocks on it. Day-trip
+**creation** is also async, mirroring the multi-day wizard: `DayTripsController#create`
+persists a `build_status: "building"` shell + `BuildDayTripJob`, which re-derives
+the chosen ideas (cached `NearbyIdeas`) and runs `Trips::DayAssembler`.
+
+### Multi-day trip creation is async (BuildTripJob)
+
+`Trips::WizardController#create` does **not** run the AI inline. It persists a
+Trip *shell* with `build_status: "building"` (+ travelers), enqueues
+`BuildTripJob`, and redirects immediately. The job runs `Trips::Assembler`
+(`app/services/trips/assembler.rb`) — `TripStructureBuilder` → coordinate-fill
+via `Places::Geocoder` → TripDay/Activity/ChecklistItem/RouteLandmark rows →
+markdown `body` derived deterministically by `MarkdownItinerary` (no separate
+itinerary AI call) — then flips `build_status` to `ready`/`failed` and
+`broadcast_refresh_to(trip)`. Per-stop spoken **`guide_script` narrations are NOT
+built inline** (they used to dominate the output tokens): `trip_structure.v1`
+omits them, and `BuildTripJob` (and the day-trip `DayTripsController#create`) enqueue
+`BackfillTripNarrationsJob`, which **fans out one `NarrateActivityJob` per blank
+activity** (concurrent across Solid Queue workers); each fills its narration via
+`ActivityNarrator` (`activity_narration.v1`, Anthropic) off the critical path —
+so the plan is viewable ~35% sooner and the podcast/Drive Co-Pilot (which degrade
+gracefully while blank) enrich within ~a minute. `Ai::Caller` dedupes identical
+narrations across trips. Both `trip_structure.v1` and `day_plan.v1` omit inline
+`guide_script`s and run on the Anthropic API. `TripsController#show` renders `trips/building`
+(which `turbo_stream_from @trip`) until ready; `POST /trips/:id/rebuild` retries
+a failed build. `build_status` defaults to `"ready"` so existing/
+manually-created trips are unaffected. Build inputs (selected slugs for
+multi-day; selected idea slugs + q/depart/return for day trips) are persisted in
+the `build_args` jsonb so `POST /trips/:id/rebuild` can replay the exact build
+(it dispatches `BuildDayTripJob` for day trips, else `BuildTripJob`). `trip_structure.v1` + `destination_brief.v1`
+now run on the **Anthropic API** (no web search needed; ~2 min for a 3-day plan
+vs many minutes on claude_cli, and it's off-request anyway). Discovery prompts
+that need fresh web data (`destination_highlights_research`, `route_landmarks`,
+`nearby_ideas`) stay on `claude_cli`/`perplexity`. Swap any of these per-prompt
+in `/admin/ai_prompts`.
+
+The **highlights step (3 of 4) also lazy-loads**: `wizard/highlights.html.erb`
+is a shell with a `turbo_frame_tag "wizard-highlights"` (`target: "_top"`) whose
+`src` is `/trip_wizard/highlights/results`; that frame runs DestinationHighlights
++ DestinationBrief and renders `_highlights_body` (the whole Stimulus subtree +
+modal, so controllers connect with a complete DOM). The picker's form submits
+carry `data-turbo-frame="_top"` to navigate the full page to review.
+
+## Settings (`AppSetting`) — API keys & affiliate IDs
+
+All external secrets/IDs are managed at **`/admin/app_settings`**, backed by the
+`AppSetting` model (key/value, values encrypted at rest via
+`ActiveSupport::MessageEncryptor` keyed off `secret_key_base` — no AR-encryption
+keys to provision). The catalog of settings is `AppSetting::REGISTRY` (add a row
+there to expose a new key — no migration). Resolution order is
+**`AppSetting.get(key)` → DB override → ENV → registry default**, so legacy
+`.env` values still work as a fallback. `AppSetting.import_from_env!` (also run
+by `db:seed`) lifts existing `.env`/process-env values into the DB; it parses
+the `.env` file directly so it works outside foreman.
+
+Consumers read keys via `AppSetting.get`: the AI providers
+(`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `PERPLEXITY_API_KEY`), image search
+(`PEXELS_API_KEY`, `UNSPLASH_ACCESS_KEY`, `PIXABAY_API_KEY`), `BookingLinks`
+(the `AFFILIATE_*` IDs, resolved at request time), and `Places::Geocoder`
+(`GOOGLE_PLACES_API_KEY`). **Exception:** `CLAUDE_CLI_PATH` stays ENV-only — it's
+an executable path, so a web-editable value would be an RCE vector.
+
+`Places::Geocoder` uses **Google Places Text Search** when
+`GOOGLE_PLACES_API_KEY` is set (better POI matching, no 1-req/sec cap) and falls
+back to free Nominatim otherwise.
 
 ## Authorization
 

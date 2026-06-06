@@ -134,8 +134,21 @@ class BookingLinks
     viewer&.has_membership?(key) || false
   end
 
+  # Affiliate IDs are resolved at request time from AppSetting (admin UI →
+  # ENV → registry default), so an operator can add a program key in
+  # /admin/app_settings without a redeploy. AppSetting.get is cached, so this
+  # rebuild is cheap. Defaults (booking_com_label, viator_mcid) live in the
+  # AppSetting registry.
   def affiliates
-    Rails.application.config.x.affiliates
+    ActiveSupport::OrderedOptions.new.tap do |a|
+      a.booking_com_aid         = AppSetting.get("AFFILIATE_BOOKING_COM_AID")
+      a.booking_com_label       = AppSetting.get("AFFILIATE_BOOKING_COM_LABEL")
+      a.getyourguide_partner_id = AppSetting.get("AFFILIATE_GETYOURGUIDE_PARTNER_ID")
+      a.viator_pid              = AppSetting.get("AFFILIATE_VIATOR_PID")
+      a.viator_mcid             = AppSetting.get("AFFILIATE_VIATOR_MCID")
+      a.skyscanner_associateid  = AppSetting.get("AFFILIATE_SKYSCANNER_ASSOCIATEID")
+      a.travelpayouts_marker    = AppSetting.get("AFFILIATE_TRAVELPAYOUTS_MARKER")
+    end
   end
 
   # Short, opaque-but-stable per-trip tag we append to affiliate URLs as
