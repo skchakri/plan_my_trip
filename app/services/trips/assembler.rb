@@ -37,6 +37,12 @@ module Trips
     end
 
     def call
+      # Idempotent: a rebuild (POST /trips/:id/rebuild) runs against a trip that
+      # may already have days/activities/checklist/landmarks from a prior build,
+      # so clear them first — otherwise the rebuild stacks a fresh plan on top of
+      # the old one. On a first build the shell is empty, so this is a no-op.
+      reset_generated_content!
+
       structure = TripStructureBuilder.call(
         destination: @trip.destination,
         origin: @trip.origin,
@@ -61,6 +67,16 @@ module Trips
     end
 
     private
+
+    # Wipe AI-generated plan rows so a rebuild replaces rather than duplicates.
+    # Destroying trip_days cascades to activities (and their comments/photos/
+    # suggestions). Route landmarks and checklist items are trip-scoped.
+    def reset_generated_content!
+      return unless @trip.persisted?
+      @trip.trip_days.destroy_all
+      @trip.checklist_items.destroy_all
+      @trip.route_landmarks.destroy_all
+    end
 
     def people_payload
       @trip.people.map { |p| { name: p.name, age: p.age, interests: Array(p.interests) } }

@@ -1,0 +1,79 @@
+<%# Trip Concierge — ask-anything chat grounded in this trip (TripAgent).
+    Read-only in v1: it recommends, it doesn't edit the plan. %>
+<% examples = [
+     "What's the plan for day 1?",
+     (@trip.day_trip? ? "What's the best order to visit these stops?" : "Any long drives I should prepare for?"),
+     (@trip.people.any? ? "What's good for the kids on this trip?" : "Where should we eat near the first stop?"),
+     "Summarize this whole trip in 3 bullets."
+   ].compact.uniq %>
+
+<section data-controller="concierge" class="rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 to-slate-900/40 overflow-hidden mb-6">
+  <style>
+    .prose-concierge p { margin: 0.25rem 0; }
+    .prose-concierge p:first-child { margin-top: 0; }
+    .prose-concierge p:last-child { margin-bottom: 0; }
+    .prose-concierge ul, .prose-concierge ol { margin: 0.35rem 0; padding-left: 1.15rem; }
+    .prose-concierge ul { list-style: disc; }
+    .prose-concierge ol { list-style: decimal; }
+    .prose-concierge li { margin: 0.15rem 0; }
+    .prose-concierge strong { color: #fcd9a8; font-weight: 600; }
+    .prose-concierge a { color: #5eead4; text-decoration: underline; }
+  </style>
+
+  <header class="flex items-center justify-between gap-3 px-4 sm:px-5 py-3 border-b border-slate-800/80">
+    <div class="flex items-center gap-2.5 min-w-0">
+      <span class="shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500/25 to-emerald-500/10 border border-teal-500/30 flex items-center justify-center text-teal-200">
+        <%= icon :sparkles, class: "w-4 h-4" %>
+      </span>
+      <div class="min-w-0">
+        <h2 class="font-display text-base font-semibold text-slate-100 leading-tight">Trip concierge</h2>
+        <p class="text-[11px] text-slate-500 truncate">Ask anything about this trip — grounded in your plan</p>
+      </div>
+    </div>
+    <span class="shrink-0 text-[10px] uppercase tracking-widest px-2 py-0.5 rounded-full border border-teal-500/30 bg-teal-500/10 text-teal-300 font-semibold">Beta</span>
+  </header>
+
+  <div id="concierge-log" data-concierge-target="log" class="px-4 sm:px-5 py-4 space-y-3 max-h-[26rem] overflow-y-auto">
+    <%# Empty state — greeting + tappable example questions. Server appends real
+        exchanges after this; they stack below. %>
+    <div class="flex justify-start gap-2">
+      <div class="shrink-0 mt-0.5 w-7 h-7 rounded-full bg-gradient-to-br from-teal-500/30 to-emerald-500/10 border border-teal-500/30 flex items-center justify-center text-teal-200">
+        <%= icon :sparkles, class: "w-3.5 h-3.5" %>
+      </div>
+      <div class="max-w-[85%] rounded-2xl rounded-bl-sm bg-slate-800/70 border border-slate-700/60 text-slate-300 px-3.5 py-2 text-sm">
+        Hi! I know the ins and outs of <span class="text-slate-100 font-medium"><%= @trip.title_for(current_user) %></span>. Ask me about the days, drives, food, or what fits your crew. Try one:
+      </div>
+    </div>
+    <div class="flex flex-wrap gap-1.5 pl-9">
+      <% examples.each do |q| %>
+        <button type="button" data-action="concierge#suggest" data-question="<%= q %>"
+                class="text-[12px] px-2.5 py-1 rounded-full border border-slate-700 bg-slate-800/50 text-slate-300 hover:border-teal-500/40 hover:text-teal-200 hover:bg-teal-500/10 transition-colors">
+          <%= q %>
+        </button>
+      <% end %>
+    </div>
+  </div>
+
+  <%= form_with url: concierge_trip_path(@trip), method: :post,
+        data: { action: "turbo:submit-start->concierge#pending turbo:submit-end->concierge#done" },
+        class: "border-t border-slate-800/80 p-3 sm:p-4" do |f| %>
+    <div data-concierge-target="pending" hidden class="flex items-center gap-2 text-xs text-slate-500 mb-2 pl-1">
+      <span class="inline-flex gap-1">
+        <span class="w-1.5 h-1.5 rounded-full bg-teal-400/80 animate-bounce" style="animation-delay:0ms"></span>
+        <span class="w-1.5 h-1.5 rounded-full bg-teal-400/80 animate-bounce" style="animation-delay:120ms"></span>
+        <span class="w-1.5 h-1.5 rounded-full bg-teal-400/80 animate-bounce" style="animation-delay:240ms"></span>
+      </span>
+      Thinking…
+    </div>
+    <div class="flex items-end gap-2">
+      <textarea name="question" rows="1" data-concierge-target="input" data-action="keydown->concierge#keydown"
+                placeholder="Ask about this trip…"
+                class="flex-1 resize-none rounded-xl bg-slate-800/60 border border-slate-700 text-slate-100 placeholder-slate-500 text-sm px-3.5 py-2.5 focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/30"></textarea>
+      <button type="submit" data-concierge-target="submit"
+              class="shrink-0 inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-teal-500 text-slate-950 font-semibold text-sm hover:bg-teal-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+        <%= icon :sparkles, class: "w-4 h-4" %> Ask
+      </button>
+    </div>
+    <p class="text-[10px] text-slate-600 mt-2 pl-1">Answers use only your trip's details · it can suggest edits but can't change the plan yet</p>
+  <% end %>
+</section>

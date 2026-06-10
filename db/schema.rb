@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_06_110000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_10_150000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -156,6 +156,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_06_110000) do
     t.index ["trip_id"], name: "index_booking_claims_on_trip_id"
   end
 
+  create_table "brands", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "category", null: false
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.string "slug", null: false
+    t.datetime "updated_at", null: false
+    t.index ["category"], name: "index_brands_on_category"
+    t.index ["slug"], name: "index_brands_on_slug", unique: true
+  end
+
   create_table "checklist_items", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "activity_label"
     t.string "category"
@@ -187,6 +197,30 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_06_110000) do
     t.index ["discarded_at"], name: "index_comments_on_discarded_at"
   end
 
+  create_table "countries", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "calling_code"
+    t.string "capital", null: false
+    t.string "continent"
+    t.datetime "created_at", null: false
+    t.string "currency_name"
+    t.string "iso2", null: false
+    t.string "leader_name"
+    t.string "leader_title"
+    t.string "name", null: false
+    t.string "national_animal"
+    t.string "national_anthem"
+    t.string "national_bird"
+    t.string "national_dish"
+    t.string "national_flower"
+    t.string "national_motto"
+    t.string "national_sport"
+    t.string "primary_language"
+    t.datetime "updated_at", null: false
+    t.index ["continent"], name: "index_countries_on_continent"
+    t.index ["iso2"], name: "index_countries_on_iso2", unique: true
+    t.index ["name"], name: "index_countries_on_name", unique: true
+  end
+
   create_table "draft_trips", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "expires_at", null: false
@@ -197,6 +231,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_06_110000) do
     t.uuid "user_id", null: false
     t.index ["expires_at"], name: "index_draft_trips_on_expires_at"
     t.index ["user_id"], name: "index_draft_trips_on_user_id", unique: true
+  end
+
+  create_table "landmarks", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "continent"
+    t.string "country", null: false
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
+    t.index ["continent"], name: "index_landmarks_on_continent"
+    t.index ["name"], name: "index_landmarks_on_name", unique: true
   end
 
   create_table "notifications", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -274,6 +318,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_06_110000) do
     t.index ["slug"], name: "index_places_on_slug", unique: true, where: "(slug IS NOT NULL)"
     t.index ["tier"], name: "index_places_on_tier"
     t.index ["usage_count"], name: "index_places_on_usage_count"
+  end
+
+  create_table "quiz_attempts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "category", null: false
+    t.datetime "created_at", null: false
+    t.integer "score", default: 0, null: false
+    t.integer "total", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.uuid "user_id", null: false
+    t.index ["user_id", "category"], name: "index_quiz_attempts_on_user_id_and_category"
+    t.index ["user_id"], name: "index_quiz_attempts_on_user_id"
   end
 
   create_table "route_landmarks", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -451,6 +506,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_06_110000) do
     t.index ["trivia_question_id"], name: "index_trivia_responses_on_trivia_question_id"
   end
 
+  create_table "us_states", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "abbreviation", null: false
+    t.string "capital", null: false
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
+    t.index ["abbreviation"], name: "index_us_states_on_abbreviation", unique: true
+    t.index ["name"], name: "index_us_states_on_name", unique: true
+  end
+
   create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.boolean "admin", default: false, null: false
     t.boolean "alltrails_pro", default: false, null: false
@@ -493,6 +558,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_06_110000) do
   add_foreign_key "place_reviews", "places"
   add_foreign_key "place_reviews", "users", column: "author_id"
   add_foreign_key "places", "users", column: "contributed_by_id"
+  add_foreign_key "quiz_attempts", "users"
   add_foreign_key "route_landmarks", "trips"
   add_foreign_key "suggestion_votes", "suggestions"
   add_foreign_key "suggestion_votes", "users"

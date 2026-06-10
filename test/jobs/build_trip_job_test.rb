@@ -37,6 +37,24 @@ class BuildTripJobTest < ActiveSupport::TestCase
     end
   end
 
+  test "rebuilding replaces the plan instead of duplicating days and checklist" do
+    trip = building_trip
+    BuildTripJob.perform_now(trip.id)
+    trip.reload
+    days_after_first = trip.trip_days.size
+    checklist_after_first = trip.checklist_items.size
+    assert_equal 3, days_after_first
+
+    # Simulate POST /trips/:id/rebuild: flip back to building and run again.
+    trip.update!(build_status: "building")
+    BuildTripJob.perform_now(trip.id)
+    trip.reload
+
+    assert_equal days_after_first, trip.trip_days.size, "rebuild clears old days, no duplication"
+    assert_equal checklist_after_first, trip.checklist_items.size, "rebuild clears old checklist"
+    assert_equal "ready", trip.build_status
+  end
+
   test "a missing trip id is a no-op (no raise)" do
     assert_nothing_raised { BuildTripJob.perform_now(SecureRandom.uuid) }
   end

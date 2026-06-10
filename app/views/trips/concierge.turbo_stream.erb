@@ -1,0 +1,3 @@
+<%= turbo_stream.append "concierge-log" do %>
+  <%= render "trips/concierge_exchange", question: @question, answer: @answer %>
+<% end %>

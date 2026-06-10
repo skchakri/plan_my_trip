@@ -73,12 +73,16 @@ Rails.application.routes.draw do
     end
     member do
       patch :rename
+      patch :archive
+      patch :restore
+      delete :destroy_permanently
       post :rebuild
       get :plan
       get :checklist
       get :copilot
       get :copilot_question
       post :copilot_response
+      post :concierge
       post   :share_link,        to: "public_trips#enable",  as: :enable_public_share
       delete :share_link,        to: "public_trips#disable", as: :disable_public_share
       post   :share_link_rotate, to: "public_trips#rotate",  as: :rotate_public_share
@@ -134,6 +138,16 @@ Rails.application.routes.draw do
     member     { post :read }
     collection { post :read_all }
   end
+
+  # Travel Trivia — standalone general-knowledge quizzes (capitals, flags,
+  # leaders). Questions are generated fresh from curated seed data on each
+  # play and graded client-side; #record persists the final score.
+  get  "quizzes",                     to: "quizzes#index",  as: :quizzes
+  # Country Explorer — pick a country, see all its national facts. Defined
+  # before the :category catch-all so "explore" isn't read as a deck key.
+  get  "quizzes/explore",             to: "quizzes#explore", as: :quiz_explore
+  get  "quizzes/:category",           to: "quizzes#show",   as: :quiz,          constraints: { category: /[a-z_]+/ }
+  post "quizzes/:category/attempts",  to: "quizzes#record", as: :quiz_attempts, constraints: { category: /[a-z_]+/ }
 
   # Starter templates for the empty-state dashboard. The list lives in
   # app/services/trip_template.rb — no DB row, no admin tooling.

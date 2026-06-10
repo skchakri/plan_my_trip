@@ -1,0 +1,107 @@
+<% content_for :title, @category.title %>
+<% a = quiz_accent(@category.accent) %>
+
+<style>
+  @keyframes quizOptIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .quiz-opt-in { animation: quizOptIn .35s cubic-bezier(.2,.7,.2,1) both; }
+  @keyframes quizPop { 0% { transform: scale(.96); opacity: 0; } 60% { transform: scale(1.01); } 100% { transform: scale(1); opacity: 1; } }
+  .quiz-pop { animation: quizPop .4s cubic-bezier(.2,.7,.2,1) both; }
+  @keyframes confettiFall { to { transform: translateY(110vh) rotate(720deg); opacity: 0; } }
+  .confetti-bit { position: fixed; top: -16px; width: 9px; height: 14px; border-radius: 2px; z-index: 60; pointer-events: none; animation: confettiFall linear forwards; }
+  @media (prefers-reduced-motion: reduce) { .quiz-opt-in, .quiz-pop { animation: none; } .confetti-bit { display: none; } }
+</style>
+
+<div
+  data-controller="quiz"
+  data-quiz-questions-value="<%= @questions.to_json %>"
+  data-quiz-record-url-value="<%= quiz_attempts_path(@category.key) %>"
+  data-quiz-best-value="<%= @best.to_i %>"
+  class="max-w-2xl mx-auto"
+>
+  <%# ── Top bar ─────────────────────────────────────────────── %>
+  <div class="flex items-center justify-between gap-3 mb-4">
+    <%= link_to quizzes_path, class: "inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-200 transition-colors" do %>
+      <%= icon :arrow_left, class: "w-4 h-4" %> All decks
+    <% end %>
+    <div class="flex items-center gap-2">
+      <% if @best.to_i.positive? %>
+        <span data-quiz-target="bestBadge" class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold <%= a[:badge] %>">
+          <%= icon :award, class: "w-3.5 h-3.5" %> Best <%= @best.to_i %>%
+        </span>
+      <% else %>
+        <span data-quiz-target="bestBadge" class="hidden inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold <%= a[:badge] %>"></span>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-3 mb-3">
+    <span class="flex items-center justify-center w-9 h-9 shrink-0 rounded-lg <%= a[:tile] %>">
+      <%= icon @category.icon, class: "w-5 h-5" %>
+    </span>
+    <div class="min-w-0">
+      <h1 class="font-display text-xl font-semibold text-slate-50 leading-tight truncate"><%= @category.title %></h1>
+      <% if @category.note.present? %>
+        <p class="text-[11px] text-slate-500"><%= @category.note %></p>
+      <% end %>
+    </div>
+  </div>
+
+  <%# ── Progress ────────────────────────────────────────────── %>
+  <div class="mb-5">
+    <div class="flex items-center justify-between text-xs text-slate-400 mb-1.5">
+      <span data-quiz-target="counter">Question 1</span>
+      <span class="flex items-center gap-3">
+        <span class="inline-flex items-center gap-1"><%= icon :zap, class: "w-3.5 h-3.5 text-amber-400" %><span data-quiz-target="streak">0</span> streak</span>
+        <span class="inline-flex items-center gap-1"><%= icon :check, class: "w-3.5 h-3.5 text-emerald-400" %><span data-quiz-target="score">0</span></span>
+      </span>
+    </div>
+    <div class="h-2 rounded-full bg-slate-800 overflow-hidden">
+      <div data-quiz-target="progressBar" class="h-full rounded-full <%= a[:bar] %> transition-all duration-500 ease-out" style="width: 0%"></div>
+    </div>
+  </div>
+
+  <%# ── Question card ───────────────────────────────────────── %>
+  <div data-quiz-target="question" class="rounded-2xl border border-slate-800/80 bg-gradient-to-br from-slate-900/70 to-slate-900/40 p-5 sm:p-6">
+    <div data-quiz-target="media" hidden class="mb-4"></div>
+    <p data-quiz-target="prompt" class="font-display text-xl sm:text-2xl font-semibold text-slate-50 leading-snug mb-5">…</p>
+    <div data-quiz-target="options" class="grid gap-2.5"></div>
+
+    <div data-quiz-target="nextWrap" hidden class="mt-5 flex justify-end">
+      <button type="button" data-action="quiz#next"
+        class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-amber-500 text-slate-950 font-semibold shadow-lg shadow-amber-500/20 hover:bg-amber-400 hover:shadow-amber-500/40 transition-all">
+        <span data-quiz-target="nextLabel">Next question</span>
+        <%= icon :arrow_right, class: "w-4 h-4" %>
+      </button>
+    </div>
+  </div>
+
+  <%# ── Results card ────────────────────────────────────────── %>
+  <div data-quiz-target="results" hidden class="quiz-pop rounded-2xl border border-slate-800/80 bg-gradient-to-br from-slate-900/80 to-slate-900/40 p-6 sm:p-8 text-center">
+    <div class="relative inline-grid place-items-center mb-4">
+      <svg viewBox="0 0 120 120" class="w-32 h-32 -rotate-90">
+        <circle cx="60" cy="60" r="54" fill="none" stroke="rgb(30 41 59)" stroke-width="9"></circle>
+        <circle data-quiz-target="ring" cx="60" cy="60" r="54" fill="none" stroke="rgb(52 211 153)" stroke-width="9"
+                stroke-linecap="round" stroke-dasharray="339.292" stroke-dashoffset="339.292"
+                style="transition: stroke-dashoffset 1s cubic-bezier(.2,.7,.2,1)"></circle>
+      </svg>
+      <div class="absolute inset-0 grid place-items-center">
+        <span class="font-display text-3xl font-bold text-slate-50"><span data-quiz-target="finalScore">0</span>%</span>
+      </div>
+    </div>
+
+    <h2 data-quiz-target="finalHeadline" class="font-display text-2xl font-semibold text-slate-50">Nicely done</h2>
+    <p data-quiz-target="finalMessage" class="text-sm text-slate-400 mt-1.5 mb-5">You scored 0 of 0.</p>
+
+    <div data-quiz-target="recap" class="text-left space-y-1.5 mb-6 max-h-72 overflow-y-auto pr-1"></div>
+
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5">
+      <button type="button" data-action="quiz#playAgain"
+        class="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-lg bg-amber-500 text-slate-950 font-semibold shadow-lg shadow-amber-500/20 hover:bg-amber-400 transition-all">
+        <%= icon :refresh_cw, class: "w-4 h-4" %> Play again
+      </button>
+      <%= link_to quizzes_path, class: "inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-lg border border-slate-700 text-slate-200 font-semibold hover:bg-white/5 transition-all" do %>
+        <%= icon :globe, class: "w-4 h-4" %> Pick another deck
+      <% end %>
+    </div>
+  </div>
+</div>

@@ -4,7 +4,12 @@
   <div>
     <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500 font-medium">Plan My Trip</p>
     <h1 class="font-display text-3xl sm:text-4xl font-semibold text-slate-50">Your trips</h1>
-    <p class="text-sm text-slate-400 mt-1.5"><%= pluralize(@trips.size, "trip") %> · plan, share, and book</p>
+    <p class="text-sm text-slate-400 mt-1.5">
+      <%= pluralize(@trips.size, "trip") %> · plan, share, and book
+      <% if current_user.owned_trips.discarded.exists? %>
+        · <%= link_to "Archived", trips_path(archived: 1), class: "text-slate-400 underline decoration-slate-600 underline-offset-2 hover:text-slate-200 transition-colors" %>
+      <% end %>
+    </p>
   </div>
   <div class="hidden sm:flex items-center gap-2">
     <%= link_to day_trips_new_path, class: "inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-emerald-500/40 bg-emerald-500/10 text-emerald-200 font-semibold hover:bg-emerald-500/20 hover:border-emerald-500/60 transition-all text-sm" do %>
@@ -70,79 +75,109 @@
     </div>
   </section>
 <% else %>
-  <ul class="space-y-3">
-    <% @trips.each do |trip| %>
-      <li class="group rounded-2xl border border-slate-800 bg-slate-900/60 hover:border-amber-500/50 hover:bg-slate-900/80 transition-all overflow-hidden">
-        <%# Cover band — photo if we have one, otherwise a deterministic
-            per-trip gradient so the dashboard reads visually. %>
-        <% cover = trip.cover_image_url %>
-        <% gradients = [
-             "from-amber-500/30 to-rose-500/10",
-             "from-teal-500/30 to-cyan-500/10",
-             "from-violet-500/30 to-pink-500/10",
-             "from-emerald-500/30 to-lime-500/10",
-             "from-sky-500/30 to-indigo-500/10",
-             "from-fuchsia-500/30 to-amber-500/10",
-             "from-rose-500/30 to-orange-500/10"
-           ] %>
-        <%= link_to trip, class: "block group/cover relative w-full h-24 sm:h-28 overflow-hidden bg-gradient-to-br #{gradients[trip.cover_palette_index]}" do %>
-          <% if cover %>
-            <%= image_tag cover, alt: "", class: "w-full h-full object-cover opacity-90 group-hover/cover:opacity-100 group-hover/cover:scale-[1.02] transition-all duration-500", loading: "lazy" %>
-          <% else %>
-            <div class="absolute inset-0 flex items-center justify-center text-slate-100/70">
-              <%= icon :plane, class: "w-8 h-8" %>
-            </div>
+  <style>
+    @keyframes tripCardIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+    @media (prefers-reduced-motion: no-preference) {
+      .trip-card { animation: tripCardIn .5s cubic-bezier(.2,.7,.2,1) both; }
+    }
+  </style>
+  <% gradients = [
+       "from-amber-500/40 to-rose-500/15",
+       "from-teal-500/40 to-cyan-500/15",
+       "from-violet-500/40 to-pink-500/15",
+       "from-emerald-500/40 to-lime-500/15",
+       "from-sky-500/40 to-indigo-500/15",
+       "from-fuchsia-500/40 to-amber-500/15",
+       "from-rose-500/40 to-orange-500/15"
+     ] %>
+  <ul class="space-y-2.5">
+    <% @trips.each_with_index do |trip, i| %>
+      <% cover = trip.cover_image_url %>
+      <% owned = trip.owner_id == current_user.id %>
+      <li class="trip-card group relative rounded-2xl border border-slate-800/80 bg-gradient-to-br from-slate-900/70 to-slate-900/40 hover:border-amber-500/40 hover:from-slate-900 hover:shadow-lg hover:shadow-black/30 transition-all duration-300" style="animation-delay: <%= i * 55 %>ms">
+        <div class="flex items-center gap-3.5 sm:gap-4 p-3 sm:p-3.5">
+          <%# Compact square thumbnail — photo crops cleanly, gradient fallback. %>
+          <%= link_to trip, aria: { label: trip.title_for(current_user) },
+                class: "relative shrink-0 w-[4.5rem] h-[4.5rem] sm:w-24 sm:h-24 rounded-xl overflow-hidden ring-1 ring-inset ring-white/10 bg-gradient-to-br #{gradients[trip.cover_palette_index]}" do %>
+            <% if cover %>
+              <%= image_tag cover, alt: "", class: "w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.06]", loading: "lazy" %>
+              <span class="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/45 to-transparent"></span>
+            <% else %>
+              <span class="absolute inset-0 flex items-center justify-center text-white/80"><%= icon :plane, class: "w-7 h-7" %></span>
+            <% end %>
+            <% if trip.day_trip? %>
+              <span class="absolute top-1 left-1 inline-flex items-center justify-center w-5 h-5 rounded-md bg-black/45 backdrop-blur text-amber-200" title="Day trip"><%= icon :sun, class: "w-3 h-3" %></span>
+            <% end %>
           <% end %>
-          <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/20 to-transparent"></div>
-        <% end %>
 
-        <div class="p-5 flex flex-col sm:flex-row sm:items-center gap-4">
-          <%= link_to trip, class: "min-w-0 flex-1 block" do %>
-            <div class="flex items-start gap-3">
-              <div class="shrink-0 mt-0.5 w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-500/5 border border-amber-500/20 flex items-center justify-center text-amber-300">
-                <%= icon :plane, class: "w-5 h-5" %>
-              </div>
-              <div class="min-w-0">
-                <h2 class="font-display text-lg font-semibold text-slate-50 truncate group-hover:text-amber-200 transition-colors"><%= trip.title_for(current_user) %></h2>
-                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-sm">
-                  <% if trip.destination.present? %>
-                    <span class="inline-flex items-center gap-1 text-slate-300"><%= icon :map_pin, class: "w-3.5 h-3.5 text-slate-500" %><%= trip.destination %></span>
-                  <% end %>
-                  <% if trip.start_date && trip.end_date %>
-                    <span class="inline-flex items-center gap-1 text-slate-400"><%= icon :calendar, class: "w-3.5 h-3.5 text-slate-500" %><%= trip.start_date.strftime("%b %-d") %> – <%= trip.end_date.strftime("%b %-d, %Y") %></span>
-                  <% end %>
-                </div>
-                <% chips = [] %>
-                <% chips << "Day trip" if trip.day_trip? %>
-                <% chips << "#{trip.nights} #{'night'.pluralize(trip.nights)}" if trip.nights && trip.nights > 0 && !trip.day_trip? %>
-                <% chips << "#{trip.traveler_count} #{'traveler'.pluralize(trip.traveler_count)}" if trip.traveler_count %>
-                <% chips << "#{trip.trails.size} #{'trail'.pluralize(trip.trails.size)}" if trip.trails.any? %>
-                <% chips << "#{trip.member_count} with access" if trip.member_count > 1 %>
-                <% if chips.any? %>
-                  <div class="flex flex-wrap gap-1.5 mt-2.5">
-                    <% chips.each do |chip| %>
-                      <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 text-[11px] font-medium border border-slate-700/50"><%= chip %></span>
-                    <% end %>
-                  </div>
+          <div class="min-w-0 flex-1">
+            <%# Title + ownership badge %>
+            <div class="flex items-start gap-2">
+              <%= link_to trip, class: "min-w-0 flex-1 block" do %>
+                <h2 class="font-display text-lg sm:text-xl font-semibold text-slate-50 leading-tight truncate group-hover:text-amber-200 transition-colors"><%= trip.title_for(current_user) %></h2>
+              <% end %>
+              <% if owned %>
+                <span class="shrink-0 mt-0.5 text-[10px] uppercase tracking-widest px-2 py-0.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-300 font-semibold">Owner</span>
+              <% else %>
+                <span class="shrink-0 mt-0.5 text-[10px] uppercase tracking-widest px-2 py-0.5 rounded-full border border-slate-600/50 bg-slate-700/30 text-slate-300 font-semibold">Shared · <%= trip.owner.display_name %></span>
+              <% end %>
+            </div>
+
+            <%# Destination · dates %>
+            <div class="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1 text-[13px]">
+              <% if trip.destination.present? %>
+                <span class="inline-flex items-center gap-1 text-slate-300"><%= icon :map_pin, class: "w-3.5 h-3.5 text-slate-500" %><span class="truncate max-w-[14rem]"><%= trip.destination %></span></span>
+              <% end %>
+              <% if trip.start_date && trip.end_date %>
+                <span class="inline-flex items-center gap-1 text-slate-400"><%= icon :calendar, class: "w-3.5 h-3.5 text-slate-500" %><%= trip.start_date.strftime("%b %-d") %> – <%= trip.end_date.strftime("%b %-d, %Y") %></span>
+              <% end %>
+            </div>
+
+            <%# Meta chips (left) + actions (right) on one line — wraps on mobile. %>
+            <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 mt-2.5">
+              <% chips = [] %>
+              <% chips << "#{trip.nights} #{'night'.pluralize(trip.nights)}" if trip.nights && trip.nights > 0 && !trip.day_trip? %>
+              <% chips << "#{trip.traveler_count} #{'traveler'.pluralize(trip.traveler_count)}" if trip.traveler_count %>
+              <% chips << "#{trip.trails.size} #{'trail'.pluralize(trip.trails.size)}" if trip.trails.any? %>
+              <div class="flex flex-wrap items-center gap-1.5">
+                <% chips.each do |chip| %>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-800/80 text-slate-300 text-[11px] font-medium border border-slate-700/50"><%= chip %></span>
+                <% end %>
+                <% if trip.member_count > 1 %>
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-300/90 text-[11px] font-medium border border-amber-500/20"><%= icon :users, class: "w-3 h-3" %><%= trip.member_count %></span>
                 <% end %>
               </div>
-            </div>
-          <% end %>
 
-          <div class="flex items-center gap-2 shrink-0 sm:flex-col sm:items-end">
-            <div class="flex items-center gap-2">
-              <%= link_to plan_trip_path(trip), title: "Open the in-app final plan", class: "inline-flex items-center gap-1 text-[11px] px-2.5 py-1.5 rounded-md bg-teal-500/10 text-teal-300 border border-teal-500/30 hover:bg-teal-500/20 transition-colors" do %>
-                <%= icon :sparkles, class: "w-3 h-3" %> Final plan
-              <% end %>
-              <%= link_to checklist_trip_path(trip), title: "Open the checklist", class: "inline-flex items-center gap-1 text-[11px] px-2.5 py-1.5 rounded-md bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/20 transition-colors" do %>
-                <%= icon :check, class: "w-3 h-3" %> Checklist
-              <% end %>
+              <div class="flex items-center gap-1.5 shrink-0">
+                <%= link_to plan_trip_path(trip), title: "Open the in-app final plan", class: "inline-flex items-center gap-1 text-[11px] px-2.5 py-1.5 rounded-md bg-teal-500/10 text-teal-300 border border-teal-500/30 hover:bg-teal-500/20 transition-colors" do %>
+                  <%= icon :sparkles, class: "w-3 h-3" %> <span class="hidden sm:inline">Final plan</span>
+                <% end %>
+                <%= link_to checklist_trip_path(trip), title: "Open the checklist", class: "inline-flex items-center gap-1 text-[11px] px-2.5 py-1.5 rounded-md bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/20 transition-colors" do %>
+                  <%= icon :check, class: "w-3 h-3" %> <span class="hidden sm:inline">Checklist</span>
+                <% end %>
+
+                <%# Per-trip actions menu — Duplicate + Archive (owner) / Remove (member). %>
+                <div class="relative" data-controller="menu">
+                  <button type="button" data-action="menu#toggle" data-menu-target="button" aria-haspopup="true" aria-expanded="false" aria-label="Trip actions" title="More actions" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-slate-400 border border-slate-700/50 hover:text-slate-100 hover:bg-slate-800 transition-colors">
+                    <%= icon :more_horizontal, class: "w-4 h-4" %>
+                  </button>
+                  <div data-menu-target="panel" hidden class="absolute right-0 top-full mt-1.5 z-30 w-48 rounded-lg border border-slate-700 bg-slate-900 shadow-xl shadow-black/50 py-1 text-sm">
+                    <%= button_to duplicate_trip_path(trip), method: :post, class: "w-full flex items-center gap-2 px-3 py-2 text-left text-slate-200 hover:bg-slate-800 transition-colors cursor-pointer" do %>
+                      <%= icon :copy, class: "w-4 h-4 text-slate-400" %> Duplicate
+                    <% end %>
+                    <% if owned %>
+                      <%= button_to archive_trip_path(trip), method: :patch, form: { data: { turbo_confirm: "Archive “#{trip.title_for(current_user)}”? You can restore it from Archived." } }, class: "w-full flex items-center gap-2 px-3 py-2 text-left text-amber-300 hover:bg-amber-500/10 transition-colors cursor-pointer" do %>
+                        <%= icon :archive, class: "w-4 h-4" %> Archive
+                      <% end %>
+                    <% else %>
+                      <%= button_to archive_trip_path(trip), method: :patch, form: { data: { turbo_confirm: "Remove “#{trip.title_for(current_user)}” from your trips?" } }, class: "w-full flex items-center gap-2 px-3 py-2 text-left text-rose-300 hover:bg-rose-500/10 transition-colors cursor-pointer" do %>
+                        <%= icon :log_out, class: "w-4 h-4" %> Remove from my trips
+                      <% end %>
+                    <% end %>
+                  </div>
+                </div>
+              </div>
             </div>
-            <% if trip.owner_id == current_user.id %>
-              <span class="text-[10px] uppercase tracking-widest px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 font-semibold">Owner</span>
-            <% else %>
-              <span class="text-[10px] uppercase tracking-widest px-2 py-0.5 rounded bg-slate-700/40 text-slate-300 font-semibold">Shared by <%= trip.owner.display_name %></span>
-            <% end %>
           </div>
         </div>
       </li>

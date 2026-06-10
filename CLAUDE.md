@@ -80,6 +80,20 @@ Don't stand up another Postgres locally for this app. See workspace
 - **ChecklistItem** — belongs_to Trip, with `title`, `category`,
   `person`, `position`, `packed`. Used by the in-app checklist page at
   `/trips/:id/checklist` with Turbo Stream toggles.
+- **Brand** — `name`, `category` ("car"/"airline"), `slug`. Powers the logo
+  decks; `Brand#logo_url` builds a Simple Icons URL (`cdn.simpleicons.org/<slug>`,
+  free, no key, colored SVG mark). No binaries stored.
+- **Country** / **UsState** / **Landmark** — curated reference data for Travel
+  Trivia. One `Country` row carries many facts (`capital`, `iso2`, `continent`,
+  `leader_title`/`leader_name`, `currency_name`, `primary_language`,
+  `calling_code`, plus national `_anthem`/`_animal`/`_bird`/`_flower`/`_sport`/
+  `_motto`/`_dish`); `Country#flag_url` builds flagcdn.com URLs from `iso2`,
+  `Country#tld` derives the ccTLD, and `Country#fact_rows` is the ordered
+  (label, value, icon) list the Country Explorer renders. `Landmark`
+  (`name`, `country`, `continent`) powers the landmarks deck. See
+  `## Travel Trivia`.
+- **QuizAttempt** — belongs_to User; one row per finished quiz round
+  (`category`, `score`, `total`). Drives per-category personal bests.
 
 ## In-app Plan + Checklist routes
 
@@ -88,6 +102,63 @@ Don't stand up another Postgres locally for this app. See workspace
 - `GET /trips/:id/checklist` — sectioned checklist with progress bar +
   inline add form. Each row toggles via Turbo Stream
   (`POST /trips/:id/checklist_items/:id` with `packed=true|false`).
+
+## Travel Trivia (general-knowledge quizzes)
+
+A standalone quiz section at `/quizzes` — distinct from the trip-scoped
+`TriviaQuestion` game played by travelers during a trip. Fifteen multiple-choice
+decks: **World Capitals**, **U.S. State Capitals**, **Guess the Flag**,
+**World Leaders**, **World Currencies**, **Famous Landmarks**, **World
+Languages**, **Dialing Codes**, **Internet Domains** (ccTLD → country),
+**Continents**, **National Anthems**, **National Birds**, **National Sports**,
+**Car Logos**, and **Airline Logos**. Adding a deck = a new `QuizCatalog`
+category + builder (+ an accent in `QuizzesHelper::QUIZ_ACCENTS`); most builders
+pull distractors from the same table grouped by continent, while the landmark/TLD
+builders draw country-name distractors from `Country`. The logo decks share a
+`logo_deck` builder over `Brand` (image → brand name) and set `logo: true` in the
+question hash so the player renders the logo on a light card (logos can be any
+colour). The TLD deck needs no stored data (`Country#tld`
+derives from `iso2`, except the UK's `.uk`); continents reuses the `continent`
+column. A `Category` may carry a `note:` (e.g. the leaders "as of #{LEADERS_AS_OF}"
+and the national-sports "official where one exists" caveats) shown under the deck title.
+
+**Country Explorer** (`GET /quizzes/explore`, `QuizzesController#explore`) — a
+country picker (a `<select>` that auto-navigates via the `auto-submit` Stimulus
+controller, `?c=<iso2>`) renders a fact-sheet of *all* a country's national data
+from `Country#fact_rows`. Defaults to the US. Route is declared **before**
+`quizzes/:category` so `explore` isn't read as a deck key. Linked from the
+quizzes index banner and the account dropdown.
+
+- **`QuizCatalog` (`app/services/quiz_catalog.rb`)** — the deck registry (code,
+  not DB) + question builder. `CATEGORIES` defines each deck's metadata
+  (title/tagline/icon/accent). `build(key, count: 10)` generates fresh questions
+  on every play from a random sample of the seed data, so a round never feels
+  memorized. Distractors prefer the same continent (capitals/flags) or same
+  office (leaders) for plausibility, then fall back to the wider pool; options
+  are deduped by display value. Returns plain hashes:
+  `{ prompt:, image_url:, flag_thumb:, options: [4], answer_index: }`.
+- **Seed data** lives in `db/seeds/geography.rb` (loaded by `db:seed`):
+  ~176 countries (170 dialing codes, 136 currencies, 128 languages, 45 anthems,
+  35 leaders, 33 national birds, 26 national sports) + 50 states + ~48 landmarks.
+  National symbols (`NATIONAL_SYMBOLS`) are filled only where confidently known
+  so partially-populated countries degrade gracefully in the Explorer. Logo-deck
+  brands live in `db/seeds/brands.rb` (~37 cars, ~28 airlines) — slugs verified
+  against Simple Icons (brands removed there for trademark, e.g. Mercedes-Benz,
+  are simply omitted). `leader_name` is hand-curated as of
+  `QuizCatalog::LEADERS_AS_OF` (surfaced in the leaders deck UI); re-running the
+  seed refreshes leaders in place (idempotent upsert on `iso2` / `abbreviation`).
+- **`QuizzesController`** — `index` (deck grid + personal bests), `show`
+  (renders the player), `record` (`POST /quizzes/:category/attempts`, persists a
+  `QuizAttempt`). No Pundit policy — these are global reference quizzes, gated
+  only by auth. Best %/deck is `MAX(score*100.0/NULLIF(total,0))` grouped by
+  category.
+- **Player** is client-side (`app/javascript/controllers/quiz_controller.js`):
+  the server embeds the questions (with answer keys) as a Stimulus Array value
+  and the controller grades each tap with no round-trip — acceptable for casual
+  trivia. It POSTs the final score once. Flag images come from **flagcdn.com**
+  (free, keyed by lowercase ISO-3166 alpha-2; no API key). Per-deck accent
+  classes are in `QuizzesHelper::QUIZ_ACCENTS` as full literal strings so the
+  Tailwind v4 scanner compiles every variant.
 
 ## PWA / offline
 

@@ -45,6 +45,7 @@ class User < ApplicationRecord
   has_many :trip_memberships, dependent: :destroy
   has_many :trips, through: :trip_memberships
   has_many :notifications_received, class_name: "Notification", foreign_key: :recipient_id, dependent: :destroy, inverse_of: :recipient
+  has_many :quiz_attempts, dependent: :destroy
 
   # Form-friendly bridge for the daily-digest opt-out. The DB column is a
   # nullable timestamp (so we can know *when* the user opted out), but the

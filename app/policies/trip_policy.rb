@@ -17,6 +17,18 @@ class TripPolicy < ApplicationPolicy
     owner?
   end
 
+  # Archiving removes a trip from a viewer's dashboard. The owner soft-deletes
+  # (discards) the whole trip; a member just leaves it — both are allowed for
+  # anyone with access. Restoring/permanently deleting are owner-only.
+  def archive?
+    record.shared_with?(user)
+  end
+
+  def restore?
+    owner?
+  end
+  alias_method :destroy_permanently?, :restore?
+
   def share?
     owner?
   end

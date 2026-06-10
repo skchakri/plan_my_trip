@@ -104,8 +104,40 @@ class TripStructureBuilder
   end
 
   def fallback
+    # Spread the chosen highlights across the days (round-robin, each used once)
+    # so no two days are identical. Putting `@highlights.first(3)` on *every*
+    # day was a real failure mode when the AI call timed out — a 7-day trip came
+    # back with the same three activities seven times. Days that don't land a
+    # highlight get a single open "explore" slot instead.
+    buckets = Array.new(day_count) { [] }
+    @highlights.each_with_index { |h, idx| buckets[idx % day_count] << h }
+    times = [ "9:00 AM", "12:30 PM", "4:00 PM", "6:30 PM" ]
+
     days = (0...day_count).map do |i|
       date = @start_date + i
+      picks = buckets[i]
+      activities =
+        if picks.any?
+          picks.each_with_index.map do |h, j|
+            {
+              "time_label" => times[j % times.size],
+              "title" => h[:name].to_s,
+              "location_name" => h[:name].to_s,
+              "address" => @destination,
+              "latitude" => nil, "longitude" => nil,
+              "famous_for" => h[:summary].to_s,
+              "notes" => "", "group_label" => ""
+            }
+          end
+        else
+          [ {
+            "time_label" => "Flexible",
+            "title" => "Explore #{@destination}",
+            "location_name" => "", "address" => @destination,
+            "latitude" => nil, "longitude" => nil,
+            "famous_for" => "", "notes" => "Open day — add your own plans.", "group_label" => ""
+          } ]
+        end
       {
         "label" => "day-#{i + 1}",
         "date" => date.iso8601,
@@ -113,17 +145,7 @@ class TripStructureBuilder
         "theme" => "Explore",
         "summary" => "Plan the day with your group.",
         "accent" => ACCENTS[i % ACCENTS.size],
-        "activities" => @highlights.first(3).map.with_index do |h, j|
-          {
-            "time_label" => [ "9:00 AM", "12:30 PM", "4:00 PM" ][j % 3],
-            "title" => h[:name].to_s,
-            "location_name" => h[:name].to_s,
-            "address" => @destination,
-            "latitude" => nil, "longitude" => nil,
-            "famous_for" => h[:summary].to_s,
-            "notes" => "", "group_label" => ""
-          }
-        end
+        "activities" => activities
       }
     end
     {
