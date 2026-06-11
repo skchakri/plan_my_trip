@@ -1,29 +1,43 @@
 # Be sure to restart your server when you modify this file.
 
-# Define an application-wide content security policy.
-# See the Securing Rails Applications Guide for more information:
-# https://guides.rubyonrails.org/security.html#content-security-policy-header
+# Application-wide Content-Security-Policy — the backstop against XSS given the
+# app's user-supplied URLs and html_safe helper output.
+#
+# External origins in use:
+#   fonts.googleapis.com / fonts.gstatic.com  — Inter + Fraunces webfonts
+#   img-src https:                            — flagcdn.com, cdn.simpleicons.org,
+#                                               Pexels/Unsplash/Pixabay place photos,
+#                                               tile.openstreetmap.org map tiles
+#   ws/wss                                    — ActionCable (turbo_stream_from)
+#
+# Inline <script> tags (layout SW registration, copilot player) carry the
+# per-session nonce; importmap tags pick the nonce up automatically. Inline
+# styles stay on unsafe-inline (style="" attributes everywhere) — style
+# injection is far lower risk than script injection.
+Rails.application.configure do
+  config.content_security_policy do |policy|
+    policy.default_src :self
+    policy.script_src  :self
+    policy.style_src   :self, :unsafe_inline, "https://fonts.googleapis.com"
+    policy.font_src    :self, :data, "https://fonts.gstatic.com"
+    policy.img_src     :self, :https, :data, :blob
+    policy.connect_src :self, :ws, :wss
+    policy.object_src  :none
+    policy.base_uri    :self
+    policy.form_action :self
+    policy.frame_ancestors :self
+  end
 
-# Rails.application.configure do
-#   config.content_security_policy do |policy|
-#     policy.default_src :self, :https
-#     policy.font_src    :self, :https, :data
-#     policy.img_src     :self, :https, :data
-#     policy.object_src  :none
-#     policy.script_src  :self, :https
-#     policy.style_src   :self, :https
-#     # Specify URI for violation reports
-#     # policy.report_uri "/csp-violation-report-endpoint"
-#   end
-#
-#   # Generate session nonces for permitted importmap, inline scripts, and inline styles.
-#   config.content_security_policy_nonce_generator = ->(request) { request.session.id.to_s }
-#   config.content_security_policy_nonce_directives = %w(script-src style-src)
-#
-#   # Automatically add `nonce` to `javascript_tag`, `javascript_include_tag`, and `stylesheet_link_tag`
-#   # if the corresponding directives are specified in `content_security_policy_nonce_directives`.
-#   # config.content_security_policy_nonce_auto = true
-#
-#   # Report violations without enforcing the policy.
-#   # config.content_security_policy_report_only = true
-# end
+  # Per-session nonce for the few inline <script> blocks (random fallback —
+  # session.id is nil until the session cookie exists, and an empty nonce
+  # would block every inline script on a first visit). Directive list is
+  # script-only on purpose — adding style-src here would disable the
+  # unsafe-inline above and break every style="" attribute.
+  config.content_security_policy_nonce_generator =
+    ->(request) { request.session.id.to_s.presence || SecureRandom.base64(16) }
+  config.content_security_policy_nonce_directives = %w[script-src]
+
+  # web-console injects un-nonced inline scripts on exception pages, so don't
+  # enforce locally — report-only still logs violations to the browser console.
+  config.content_security_policy_report_only = true if Rails.env.development?
+end

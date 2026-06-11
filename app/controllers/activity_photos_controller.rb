@@ -1,4 +1,5 @@
 class ActivityPhotosController < ApplicationController
+  include AttachmentFiltering
   before_action :set_trip
   before_action :set_activity
 
@@ -9,6 +10,13 @@ class ActivityPhotosController < ApplicationController
     if files.empty?
       redirect_to plan_trip_path(@trip, anchor: "day-#{@activity.trip_day_id}"),
                   alert: "Pick at least one image to upload." and return
+    end
+
+    rejected = []
+    files = filter_allowed_files(files, Activity::PHOTO_CONTENT_TYPES, rejected)
+    if files.empty?
+      redirect_to plan_trip_path(@trip, anchor: "day-#{@activity.trip_day_id}"),
+                  alert: "Unsupported file type: #{rejected.to_sentence}. Photos must be PNG, JPEG, WEBP, HEIC, or GIF." and return
     end
 
     @activity.photos.attach(files)
