@@ -96,7 +96,7 @@
   </div>
 </div>
 
-<script>
+<script nonce="<%= content_security_policy_nonce %>">
   (() => {
     const opts = document.querySelectorAll(".copilot-opt");
     const reveal = document.getElementById("copilot-reveal");

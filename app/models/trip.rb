@@ -51,8 +51,20 @@ class Trip < ApplicationRecord
 
   has_many_attached :documents
 
+  # Content types accepted for trip-level document uploads. Anything else
+  # (notably text/html and image/svg+xml, which can carry scripts) is rejected
+  # before attach by AttachmentFiltering.
+  DOCUMENT_CONTENT_TYPES = %w[
+    application/pdf image/png image/jpeg image/webp image/heic image/heif text/plain
+  ].freeze
+
   validates :title, presence: true
   validate :end_after_start
+  # User-supplied link targets rendered as hrefs — restrict to http(s) so a
+  # javascript: URI can't become a stored XSS on the plan/checklist pages.
+  validates :pwa_plan_url, :pwa_packing_url,
+            format: { with: %r{\Ahttps?://\S+\z}i, message: "must start with http:// or https://" },
+            allow_blank: true
 
   after_create :ensure_owner_membership
 

@@ -1,0 +1,75 @@
+<% content_for :title, "Explore countries" %>
+
+<header class="mb-6">
+  <p class="text-[11px] uppercase tracking-[0.2em] text-slate-500 font-medium">Plan My Trip · Explore</p>
+  <h1 class="font-display text-3xl sm:text-4xl font-semibold text-slate-50 mt-1 flex items-center gap-3">
+    Country Explorer
+    <span class="text-2xl sm:text-3xl">🧭</span>
+  </h1>
+  <p class="text-sm text-slate-400 mt-2 max-w-xl leading-relaxed">
+    Pick any country to see all its national stuff — capital, currency, anthem,
+    bird, sport, dish and more — in one place.
+  </p>
+</header>
+
+<%# ── Country picker (auto-navigates on change) ───────────────── %>
+<%= form_with url: quiz_explore_path, method: :get, data: { controller: "auto-submit", turbo_action: "replace" } do %>
+  <label for="country-select" class="sr-only">Choose a country</label>
+  <div class="relative max-w-sm">
+    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none">
+      <%= icon :globe, class: "w-4 h-4" %>
+    </span>
+    <select id="country-select" name="c" data-action="change->auto-submit#submit"
+      class="w-full appearance-none rounded-xl border border-slate-700 bg-slate-900 text-slate-100 pl-9 pr-9 py-2.5 text-sm font-medium focus:border-amber-400 focus:outline-none">
+      <% @countries.each do |c| %>
+        <option value="<%= c.iso2 %>" <%= "selected" if c.id == @country.id %>><%= c.name %></option>
+      <% end %>
+    </select>
+    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none">
+      <%= icon :chevron_down, class: "w-4 h-4" %>
+    </span>
+  </div>
+<% end %>
+
+<%# ── Profile fact-sheet ──────────────────────────────────────── %>
+<% if @country %>
+  <article class="mt-6 rounded-2xl border border-slate-800/80 bg-gradient-to-br from-slate-900/70 to-slate-900/40 overflow-hidden">
+    <div class="flex items-center gap-4 p-5 sm:p-6 border-b border-slate-800/70 bg-slate-900/40">
+      <img src="<%= @country.flag_url(width: 160) %>" alt="Flag of <%= @country.name %>"
+           class="h-14 w-auto rounded-md ring-1 ring-slate-700/70 shadow-lg shadow-black/40 shrink-0">
+      <div class="min-w-0">
+        <h2 class="font-display text-2xl font-semibold text-slate-50 leading-tight"><%= @country.name %></h2>
+        <p class="text-sm text-slate-400 mt-0.5 flex items-center gap-1.5">
+          <%= icon :map_pin, class: "w-3.5 h-3.5 text-slate-500" %>
+          <%= @country.capital %> · <%= @country.continent %>
+        </p>
+      </div>
+    </div>
+
+    <dl class="grid sm:grid-cols-2 gap-px bg-slate-800/50">
+      <% @country.fact_rows.each do |label, value, ic| %>
+        <div class="flex items-start gap-3 bg-slate-900/60 px-5 py-3.5">
+          <span class="flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-slate-800/70 text-amber-300/90 mt-0.5">
+            <%= icon ic, class: "w-4 h-4" %>
+          </span>
+          <div class="min-w-0">
+            <dt class="text-[11px] uppercase tracking-wide text-slate-500 font-medium"><%= label %></dt>
+            <dd class="text-sm text-slate-100 font-medium mt-0.5"><%= value %></dd>
+          </div>
+        </div>
+      <% end %>
+    </dl>
+
+    <% if @country.national_sport.present? %>
+      <p class="px-5 sm:px-6 py-3 text-[11px] text-slate-500 border-t border-slate-800/70">
+        National sport/animal reflect the most widely associated choice; not every country designates one officially.
+      </p>
+    <% end %>
+  </article>
+<% end %>
+
+<div class="mt-6">
+  <%= link_to quizzes_path, class: "inline-flex items-center gap-1.5 text-sm text-amber-300 hover:text-amber-200 transition-colors" do %>
+    <%= icon :arrow_left, class: "w-4 h-4" %> Back to the trivia decks
+  <% end %>
+</div>

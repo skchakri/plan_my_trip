@@ -2,6 +2,15 @@ class Activity < ApplicationRecord
   MAX_DOCUMENT_BYTES = 15.megabytes
   MAX_PHOTO_BYTES = 10.megabytes
 
+  # Upload allowlists — html/svg can carry scripts, so only these get past
+  # AttachmentFiltering in the upload controllers.
+  DOCUMENT_CONTENT_TYPES = %w[
+    application/pdf image/png image/jpeg image/webp image/heic image/heif text/plain
+  ].freeze
+  PHOTO_CONTENT_TYPES = %w[
+    image/png image/jpeg image/webp image/heic image/heif image/gif
+  ].freeze
+
   belongs_to :trip_day
   belongs_to :place, optional: true
   has_one :trip, through: :trip_day

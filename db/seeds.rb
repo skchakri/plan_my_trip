@@ -341,6 +341,13 @@ end
 puts "Seeded: #{demo.email} / password123"
 puts "Trips: #{Trip.count}, Trails: #{Trail.count}, Checklist items: #{ChecklistItem.count}, Days: #{TripDay.count}, Activities: #{Activity.count}, Travelers: #{Person.count}"
 
+puts "\nSeeding Travel Trivia reference data…"
+load Rails.root.join("db/seeds/geography.rb").to_s
+load Rails.root.join("db/seeds/brands.rb").to_s
+
+puts "Building the quiz question bank…"
+puts "Quiz questions: #{QuizQuestion.rebuild!}"
+
 puts "\nSeeding AI prompts…"
 load Rails.root.join("db/seed_ai_prompts.rb").to_s
 

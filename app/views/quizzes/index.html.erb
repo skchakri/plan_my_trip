@@ -1,0 +1,111 @@
+<% content_for :title, "Travel Trivia" %>
+
+<style>
+  @keyframes quizCardIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  .quiz-card { animation: quizCardIn .5s cubic-bezier(.2,.7,.2,1) both; }
+  @media (prefers-reduced-motion: reduce) { .quiz-card { animation: none; } }
+</style>
+
+<header class="mb-7">
+  <p class="text-[11px] uppercase tracking-[0.2em] text-slate-500 font-medium">Plan My Trip · Play</p>
+  <h1 class="font-display text-3xl sm:text-4xl font-semibold text-slate-50 mt-1 flex items-center gap-3">
+    Travel Trivia
+    <span class="text-2xl sm:text-3xl">🌍</span>
+  </h1>
+  <p class="text-sm text-slate-400 mt-2 max-w-xl leading-relaxed">
+    Sharpen your geography between trips. Ten quick questions a round — pick a deck and
+    chase a perfect score.
+  </p>
+</header>
+
+<%
+  total_plays = @plays.values.sum
+  played_categories = @plays.keys.size
+%>
+<% if total_plays.positive? %>
+  <div class="flex flex-wrap items-center gap-x-6 gap-y-2 mb-7 text-sm">
+    <div class="flex items-center gap-2 text-slate-300">
+      <%= icon :play, class: "w-4 h-4 text-slate-500" %>
+      <span><span class="font-semibold text-slate-100"><%= total_plays %></span> rounds played</span>
+    </div>
+    <div class="flex items-center gap-2 text-slate-300">
+      <%= icon :target, class: "w-4 h-4 text-slate-500" %>
+      <span><span class="font-semibold text-slate-100"><%= played_categories %></span> of <%= @categories.size %> decks tried</span>
+    </div>
+    <% if (top = @best.values.max) %>
+      <div class="flex items-center gap-2 text-slate-300">
+        <%= icon :award, class: "w-4 h-4 text-amber-400" %>
+        <span>Best round <span class="font-semibold text-amber-200"><%= top %>%</span></span>
+      </div>
+    <% end %>
+  </div>
+<% end %>
+
+<div data-controller="offline-quizzes" data-offline-quizzes-url-value="<%= quiz_offline_path %>"
+     class="flex flex-wrap items-center gap-x-3 gap-y-1.5 mb-4 rounded-xl border border-slate-800/70 bg-slate-900/40 px-4 py-2.5">
+  <%= icon :download, class: "w-4 h-4 text-amber-400 shrink-0" %>
+  <span class="text-sm text-slate-300">Traveling without signal?</span>
+  <button type="button" data-offline-quizzes-target="button" data-action="offline-quizzes#save"
+    class="text-sm font-semibold text-amber-300 hover:text-amber-200 underline decoration-amber-500/40 underline-offset-2 disabled:opacity-50 disabled:cursor-default transition-colors">
+    Save all decks for offline
+  </button>
+  <span data-offline-quizzes-target="status" role="status" class="text-xs text-slate-500 basis-full sm:basis-auto"></span>
+</div>
+
+<%= link_to quiz_explore_path, class: "group quiz-card flex items-center gap-4 mb-4 rounded-2xl border border-slate-800/80 bg-gradient-to-br from-slate-900/70 to-slate-900/40 p-4 sm:p-5 hover:border-amber-500/50 hover:shadow-lg hover:shadow-amber-500/10 transition-all" do %>
+  <span class="flex items-center justify-center w-11 h-11 shrink-0 rounded-xl bg-amber-500/10 text-amber-300 ring-1 ring-amber-500/20">
+    <%= icon :compass, class: "w-6 h-6" %>
+  </span>
+  <div class="min-w-0 flex-1">
+    <h2 class="font-display text-lg font-semibold text-slate-50 leading-tight">Explore a country</h2>
+    <p class="text-[13px] text-slate-400 mt-0.5 leading-snug">Not in a quizzing mood? Browse every national fact — flag, capital, anthem, bird, sport &amp; more.</p>
+  </div>
+  <%= icon :chevron_right, class: "w-5 h-5 text-slate-600 group-hover:text-amber-300 group-hover:translate-x-0.5 transition-all shrink-0" %>
+<% end %>
+
+<ul class="grid sm:grid-cols-2 gap-4">
+  <% @categories.each_with_index do |cat, i| %>
+    <% a = quiz_accent(cat.accent)
+       best = @best[cat.key]; plays = @plays[cat.key].to_i %>
+    <li class="quiz-card" style="animation-delay: <%= i * 70 %>ms">
+      <%= link_to quiz_path(cat.key),
+            class: "group relative block h-full overflow-hidden rounded-2xl border border-slate-800/80 bg-gradient-to-br from-slate-900/70 to-slate-900/40 p-5 transition-all duration-300 hover:shadow-lg #{a[:hover]}" do %>
+        <div class="pointer-events-none absolute -top-16 -right-16 w-44 h-44 rounded-full bg-gradient-to-br <%= a[:glow] %> to-transparent blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+        <div class="relative flex items-start gap-4">
+          <span class="flex items-center justify-center w-12 h-12 shrink-0 rounded-xl <%= a[:tile] %>">
+            <%= icon cat.icon, class: "w-6 h-6" %>
+          </span>
+          <div class="min-w-0 flex-1">
+            <h2 class="font-display text-lg font-semibold text-slate-50 leading-tight"><%= cat.title %></h2>
+            <p class="text-[13px] text-slate-400 mt-1 leading-snug"><%= cat.tagline %></p>
+          </div>
+          <%= icon :chevron_right, class: "w-5 h-5 text-slate-600 group-hover:text-slate-300 group-hover:translate-x-0.5 transition-all shrink-0 mt-1" %>
+        </div>
+
+        <div class="relative mt-5 flex items-center justify-between">
+          <div class="flex items-center gap-2 text-xs">
+            <% if best %>
+              <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md font-semibold <%= a[:badge] %>">
+                <%= icon :award, class: "w-3.5 h-3.5" %> Best <%= best %>%
+              </span>
+              <span class="text-slate-500"><%= pluralize(plays, "round") %></span>
+            <% else %>
+              <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-slate-800/60 text-slate-400 border border-slate-700/60 font-medium">
+                Not played yet
+              </span>
+            <% end %>
+          </div>
+          <span class="inline-flex items-center gap-1.5 text-sm font-semibold <%= a[:text] %> opacity-0 group-hover:opacity-100 transition-opacity">
+            Play <%= icon :play, class: "w-3.5 h-3.5" %>
+          </span>
+        </div>
+      <% end %>
+    </li>
+  <% end %>
+</ul>
+
+<p class="mt-8 text-xs text-slate-500 flex items-center gap-1.5">
+  <%= icon :sparkles, class: "w-3.5 h-3.5 text-slate-600" %>
+  More decks coming — flags-to-capitals chains, Olympic host cities, U.S. presidents, and "which is bigger?" face-offs.
+</p>

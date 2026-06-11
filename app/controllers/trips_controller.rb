@@ -1,10 +1,17 @@
 class TripsController < ApplicationController
   include MarkdownHelper
 
-  before_action :set_trip, only: %i[show edit update destroy rename plan checklist copilot copilot_question copilot_response duplicate calendar wallet rebuild]
+  before_action :set_trip, only: %i[show edit update destroy rename archive plan checklist copilot copilot_question copilot_response concierge duplicate calendar wallet rebuild]
+  before_action :set_owned_trip, only: %i[restore destroy_permanently]
 
   def index
-    @trips = policy_scope(Trip).ordered.includes(:owner).with_cover_data
+    if params[:archived].present?
+      @archived = true
+      @trips = current_user.owned_trips.discarded.ordered.includes(:owner).with_cover_data
+      render :archived
+    else
+      @trips = policy_scope(Trip).ordered.includes(:owner).with_cover_data
+    end
   end
 
   def show
@@ -68,6 +75,36 @@ class TripsController < ApplicationController
     authorize @trip
     @trip.discard
     redirect_to trips_path, notice: "Trip removed."
+  end
+
+  # PATCH /trips/:id/archive — remove a trip from the current user's dashboard.
+  # The owner soft-deletes (discards) it for everyone — restorable from the
+  # Archived view; a member just drops their own access (leaves the trip).
+  def archive
+    authorize @trip, :archive?
+    if @trip.owner_id == current_user.id
+      @trip.discard
+      redirect_to trips_path, notice: "Trip archived. Restore it anytime from Archived."
+    else
+      title = @trip.title_for(current_user)
+      @trip.trip_memberships.where(user: current_user).destroy_all
+      redirect_to trips_path, notice: "Removed “#{title}” from your trips."
+    end
+  end
+
+  # PATCH /trips/:id/restore — owner un-archives a discarded trip.
+  def restore
+    authorize @trip, :restore?
+    @trip.undiscard
+    redirect_to trips_path(archived: 1), notice: "Trip restored."
+  end
+
+  # DELETE /trips/:id/destroy_permanently — owner hard-deletes a discarded
+  # trip and everything under it. Irreversible; only reachable from Archived.
+  def destroy_permanently
+    authorize @trip, :destroy_permanently?
+    @trip.destroy
+    redirect_to trips_path(archived: 1), notice: "Trip permanently deleted."
   end
 
   # GET /trips/:id/plan — rich day-by-day Final plan with photos and deep-linked maps
@@ -148,6 +185,23 @@ class TripsController < ApplicationController
     head :no_content
   end
 
+  # POST /trips/:id/concierge — ask the Trip Concierge agent a free-text
+  # question about this trip. Answers are grounded in the trip's own dossier
+  # (TripAgent) and streamed back as a turbo-stream appended to the chat log.
+  def concierge
+    authorize @trip, :show?
+    @question = params[:question].to_s.strip
+    return head :bad_request if @question.blank?
+
+    @answer = TripAgent.new(trip: @trip, user: current_user, question: @question).answer.text.presence ||
+              "Sorry — I couldn't answer that just now. Try rephrasing, or check the trip details."
+
+    respond_to do |format|
+      format.turbo_stream
+      format.html { redirect_to @trip }
+    end
+  end
+
   # PATCH /trips/:id/rename — per-user title via membership.custom_title
   # POST /trips/:id/duplicate — anyone with show access can clone into their
   # own trips list. Optionally shifts dates if new_start_date is given.
@@ -195,6 +249,13 @@ class TripsController < ApplicationController
 
   def set_trip
     @trip = Trip.kept.find(params[:id])
+  end
+
+  # Restore / permanent-delete act on discarded trips, which Trip.kept can't
+  # see. Scope to the owner's trips — Discard adds no default scope, so this
+  # still finds archived rows, and non-owners get a 404 rather than access.
+  def set_owned_trip
+    @trip = current_user.owned_trips.find(params[:id])
   end
 
   def trip_params

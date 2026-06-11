@@ -12,69 +12,53 @@
 <section class="relative rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-900 to-slate-900/40 overflow-hidden mb-6">
   <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(232,160,79,0.10),transparent_60%)] pointer-events-none"></div>
   <div class="relative p-6 sm:p-8">
-    <div class="flex items-start justify-between gap-4 flex-wrap">
-      <div class="min-w-0 flex-1">
-        <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500 font-medium mb-2 flex items-center gap-2">
-          <% if is_owner %>
-            <span class="inline-block w-1.5 h-1.5 rounded-full bg-amber-400"></span> Your trip
-          <% else %>
-            <span class="inline-block w-1.5 h-1.5 rounded-full bg-sky-400"></span> Shared by <%= @trip.owner.display_name %>
-          <% end %>
-          <% if day_trip %>
-            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-200 border border-emerald-500/30 text-[10px] font-semibold tracking-normal normal-case ml-1">
-              <%= icon :sun, class: "w-3 h-3" %> Day trip
-            </span>
-          <% end %>
-        </p>
-        <h1 class="font-display text-3xl sm:text-4xl font-semibold tracking-tight text-slate-50"><%= @trip.title_for(current_user) %></h1>
-        <% if @trip.title_for(current_user) != @trip.title %>
-          <p class="text-xs text-slate-500 mt-1">Original title: <%= @trip.title %></p>
+    <%# Top bar: ownership eyebrow (left) + action toolbar (right). Kept on its
+        own row so the title below can use the full width and never gets squeezed
+        into a narrow, multi-line column by the buttons. %>
+    <div class="flex items-start justify-between gap-x-4 gap-y-3 flex-wrap mb-5">
+      <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500 font-medium flex items-center gap-2 pt-1.5">
+        <% if is_owner %>
+          <span class="inline-block w-1.5 h-1.5 rounded-full bg-amber-400"></span> Your trip
+        <% else %>
+          <span class="inline-block w-1.5 h-1.5 rounded-full bg-sky-400"></span> Shared by <%= @trip.owner.display_name %>
         <% end %>
-        <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-slate-300">
-          <% if @trip.destination.present? %>
-            <span class="inline-flex items-center gap-1.5"><%= icon :map_pin, class: "w-4 h-4 text-amber-400/70" %><%= @trip.destination %></span>
-          <% end %>
-          <% if @trip.origin.present? %>
-            <span class="inline-flex items-center gap-1.5 text-slate-400"><%= icon :plane, class: "w-4 h-4 text-slate-500" %>From <%= @trip.origin %></span>
-          <% end %>
-          <% if @trip.start_date && @trip.end_date %>
-            <span class="inline-flex items-center gap-1.5 text-slate-400">
-              <%= icon :calendar, class: "w-4 h-4 text-slate-500" %>
-              <% if day_trip || @trip.start_date == @trip.end_date %>
-                <%= @trip.start_date.strftime("%a %b %-d, %Y") %>
-              <% else %>
-                <%= @trip.start_date.strftime("%b %-d") %> – <%= @trip.end_date.strftime("%b %-d, %Y") %>
-              <% end %>
-            </span>
-          <% end %>
-        </div>
-      </div>
+        <% if day_trip %>
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-200 border border-emerald-500/30 text-[10px] font-semibold tracking-normal normal-case ml-1">
+            <%= icon :sun, class: "w-3 h-3" %> Day trip
+          </span>
+        <% end %>
+      </p>
 
-      <div class="flex flex-wrap gap-2 shrink-0">
+      <div class="flex flex-wrap items-center gap-2">
         <%= link_to plan_trip_path(@trip), class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-500/10 text-teal-200 border border-teal-500/30 text-sm hover:bg-teal-500/20 transition-colors" do %>
           <%= icon :sparkles, class: "w-4 h-4" %> Final plan
         <% end %>
         <%= link_to checklist_trip_path(@trip), class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-200 border border-emerald-500/30 text-sm hover:bg-emerald-500/20 transition-colors" do %>
           <%= icon :check, class: "w-4 h-4" %> Checklist
         <% end %>
+
+        <%# Secondary actions folded into a More menu to keep the toolbar calm. %>
         <% webcal = calendar_trip_url(@trip, format: :ics).sub(%r{\Ahttps?://}, "webcal://") %>
-        <%= link_to webcal,
-              class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 text-slate-200 text-sm hover:border-amber-500/50 hover:bg-slate-800/50 transition-colors",
-              title: "Subscribe in Google/Apple/Outlook Calendar" do %>
-          <%= icon :calendar, class: "w-4 h-4" %> Subscribe
-        <% end %>
-        <%= link_to wallet_trip_path(@trip),
-              class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 text-slate-200 text-sm hover:border-amber-500/50 hover:bg-slate-800/50 transition-colors",
-              title: "Print-ready survival sheet — bookings, addresses, coordinates" do %>
-          <%= icon :printer, class: "w-4 h-4" %> Wallet
-        <% end %>
-        <%= button_to duplicate_trip_path(@trip),
-              method: :post,
-              data: { turbo_confirm: "Duplicate \"#{@trip.title_for(current_user)}\" into your trips?" },
-              form_class: "inline",
-              class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 text-slate-200 text-sm hover:border-amber-500/50 hover:bg-slate-800/50 transition-colors" do %>
-          <%= icon :copy, class: "w-4 h-4" %> Duplicate
-        <% end %>
+        <div class="relative" data-controller="menu">
+          <button type="button" data-action="menu#toggle" data-menu-target="button" aria-haspopup="true" aria-expanded="false" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 text-slate-200 text-sm hover:border-amber-500/50 hover:bg-slate-800/50 transition-colors">
+            <%= icon :more_horizontal, class: "w-4 h-4" %> More <%= icon :chevron_down, class: "w-3.5 h-3.5 -ml-0.5 text-slate-400" %>
+          </button>
+          <div data-menu-target="panel" hidden class="absolute right-0 top-full mt-1.5 z-30 w-56 rounded-lg border border-slate-700 bg-slate-900 shadow-xl shadow-black/50 py-1 text-sm">
+            <%= link_to webcal, title: "Subscribe in Google/Apple/Outlook Calendar", class: "w-full flex items-center gap-2 px-3 py-2 text-slate-200 hover:bg-slate-800 transition-colors" do %>
+              <%= icon :calendar, class: "w-4 h-4 text-slate-400" %> Subscribe to calendar
+            <% end %>
+            <%= link_to wallet_trip_path(@trip), title: "Print-ready survival sheet — bookings, addresses, coordinates", class: "w-full flex items-center gap-2 px-3 py-2 text-slate-200 hover:bg-slate-800 transition-colors" do %>
+              <%= icon :printer, class: "w-4 h-4 text-slate-400" %> Wallet (print sheet)
+            <% end %>
+            <%= button_to duplicate_trip_path(@trip), method: :post,
+                  form_class: "block",
+                  data: { turbo_confirm: "Duplicate \"#{@trip.title_for(current_user)}\" into your trips?" },
+                  class: "w-full flex items-center gap-2 px-3 py-2 text-left text-slate-200 hover:bg-slate-800 transition-colors cursor-pointer" do %>
+              <%= icon :copy, class: "w-4 h-4 text-slate-400" %> Duplicate trip
+            <% end %>
+          </div>
+        </div>
+
         <% if is_owner %>
           <%= link_to edit_trip_path(@trip), class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 text-slate-200 text-sm hover:border-amber-500/50 hover:bg-slate-800/50 transition-colors" do %>
             <%= icon :pencil, class: "w-4 h-4" %> Edit
@@ -82,6 +66,32 @@
           <%= link_to new_trip_share_path(@trip), class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-semibold text-sm shadow-lg shadow-amber-500/20 hover:bg-amber-400 transition-all" do %>
             <%= icon :share, class: "w-4 h-4" %> Share
           <% end %>
+        <% end %>
+      </div>
+    </div>
+
+    <%# Title + meta — full width, free to wrap naturally. %>
+    <div class="min-w-0">
+      <h1 class="font-display text-3xl sm:text-4xl font-semibold tracking-tight text-slate-50 text-balance"><%= @trip.title_for(current_user) %></h1>
+      <% if @trip.title_for(current_user) != @trip.title %>
+        <p class="text-xs text-slate-500 mt-1">Original title: <%= @trip.title %></p>
+      <% end %>
+      <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-slate-300">
+        <% if @trip.destination.present? %>
+          <span class="inline-flex items-center gap-1.5"><%= icon :map_pin, class: "w-4 h-4 text-amber-400/70" %><%= @trip.destination %></span>
+        <% end %>
+        <% if @trip.origin.present? %>
+          <span class="inline-flex items-center gap-1.5 text-slate-400"><%= icon :plane, class: "w-4 h-4 text-slate-500" %>From <%= @trip.origin %></span>
+        <% end %>
+        <% if @trip.start_date && @trip.end_date %>
+          <span class="inline-flex items-center gap-1.5 text-slate-400">
+            <%= icon :calendar, class: "w-4 h-4 text-slate-500" %>
+            <% if day_trip || @trip.start_date == @trip.end_date %>
+              <%= @trip.start_date.strftime("%a %b %-d, %Y") %>
+            <% else %>
+              <%= @trip.start_date.strftime("%b %-d") %> – <%= @trip.end_date.strftime("%b %-d, %Y") %>
+            <% end %>
+          </span>
         <% end %>
       </div>
     </div>
@@ -116,6 +126,9 @@
     <% end %>
   </div>
 </section>
+
+<%# Trip Concierge — ask-anything agent grounded in this trip. %>
+<%= render "concierge" %>
 
 <%= render "stack_points_banner" %>
 

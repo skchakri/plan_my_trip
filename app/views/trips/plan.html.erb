@@ -452,7 +452,8 @@
                 <span class="absolute left-[-44px] sm:left-[-56px] top-1 inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full accent-bg accent-border border-2 ring-4 ring-slate-950 shadow-lg shadow-black/40">
                   <% if activity.time_label.present? %>
                     <span class="text-[9px] sm:text-[10px] font-semibold tabular-nums accent-text leading-[1.15] text-center">
-                      <%= activity.time_label.gsub(/\s*(AM|PM)\b/i) { "<br>#{Regexp.last_match(1).upcase}" }.html_safe %>
+                      <%# time_label comes from AI output — escape it before injecting the <br>. %>
+                      <%= h(activity.time_label).gsub(/\s*(AM|PM)\b/i) { "<br>#{Regexp.last_match(1).upcase}" }.html_safe %>
                     </span>
                   <% else %>
                     <span class="w-2 h-2 rounded-full accent-fg-bg"></span>

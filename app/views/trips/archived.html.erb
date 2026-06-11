@@ -1,0 +1,66 @@
+<% content_for :title, "Archived trips" %>
+
+<div class="flex items-end justify-between mb-6">
+  <div>
+    <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500 font-medium">Plan My Trip</p>
+    <h1 class="font-display text-3xl sm:text-4xl font-semibold text-slate-50">Archived trips</h1>
+    <p class="text-sm text-slate-400 mt-1.5">
+      <%= pluralize(@trips.size, "archived trip") %> · restore to your dashboard or delete for good
+    </p>
+  </div>
+  <%= link_to trips_path, class: "inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-slate-700 text-slate-200 font-semibold hover:bg-slate-800 transition-all text-sm" do %>
+    <%= icon :arrow_left, class: "w-4 h-4" %> Active trips
+  <% end %>
+</div>
+
+<% if @trips.empty? %>
+  <div class="rounded-2xl border border-dashed border-slate-700/70 bg-slate-900/30 p-10 sm:p-14 text-center">
+    <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-slate-500/10 text-slate-300 mb-4">
+      <%= icon :archive, class: "w-7 h-7" %>
+    </div>
+    <h2 class="font-display text-xl font-semibold mb-2">Nothing archived</h2>
+    <p class="text-slate-400 max-w-sm mx-auto mb-6 text-sm leading-relaxed">When you archive a trip from your dashboard it lands here, where you can restore it or delete it permanently.</p>
+    <%= link_to trips_path, class: "inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-500 text-slate-950 font-semibold hover:bg-amber-400 transition-all" do %>
+      <%= icon :arrow_left, class: "w-4 h-4" %> Back to your trips
+    <% end %>
+  </div>
+<% else %>
+  <ul class="space-y-3">
+    <% @trips.each do |trip| %>
+      <li class="rounded-2xl border border-slate-800/80 bg-slate-900/40">
+        <div class="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center gap-3.5 sm:gap-4">
+          <div class="min-w-0 flex-1 flex items-center gap-3.5 sm:gap-4">
+            <% cover = trip.cover_image_url %>
+            <div class="relative shrink-0 w-16 h-16 sm:w-[4.5rem] sm:h-[4.5rem] rounded-xl overflow-hidden ring-1 ring-inset ring-white/5 bg-slate-800/60">
+              <% if cover %>
+                <%= image_tag cover, alt: "", class: "w-full h-full object-cover opacity-40 grayscale", loading: "lazy" %>
+              <% end %>
+              <span class="absolute inset-0 flex items-center justify-center text-slate-400"><%= icon :archive, class: "w-5 h-5" %></span>
+            </div>
+            <div class="min-w-0">
+                <h2 class="font-display text-lg font-semibold text-slate-200 truncate"><%= trip.title_for(current_user) %></h2>
+                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-sm">
+                  <% if trip.destination.present? %>
+                    <span class="inline-flex items-center gap-1 text-slate-400"><%= icon :map_pin, class: "w-3.5 h-3.5 text-slate-600" %><%= trip.destination %></span>
+                  <% end %>
+                  <% if trip.start_date && trip.end_date %>
+                    <span class="inline-flex items-center gap-1 text-slate-500"><%= icon :calendar, class: "w-3.5 h-3.5 text-slate-600" %><%= trip.start_date.strftime("%b %-d") %> – <%= trip.end_date.strftime("%b %-d, %Y") %></span>
+                  <% end %>
+                  <span class="inline-flex items-center gap-1 text-slate-500"><%= icon :clock, class: "w-3.5 h-3.5 text-slate-600" %>Archived <%= time_ago_in_words(trip.discarded_at) %> ago</span>
+                </div>
+              </div>
+            </div>
+
+          <div class="flex items-center gap-2 shrink-0">
+            <%= button_to restore_trip_path(trip), method: :patch, class: "inline-flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-md bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/20 transition-colors cursor-pointer" do %>
+              <%= icon :rotate_ccw, class: "w-3.5 h-3.5" %> Restore
+            <% end %>
+            <%= button_to destroy_permanently_trip_path(trip), method: :delete, form: { data: { turbo_confirm: "Permanently delete “#{trip.title_for(current_user)}” and everything in it? This cannot be undone." } }, class: "inline-flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-md bg-rose-500/10 text-rose-300 border border-rose-500/30 hover:bg-rose-500/20 transition-colors cursor-pointer" do %>
+              <%= icon :trash, class: "w-3.5 h-3.5" %> Delete forever
+            <% end %>
+          </div>
+        </div>
+      </li>
+    <% end %>
+  </ul>
+<% end %>

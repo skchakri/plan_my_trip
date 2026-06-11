@@ -27,6 +27,10 @@ module Trips
     end
 
     def call
+      # Idempotent rebuild — clear any prior generated rows first (see
+      # Trips::Assembler#reset_generated_content!). No-op on a first build.
+      reset_generated_content!
+
       structure = DayPlanBuilder.call(
         anchor_label: @trip.anchor_label,
         anchor_lat: @trip.anchor_lat,
@@ -47,6 +51,12 @@ module Trips
     end
 
     private
+
+    def reset_generated_content!
+      return unless @trip.persisted?
+      @trip.trip_days.destroy_all
+      @trip.checklist_items.destroy_all
+    end
 
     def build_days_and_activities(structure)
       photo_by_name = @ideas.each_with_object({}) do |idea, acc|

@@ -44,10 +44,10 @@ class TripsIndexQueryCountTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     # Budget reflects the policy_scope + trip + owner + days + activities +
-    # photo attachments/blobs + places + landmarks fan-out. With the
-    # `with_cover_data` scope this is bounded and does not grow with the
-    # number of trips.
-    assert_operator query_count, :<=, 25, "trips#index used #{query_count} queries (budget 25). New N+1?"
+    # photo attachments/blobs + places + landmarks fan-out, plus one fixed
+    # EXISTS for the "Archived" header link. With the `with_cover_data` scope
+    # this is bounded and does not grow with the number of trips.
+    assert_operator query_count, :<=, 26, "trips#index used #{query_count} queries (budget 26). New N+1?"
   end
 
   private
