@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_10_150000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_10_160000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -329,6 +329,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_150000) do
     t.uuid "user_id", null: false
     t.index ["user_id", "category"], name: "index_quiz_attempts_on_user_id_and_category"
     t.index ["user_id"], name: "index_quiz_attempts_on_user_id"
+  end
+
+  create_table "quiz_questions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "category", null: false
+    t.datetime "created_at", null: false
+    t.jsonb "payload", default: {}, null: false
+    t.datetime "updated_at", null: false
+    t.index ["category"], name: "index_quiz_questions_on_category"
   end
 
   create_table "route_landmarks", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|

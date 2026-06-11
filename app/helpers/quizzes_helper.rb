@@ -136,6 +136,15 @@ module QuizzesHelper
       text:  "text-yellow-300",
       dot:   "bg-yellow-400",
       glow:  "from-yellow-500/15"
+    },
+    "pink" => {
+      tile:  "bg-pink-500/10 text-pink-300 ring-1 ring-pink-500/20",
+      hover: "hover:border-pink-500/50 hover:shadow-pink-500/10",
+      badge: "bg-pink-500/10 text-pink-200 border border-pink-500/30",
+      bar:   "bg-gradient-to-r from-pink-400 to-pink-500",
+      text:  "text-pink-300",
+      dot:   "bg-pink-400",
+      glow:  "from-pink-500/15"
     }
   }.freeze
 

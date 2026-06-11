@@ -121,6 +121,13 @@ module QuizCatalog
       tagline: "Spot the airline from its logo.",
       short: "Airline logos",
       icon: :plane, accent: "yellow", emoji: "✈️"
+    ),
+    Category.new(
+      key: "famous_brands",
+      title: "Famous Brands",
+      tagline: "Four logos, one brand — pick the right mark.",
+      short: "Famous brands",
+      icon: :tag, accent: "pink", emoji: "🏷️"
     )
   ].freeze
 
@@ -151,6 +158,7 @@ module QuizCatalog
     when "national_sports_countries"             then Country.with_national_sport.count
     when "car_logos"                             then Brand.for_category("car").count
     when "airline_logos"                         then Brand.for_category("airline").count
+    when "famous_brands"                         then Brand.for_category("brand").count
     else 0
     end
   end
@@ -174,6 +182,7 @@ module QuizCatalog
     when "national_sports_countries" then national_sports_countries(count)
     when "car_logos"             then logo_deck("car", count, "Which car brand does this logo belong to?")
     when "airline_logos"         then logo_deck("airline", count, "Which airline does this logo belong to?")
+    when "famous_brands"         then brand_image_deck(count)
     else []
     end
   end
@@ -306,6 +315,22 @@ module QuizCatalog
     sample(rows, count).map do |b|
       options, idx = mc(b.name, distractors(rows, b, :name))
       { prompt: prompt, image_url: b.logo_url, logo: true, options: options, answer_index: idx }
+    end
+  end
+
+  # The flipped "famous brands" twist: name a brand, show FOUR logos, pick the
+  # right one. Options are images (`option_images`); `option_labels` carry the
+  # brand names for accessibility + the results recap.
+  def brand_image_deck(count)
+    rows = Brand.for_category("brand").to_a
+    sample(rows, count).map do |b|
+      pool = ([ b ] + sample(rows - [ b ], OPTION_COUNT - 1)).shuffle
+      {
+        prompt: "Which of these is the #{b.name} logo?",
+        option_images: pool.map(&:logo_url),
+        option_labels: pool.map(&:name),
+        answer_index: pool.index(b)
+      }
     end
   end
 

@@ -13,6 +13,13 @@ const CORRECT = `${OPT} border-emerald-400 bg-emerald-500/15 text-emerald-50 rin
 const WRONG = `${OPT} border-rose-400 bg-rose-500/15 text-rose-50`
 const DIM = `${OPT} border-slate-800 bg-slate-800/20 text-slate-500`
 
+// Image-option variant: a logo on a light card you tap (the "pick the logo" twist).
+const IMG = "quiz-opt-in relative block rounded-xl border-2 p-2 transition-all duration-200 disabled:cursor-default"
+const IMG_IDLE = `${IMG} border-slate-700/70 bg-slate-800/40 cursor-pointer hover:border-amber-400/70`
+const IMG_CORRECT = `${IMG} border-emerald-400 bg-emerald-500/10 ring-1 ring-emerald-400/40`
+const IMG_WRONG = `${IMG} border-rose-400 bg-rose-500/10`
+const IMG_DIM = `${IMG} border-slate-800 bg-slate-800/20 opacity-50`
+
 const CHECK = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><polyline points="20 6 9 17 4 12"/></svg>`
 const CROSS = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>`
 
@@ -44,16 +51,32 @@ export default class extends Controller {
     this.promptTarget.textContent = q.prompt
     this.renderMedia(q)
 
+    // Two layouts: text options (default) or a 2×2 grid of logo images (the
+    // "four logos, pick the brand" twist).
+    this.imageMode = Array.isArray(q.option_images)
+    const choices = this.imageMode ? q.option_images : q.options
+    this.optionsTarget.className = this.imageMode ? "grid grid-cols-2 gap-2.5" : "grid gap-2.5"
     this.optionsTarget.innerHTML = ""
-    q.options.forEach((opt, i) => {
+
+    choices.forEach((choice, i) => {
       const btn = document.createElement("button")
       btn.type = "button"
-      btn.className = IDLE
       btn.style.animationDelay = `${i * 55}ms`
-      btn.innerHTML = `
-        <span class="flex items-center justify-center w-7 h-7 shrink-0 rounded-lg bg-slate-700/60 text-slate-300 text-xs font-bold">${LETTERS[i]}</span>
-        <span class="flex-1">${escapeHtml(opt)}</span>
-        <span data-mark class="shrink-0"></span>`
+      if (this.imageMode) {
+        btn.className = IMG_IDLE
+        btn.setAttribute("aria-label", q.option_labels?.[i] || `Option ${i + 1}`)
+        btn.innerHTML = `
+          <span class="flex items-center justify-center bg-white rounded-lg w-full h-24 sm:h-28 p-3">
+            <img src="${choice}" alt="" class="max-h-14 sm:max-h-16 max-w-[75%] w-auto">
+          </span>
+          <span data-mark class="absolute top-2 right-2"></span>`
+      } else {
+        btn.className = IDLE
+        btn.innerHTML = `
+          <span class="flex items-center justify-center w-7 h-7 shrink-0 rounded-lg bg-slate-700/60 text-slate-300 text-xs font-bold">${LETTERS[i]}</span>
+          <span class="flex-1">${escapeHtml(choice)}</span>
+          <span data-mark class="shrink-0"></span>`
+      }
       btn.addEventListener("click", () => this.choose(i, btn))
       this.optionsTarget.appendChild(btn)
     })
@@ -89,20 +112,28 @@ export default class extends Controller {
 
     const q = this.question
     const right = picked === q.answer_index
-    this.log.push({ prompt: q.prompt, answer: q.options[q.answer_index], right })
+    const labels = q.option_labels || q.options
+    this.log.push({ prompt: q.prompt, answer: labels[q.answer_index], right })
+
+    const [okClass, badClass, dimClass] = this.imageMode
+      ? [IMG_CORRECT, IMG_WRONG, IMG_DIM]
+      : [CORRECT, WRONG, DIM]
+    const badge = (svg, tone) => this.imageMode
+      ? `<span class="flex items-center justify-center w-6 h-6 rounded-full ${tone} text-white shadow">${svg}</span>`
+      : svg
 
     const buttons = Array.from(this.optionsTarget.children)
     buttons.forEach((b, i) => {
       b.disabled = true
       const mark = b.querySelector("[data-mark]")
       if (i === q.answer_index) {
-        b.className = CORRECT
-        if (mark) mark.innerHTML = CHECK
+        b.className = okClass
+        if (mark) mark.innerHTML = badge(CHECK, "bg-emerald-500")
       } else if (i === picked) {
-        b.className = WRONG
-        if (mark) mark.innerHTML = CROSS
+        b.className = badClass
+        if (mark) mark.innerHTML = badge(CROSS, "bg-rose-500")
       } else {
-        b.className = DIM
+        b.className = dimClass
       }
     })
 

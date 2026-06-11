@@ -80,9 +80,11 @@ Don't stand up another Postgres locally for this app. See workspace
 - **ChecklistItem** — belongs_to Trip, with `title`, `category`,
   `person`, `position`, `packed`. Used by the in-app checklist page at
   `/trips/:id/checklist` with Turbo Stream toggles.
-- **Brand** — `name`, `category` ("car"/"airline"), `slug`. Powers the logo
-  decks; `Brand#logo_url` builds a Simple Icons URL (`cdn.simpleicons.org/<slug>`,
-  free, no key, colored SVG mark). No binaries stored.
+- **Brand** — `name`, `category` ("car"/"airline"/"brand"), `slug`. Powers the
+  logo decks; `Brand#logo_url` builds a Simple Icons URL
+  (`cdn.simpleicons.org/<slug>`, free, no key, colored SVG mark). No binaries
+  stored. Probe new slugs with curl before adding — Simple Icons removes many
+  brands for trademark.
 - **Country** / **UsState** / **Landmark** — curated reference data for Travel
   Trivia. One `Country` row carries many facts (`capital`, `iso2`, `continent`,
   `leader_title`/`leader_name`, `currency_name`, `primary_language`,
@@ -106,18 +108,41 @@ Don't stand up another Postgres locally for this app. See workspace
 ## Travel Trivia (general-knowledge quizzes)
 
 A standalone quiz section at `/quizzes` — distinct from the trip-scoped
-`TriviaQuestion` game played by travelers during a trip. Fifteen multiple-choice
+`TriviaQuestion` game played by travelers during a trip. Sixteen multiple-choice
 decks: **World Capitals**, **U.S. State Capitals**, **Guess the Flag**,
 **World Leaders**, **World Currencies**, **Famous Landmarks**, **World
 Languages**, **Dialing Codes**, **Internet Domains** (ccTLD → country),
 **Continents**, **National Anthems**, **National Birds**, **National Sports**,
-**Car Logos**, and **Airline Logos**. Adding a deck = a new `QuizCatalog`
-category + builder (+ an accent in `QuizzesHelper::QUIZ_ACCENTS`); most builders
-pull distractors from the same table grouped by continent, while the landmark/TLD
-builders draw country-name distractors from `Country`. The logo decks share a
-`logo_deck` builder over `Brand` (image → brand name) and set `logo: true` in the
-question hash so the player renders the logo on a light card (logos can be any
-colour). The TLD deck needs no stored data (`Country#tld`
+**Car Logos**, **Airline Logos**, and **Famous Brands**. Adding a deck = a new
+`QuizCatalog` category + builder (+ an accent in `QuizzesHelper::QUIZ_ACCENTS`);
+most builders pull distractors from the same table grouped by continent, while
+the landmark/TLD builders draw country-name distractors from `Country`.
+
+**Questions are pre-generated and stored.** `QuizCatalog` is the *generator*;
+`QuizQuestion` (table `quiz_questions`, `category` + JSONB `payload`) is the
+stored bank — one row per source entity per deck (~1,500 rows). `QuizQuestion.rebuild!`
+clears and regenerates from reference data via `QuizCatalog.build(key, count:
+pool_size)`; run it with `rake quiz:rebuild` or `db:seed` **after changing any
+reference data** (countries/brands/etc.), else the bank is stale. `show` serves
+`QuizQuestion.sample_for_play(key, 10)` (random rows' payloads) — no on-the-fly
+generation. `payload` is format-agnostic so text/single-image/four-image decks
+all store identically.
+
+**Offline (PWA).** The service worker (`app/views/pwa/service-worker.js`, bump
+`VERSION` to roll out) caches `/quizzes*` pages (network-first) and the flag/logo
+CDNs `flagcdn.com` + `cdn.simpleicons.org` (cache-first, immutable). A "Save all
+decks for offline" control on the quiz index (`offline_quizzes_controller.js`)
+fetches `GET /quizzes/offline` (deck-page URLs + all flag/logo image URLs) and
+posts a `PRECACHE_QUIZ` message so the SW pre-downloads everything — all 16 decks
+then play with no connection.
+
+**Two question formats.** Most decks are *text options* (`options: [..]`). The
+car/airline logo decks set `image_url` + `logo: true` (a single logo on a light
+card → text options). **Famous Brands** is the flipped *image-options* twist:
+the prompt names a brand and the four options are logos — the builder emits
+`option_images: [..]` + `option_labels: [..]` (labels for a11y + recap) and the
+player renders a 2×2 grid of tappable logo cards. The Stimulus controller
+branches on `Array.isArray(q.option_images)`. The TLD deck needs no stored data (`Country#tld`
 derives from `iso2`, except the UK's `.uk`); continents reuses the `continent`
 column. A `Category` may carry a `note:` (e.g. the leaders "as of #{LEADERS_AS_OF}"
 and the national-sports "official where one exists" caveats) shown under the deck title.
@@ -142,8 +167,8 @@ quizzes index banner and the account dropdown.
   35 leaders, 33 national birds, 26 national sports) + 50 states + ~48 landmarks.
   National symbols (`NATIONAL_SYMBOLS`) are filled only where confidently known
   so partially-populated countries degrade gracefully in the Explorer. Logo-deck
-  brands live in `db/seeds/brands.rb` (~37 cars, ~28 airlines) — slugs verified
-  against Simple Icons (brands removed there for trademark, e.g. Mercedes-Benz,
+  brands live in `db/seeds/brands.rb` (~37 cars, ~28 airlines, ~55 famous
+  brands) — slugs verified against Simple Icons (brands removed there for trademark, e.g. Mercedes-Benz,
   are simply omitted). `leader_name` is hand-curated as of
   `QuizCatalog::LEADERS_AS_OF` (surfaced in the leaders deck UI); re-running the
   seed refreshes leaders in place (idempotent upsert on `iso2` / `abbreviation`).

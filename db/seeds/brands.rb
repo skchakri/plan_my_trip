@@ -28,10 +28,35 @@ AIRLINE_BRANDS = {
   "iberia" => "Iberia", "airasia" => "AirAsia"
 }.freeze
 
-{ "car" => CAR_BRANDS, "airline" => AIRLINE_BRANDS }.each do |category, brands|
+# Famous brands across food, drink, tech, retail & fashion — for the "four
+# logos, pick the brand" deck. Slugs verified on Simple Icons.
+FAMOUS_BRANDS = {
+  # Food & drink
+  "mcdonalds" => "McDonald's", "burgerking" => "Burger King", "kfc" => "KFC",
+  "starbucks" => "Starbucks", "tacobell" => "Taco Bell", "cocacola" => "Coca-Cola",
+  "redbull" => "Red Bull", "monster" => "Monster Energy",
+  # Tech & internet
+  "apple" => "Apple", "google" => "Google", "meta" => "Meta", "facebook" => "Facebook",
+  "netflix" => "Netflix", "spotify" => "Spotify", "youtube" => "YouTube",
+  "instagram" => "Instagram", "samsung" => "Samsung", "intel" => "Intel",
+  "nvidia" => "NVIDIA", "sony" => "Sony", "lg" => "LG", "huawei" => "Huawei",
+  "xiaomi" => "Xiaomi", "playstation" => "PlayStation", "tiktok" => "TikTok",
+  "snapchat" => "Snapchat", "whatsapp" => "WhatsApp", "x" => "X", "reddit" => "Reddit",
+  "pinterest" => "Pinterest", "paypal" => "PayPal", "visa" => "Visa",
+  "mastercard" => "Mastercard", "ebay" => "eBay", "dell" => "Dell", "hp" => "HP",
+  "lenovo" => "Lenovo", "cisco" => "Cisco", "zoom" => "Zoom", "dropbox" => "Dropbox",
+  "github" => "GitHub", "airbnb" => "Airbnb", "uber" => "Uber",
+  # Retail & fashion
+  "nike" => "Nike", "adidas" => "Adidas", "puma" => "Puma", "underarmour" => "Under Armour",
+  "newbalance" => "New Balance", "zara" => "Zara", "handm" => "H&M", "ikea" => "IKEA",
+  "target" => "Target", "reebok" => "Reebok", "fila" => "FILA", "uniqlo" => "Uniqlo"
+}.freeze
+
+{ "car" => CAR_BRANDS, "airline" => AIRLINE_BRANDS, "brand" => FAMOUS_BRANDS }.each do |category, brands|
   brands.each do |slug, name|
     Brand.find_or_initialize_by(slug: slug).update!(name: name, category: category)
   end
 end
 
-puts "Brands: #{Brand.for_category('car').count} cars, #{Brand.for_category('airline').count} airlines"
+puts "Brands: #{Brand.for_category('car').count} cars, #{Brand.for_category('airline').count} airlines, " \
+     "#{Brand.for_category('brand').count} famous brands"

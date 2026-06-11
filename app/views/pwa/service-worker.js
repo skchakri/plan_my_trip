@@ -3,11 +3,12 @@
 // page has been visited it stays available offline. Asset files are
 // cached on first request and refreshed in the background.
 
-const VERSION = "v5";
+const VERSION = "v6";
 const RUNTIME_CACHE = `pmt-runtime-${VERSION}`;
 const ASSET_CACHE   = `pmt-assets-${VERSION}`;
 const PAGE_CACHE    = `pmt-pages-${VERSION}`;
 const MAP_CACHE     = `pmt-maps-${VERSION}`;
+const IMAGE_CACHE   = `pmt-images-${VERSION}`; // flag + brand-logo CDNs (immutable)
 
 const APP_SHELL = [
   "/",
@@ -27,7 +28,7 @@ self.addEventListener("activate", (event) => {
     caches.keys().then((keys) =>
       Promise.all(
         keys
-          .filter((k) => ![RUNTIME_CACHE, ASSET_CACHE, PAGE_CACHE, MAP_CACHE].includes(k))
+          .filter((k) => ![RUNTIME_CACHE, ASSET_CACHE, PAGE_CACHE, MAP_CACHE, IMAGE_CACHE].includes(k))
           .map((k) => caches.delete(k))
       )
     ).then(() => self.clients.claim())
@@ -37,6 +38,12 @@ self.addEventListener("activate", (event) => {
 function isMapTile(url) {
   return url.host === "tile.openstreetmap.org"
       || url.host.endsWith(".tile.openstreetmap.org");
+}
+
+// Quiz flag + brand-logo images live on external CDNs and are immutable, so
+// cache-first keeps them available offline once fetched.
+function isQuizImage(url) {
+  return url.host === "flagcdn.com" || url.host === "cdn.simpleicons.org";
 }
 
 function isAsset(url) {
@@ -50,6 +57,7 @@ function isPage(url) {
   return url.origin === self.location.origin
       && (url.pathname === "/"
           || url.pathname.startsWith("/trips")
+          || url.pathname.startsWith("/quizzes")
           || url.pathname.startsWith("/users/edit"));
 }
 
@@ -71,6 +79,13 @@ self.addEventListener("fetch", (event) => {
   if (isMapTile(url)) {
     // Map tiles are immutable — once fetched, always serve from cache.
     event.respondWith(cacheFirst(req, MAP_CACHE));
+    return;
+  }
+
+  if (isQuizImage(url)) {
+    // Checked before isAsset (flag URLs end in .png) so logos + flags share
+    // one immutable image cache.
+    event.respondWith(cacheFirst(req, IMAGE_CACHE));
     return;
   }
 
@@ -124,6 +139,49 @@ self.addEventListener("message", (event) => {
         }
       });
       await Promise.all(workers);
+      if (port) port.postMessage({ type: "PRECACHE_DONE", cached, total });
+    } catch (err) {
+      if (port) port.postMessage({ type: "PRECACHE_ERROR", error: String(err) });
+    }
+  })());
+});
+
+// "Save quizzes for offline": precache every deck page + all flag/logo images
+// so all decks play with no connection. Pages go to PAGE_CACHE (same-origin,
+// credentialed), images to IMAGE_CACHE (cross-origin, opaque).
+self.addEventListener("message", (event) => {
+  const data = event.data || {};
+  const port = event.ports && event.ports[0];
+  if (data.type !== "PRECACHE_QUIZ") return;
+
+  event.waitUntil((async () => {
+    try {
+      const pages = Array.isArray(data.pages) ? data.pages : [];
+      const images = Array.isArray(data.images) ? data.images : [];
+      const total = pages.length + images.length;
+      let cached = 0;
+
+      const fill = async (urls, cacheName, mode) => {
+        const cache = await caches.open(cacheName);
+        let idx = 0;
+        const workers = Array.from({ length: 8 }, async () => {
+          while (idx < urls.length) {
+            const u = urls[idx++];
+            try {
+              if (!(await cache.match(u))) {
+                const res = await fetch(u, mode ? { mode } : undefined);
+                await cache.put(u, res);
+              }
+            } catch (e) { /* partial success is fine */ }
+            cached++;
+            if (port) port.postMessage({ type: "PRECACHE_PROGRESS", cached, total });
+          }
+        });
+        await Promise.all(workers);
+      };
+
+      await fill(pages, PAGE_CACHE);            // same-origin deck pages (cookies sent)
+      await fill(images, IMAGE_CACHE, "no-cors"); // flag + logo CDNs (opaque)
       if (port) port.postMessage({ type: "PRECACHE_DONE", cached, total });
     } catch (err) {
       if (port) port.postMessage({ type: "PRECACHE_ERROR", error: String(err) });

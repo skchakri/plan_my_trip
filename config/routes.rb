@@ -146,6 +146,9 @@ Rails.application.routes.draw do
   # Country Explorer — pick a country, see all its national facts. Defined
   # before the :category catch-all so "explore" isn't read as a deck key.
   get  "quizzes/explore",             to: "quizzes#explore", as: :quiz_explore
+  # Offline manifest: every deck page URL + all flag/logo image URLs, consumed
+  # by the "Save for offline" button to pre-warm the service-worker cache.
+  get  "quizzes/offline",             to: "quizzes#offline_manifest", as: :quiz_offline, defaults: { format: :json }
   get  "quizzes/:category",           to: "quizzes#show",   as: :quiz,          constraints: { category: /[a-z_]+/ }
   post "quizzes/:category/attempts",  to: "quizzes#record", as: :quiz_attempts, constraints: { category: /[a-z_]+/ }
 

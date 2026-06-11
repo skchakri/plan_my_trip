@@ -15,6 +15,8 @@ class QuizzesControllerTest < ActionDispatch::IntegrationTest
     6.times { |i| Landmark.create!(name: "Landmark #{i}", country: "Country #{i}", continent: "Testia") }
     5.times { |i| Brand.create!(name: "Car #{i}", category: "car", slug: "car#{i}") }
     5.times { |i| Brand.create!(name: "Airline #{i}", category: "airline", slug: "air#{i}") }
+    5.times { |i| Brand.create!(name: "Brand #{i}", category: "brand", slug: "brand#{i}") }
+    QuizQuestion.rebuild! # questions are served from the stored bank
   end
 
   test "requires authentication" do
@@ -50,6 +52,16 @@ class QuizzesControllerTest < ActionDispatch::IntegrationTest
     sign_in_as(@user)
     get quiz_path("not_a_real_deck")
     assert_redirected_to quizzes_path
+  end
+
+  test "offline manifest lists deck pages and image URLs" do
+    sign_in_as(@user)
+    get quiz_offline_path
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_includes body["pages"], quiz_path("countries_capitals")
+    assert body["images"].any? { |u| u.start_with?("https://flagcdn.com/") }
+    assert body["images"].any? { |u| u.start_with?("https://cdn.simpleicons.org/") }
   end
 
   test "explore renders a country fact-sheet for the chosen country" do

@@ -14,6 +14,7 @@ class QuizCatalogTest < ActiveSupport::TestCase
     6.times { |i| Landmark.create!(name: "Landmark #{i}", country: "Country #{i}", continent: "Testia") }
     5.times { |i| Brand.create!(name: "Car #{i}", category: "car", slug: "car#{i}") }
     5.times { |i| Brand.create!(name: "Airline #{i}", category: "airline", slug: "air#{i}") }
+    5.times { |i| Brand.create!(name: "Brand #{i}", category: "brand", slug: "brand#{i}") }
   end
 
   test "every category is available once seeded" do
@@ -26,9 +27,11 @@ class QuizCatalogTest < ActiveSupport::TestCase
       assert questions.any?, "#{key} produced no questions"
       questions.each do |q|
         assert q[:prompt].present?, "#{key} missing prompt"
-        assert_equal QuizCatalog::OPTION_COUNT, q[:options].size, "#{key} option count"
-        assert_equal q[:options].uniq.size, q[:options].size, "#{key} has duplicate options"
-        assert_includes 0...q[:options].size, q[:answer_index], "#{key} answer index out of range"
+        # Text decks carry :options; image-option decks carry :option_images.
+        opts = q[:options] || q[:option_images]
+        assert_equal QuizCatalog::OPTION_COUNT, opts.size, "#{key} option count"
+        assert_equal opts.uniq.size, opts.size, "#{key} has duplicate options"
+        assert_includes 0...opts.size, q[:answer_index], "#{key} answer index out of range"
       end
     end
   end
@@ -55,6 +58,17 @@ class QuizCatalogTest < ActiveSupport::TestCase
     assert_equal 6, QuizCatalog.build("national_sports_countries", count: 99).size
     assert_equal 5, QuizCatalog.build("car_logos", count: 99).size
     assert_equal 5, QuizCatalog.build("airline_logos", count: 99).size
+    assert_equal 5, QuizCatalog.build("famous_brands", count: 99).size
+  end
+
+  test "famous_brands uses the four-image format with matching label" do
+    QuizCatalog.build("famous_brands", count: 5).each do |q|
+      assert_nil q[:options], "should not carry text options"
+      assert_equal 4, q[:option_images].size
+      assert_equal 4, q[:option_labels].size
+      assert q[:option_images].all? { |u| u.start_with?("https://cdn.simpleicons.org/") }
+      assert_includes q[:prompt], q[:option_labels][q[:answer_index]]
+    end
   end
 
   test "logo decks emit a logo image and brand-name options" do

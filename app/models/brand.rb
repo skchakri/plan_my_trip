@@ -1,5 +1,5 @@
 class Brand < ApplicationRecord
-  CATEGORIES = %w[car airline].freeze
+  CATEGORIES = %w[car airline brand].freeze
 
   validates :name, :category, :slug, presence: true
   validates :slug, uniqueness: true
