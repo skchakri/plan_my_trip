@@ -1,0 +1,34 @@
+<%= turbo_frame_tag "trip-brief" do %>
+  <% if brief && !brief.empty? %>
+    <section class="rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 to-slate-900/40 p-5 sm:p-6 mb-6">
+      <p class="text-[11px] uppercase tracking-[0.18em] text-amber-400 font-medium mb-2 inline-flex items-center gap-2">
+        <%= icon :compass, class: "w-3.5 h-3.5" %> Trip snapshot
+      </p>
+      <% if brief.tagline.present? %>
+        <h2 class="font-display text-xl sm:text-2xl font-semibold text-slate-50 leading-tight"><%= brief.tagline %></h2>
+      <% end %>
+      <% if brief.pitch.present? %>
+        <p class="text-sm sm:text-[15px] text-slate-300 leading-relaxed mt-2.5 max-w-3xl"><%= brief.pitch %></p>
+      <% end %>
+      <% if brief.best_for.any? %>
+        <div class="flex flex-wrap gap-1.5 mt-3.5">
+          <% brief.best_for.each do |tag| %>
+            <span class="px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-100 border border-amber-500/30 text-xs font-medium"><%= tag.capitalize %></span>
+          <% end %>
+        </div>
+      <% end %>
+      <% if brief.watchouts.any? %>
+        <div class="mt-4 rounded-xl border border-slate-700/60 bg-slate-800/30 p-3.5">
+          <p class="text-[11px] uppercase tracking-widest text-slate-500 font-semibold mb-1.5">Good to know</p>
+          <ul class="space-y-1">
+            <% brief.watchouts.each do |w| %>
+              <li class="text-sm text-slate-300 flex items-start gap-2">
+                <span class="shrink-0 mt-1 w-1 h-1 rounded-full bg-amber-400/70"></span><%= w %>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+    </section>
+  <% end %>
+<% end %>

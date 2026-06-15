@@ -67,20 +67,23 @@ export default class extends Controller {
   open(event) {
     if (event) event.preventDefault()
     if (!this.scenesValue.length) return
-    if (!("speechSynthesis" in window)) {
-      alert("Your browser doesn't support speech synthesis — podcast mode needs that.")
-      return
-    }
+    // No TTS (or offline with no voices)? Open anyway as a readable transcript —
+    // the scene text + next/prev still work, just without audio narration.
+    this._ttsAvailable = ("speechSynthesis" in window)
     this._sceneIdx = 0
     this._lineIdx  = 0
-    this._paused = false
-    this._loadVoices()
+    this._paused = !this._ttsAvailable
+    if (this._ttsAvailable) this._loadVoices()
     this.modalTarget.classList.remove("hidden")
     document.body.style.overflow = "hidden"
     document.addEventListener("keydown", this._closeOnKey)
     this._render()
-    this._setPlayLabel("Pause")
-    this._playFromCurrentLine()
+    if (this._ttsAvailable) {
+      this._setPlayLabel("Pause")
+      this._playFromCurrentLine()
+    } else {
+      this._setPlayLabel("Read")
+    }
   }
 
   close() {
@@ -112,6 +115,7 @@ export default class extends Controller {
   }
 
   togglePlay() {
+    if (!this._ttsAvailable) return // transcript-only mode — no audio to toggle
     if (this._paused) {
       this._paused = false
       this._setPlayLabel("Pause")
@@ -221,6 +225,7 @@ export default class extends Controller {
   }
 
   _playFromCurrentLine() {
+    if (!this._ttsAvailable) return // transcript-only mode: nothing to speak
     if (this._paused) return
     const line = this._currentLine()
     if (!line) {

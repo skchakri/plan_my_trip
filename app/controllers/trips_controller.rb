@@ -1,7 +1,7 @@
 class TripsController < ApplicationController
   include MarkdownHelper
 
-  before_action :set_trip, only: %i[show edit update destroy rename archive plan checklist copilot copilot_question copilot_response concierge duplicate calendar wallet rebuild]
+  before_action :set_trip, only: %i[show edit update destroy rename archive plan checklist copilot copilot_question copilot_response concierge duplicate calendar wallet rebuild skip_build edit_plan brief]
   before_action :set_owned_trip, only: %i[restore destroy_permanently]
 
   def index
@@ -24,6 +24,7 @@ class TripsController < ApplicationController
     @rendered_body = render_markdown(@trip.body)
     @booking = BookingLinks.new(@trip, viewer: current_user)
     @known_traveler_interests = Person.known_interests_for(current_user)
+    @destination_country = Country.for_destination(@trip.destination)
   end
 
   # POST /trips/:id/rebuild — re-run the async assembler after a failed build.
@@ -37,6 +38,15 @@ class TripsController < ApplicationController
       (@trip.day_trip? ? BuildDayTripJob : BuildTripJob).perform_later(@trip.id)
       redirect_to @trip, notice: "Rebuilding your plan…"
     end
+  end
+
+  # Escape hatch when the AI build keeps failing: flip the trip to "ready" with
+  # whatever it already has so the user can fill in the plan by hand instead of
+  # being stuck on the failure page.
+  def skip_build
+    authorize @trip, :update?
+    @trip.update!(build_status: "ready", build_error: nil)
+    redirect_to edit_trip_path(@trip), notice: "Started a blank plan — add your days and notes here."
   end
 
   def new
@@ -118,10 +128,26 @@ class TripsController < ApplicationController
     @reading_scenes = build_reading_scenes(@trip, @days)
   end
 
+  # GET /trips/:id/edit_plan — structured day/activity editor (add, edit,
+  # reorder, delete) for owners and editors. Replaces hand-editing markdown.
+  def edit_plan
+    authorize @trip, :update?
+    @days = @trip.trip_days.ordered.includes(:activities)
+  end
+
+  # GET /trips/:id/brief — lazy turbo-frame target: an honest "trip snapshot"
+  # (DestinationBrief, cached 30d). Loaded off the trip page so a cache miss
+  # never blocks the page; the frame-timeout controller guards a slow call.
+  def brief
+    authorize @trip, :show?
+    @brief = DestinationBrief.call(@trip.destination)
+    render partial: "trips/brief", locals: { brief: @brief }, layout: false
+  end
+
   # GET /trips/:id/checklist — sectioned checklist (Before trip / By day / By activity)
   def checklist
     authorize @trip, :show?
-    @items = @trip.checklist_items.ordered
+    @items = @trip.checklist_items.kept.ordered
 
     # group: scope -> section_key -> items
     @grouped = ChecklistItem::SCOPES.index_with do |scope_key|
@@ -134,8 +160,8 @@ class TripsController < ApplicationController
       { total: scoped.size, packed: scoped.count(&:packed) }
     end
 
-    @day_options = @trip.checklist_items.for_day.distinct.pluck(:day_label).compact.sort
-    @activity_options = @trip.checklist_items.for_activity.distinct.pluck(:activity_label).compact.sort
+    @day_options = @trip.checklist_items.kept.for_day.distinct.pluck(:day_label).compact.sort
+    @activity_options = @trip.checklist_items.kept.for_activity.distinct.pluck(:activity_label).compact.sort
   end
 
   # GET /trips/:id/copilot — driving-time engagement screen (pick-a-traveler, then play)

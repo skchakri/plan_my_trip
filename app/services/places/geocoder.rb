@@ -28,6 +28,26 @@ module Places
 
     Result = Struct.new(:lat, :lng, :display_name, keyword_init: true)
 
+    # Nominatim's usage policy caps us at 1 request/second. Pacing lives HERE,
+    # immediately around the actual network call, so cache hits and Google
+    # lookups never pay it (callers used to sleep(1) unconditionally before
+    # every lookup, stacking dead seconds onto day-trip suggestions and trip
+    # builds). In-process pacing only — good enough for one Puma + a few Solid
+    # Queue workers; revisit with a shared Redis lock if workers multiply.
+    NOMINATIM_MIN_INTERVAL = 1.0
+    @nominatim_mutex = Mutex.new
+    @last_nominatim_at = nil
+
+    def self.pace_nominatim!
+      return if Rails.env.test?
+      @nominatim_mutex.synchronize do
+        now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        wait = @last_nominatim_at && (NOMINATIM_MIN_INTERVAL - (now - @last_nominatim_at))
+        sleep(wait) if wait&.positive?
+        @last_nominatim_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      end
+    end
+
     def self.call(...)
       new(...).call
     end
@@ -107,6 +127,7 @@ module Places
     end
 
     def nominatim_lookup
+      self.class.pace_nominatim!
       params = { q: @query, format: "jsonv2", limit: 1, addressdetails: 0 }
       if @near_lat && @near_lng
         params[:viewbox] = viewbox

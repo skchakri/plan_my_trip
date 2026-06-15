@@ -13,6 +13,17 @@ class Country < ApplicationRecord
   scope :with_national_sport, -> { where.not(national_sport: [ nil, "" ]) }
   scope :alphabetical,       -> { order(:name) }
 
+  # Best-effort: find the country named in a free-text destination string
+  # ("Paris, France" -> France, "Tokyo, Japan" -> Japan). Matches whole words
+  # so "Chad" doesn't match "Chadds Ford". Prefers the longest name match.
+  def self.for_destination(text)
+    str = text.to_s.downcase
+    return nil if str.blank?
+    order(Arel.sql("length(name) DESC")).find do |c|
+      str.match?(/\b#{Regexp.escape(c.name.downcase)}\b/)
+    end
+  end
+
   # flagcdn.com serves free flag PNGs keyed by the lowercase alpha-2 code.
   # Supported widths: 20,40,80,160,320,640,1280,2560.
   def flag_url(width: 320)

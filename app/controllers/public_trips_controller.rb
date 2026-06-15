@@ -13,6 +13,20 @@ class PublicTripsController < ApplicationController
     render :gone, status: :gone
   end
 
+  # POST /s/:token/save — clone a shared trip into the signed-in viewer's own
+  # trips. Requires auth (not in the skip list), so a logged-out visitor is
+  # bounced to sign in and returns to the public page to try again.
+  def copy
+    source = active_share_trip!
+    if source.owner_id == current_user.id
+      redirect_to source, notice: "This is already your trip." and return
+    end
+    clone = TripDuplicator.new(source: source, owner: current_user, new_title: source.title).call
+    redirect_to clone, notice: "Saved to your trips — edit it freely; the original stays untouched."
+  rescue ActiveRecord::RecordNotFound
+    render :gone, status: :gone
+  end
+
   # GET /s/:token/calendar.ics — same .ics as the auth-gated feed, but
   # gated by an active share token instead of trip_memberships. Returns
   # 410 once the owner revokes.

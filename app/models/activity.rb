@@ -60,7 +60,7 @@ class Activity < ApplicationRecord
   end
 
   def checklist_items
-    trip.checklist_items.where(scope: "activity", activity_label: title)
+    trip.checklist_items.kept.where(scope: "activity", activity_label: title)
   end
 
   # 2x2 OpenStreetMap tile grid centered on the activity, with the pin's

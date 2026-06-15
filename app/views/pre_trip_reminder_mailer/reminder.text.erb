@@ -1,0 +1,12 @@
+<% if @days_out == 1 %>Tomorrow's the day — <%= @trip.title %><% else %><%= @days_out %> days until <%= @trip.title %><% end %>
+
+Hi <%= @user.display_name %>,
+
+<% if @days_out == 1 %>Your trip starts tomorrow. Final nudge to pack and download your plan for offline use.<% else %>Just <%= @days_out %> days to go. A good moment to finalise the plan and start your packing list.<% end %>
+
+<%= @trip.title %>
+<% if @trip.destination.present? %><%= @trip.destination %><% end %>
+<% if @trip.start_date && @trip.end_date %><%= @trip.start_date.strftime("%a %b %-d") %> – <%= @trip.end_date.strftime("%a %b %-d, %Y") %><% end %>
+
+Open the plan: <%= @url %>
+Packing checklist: <%= @checklist_url %>

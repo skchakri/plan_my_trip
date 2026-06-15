@@ -1,0 +1,47 @@
+<%# One activity row in the structured editor. Display/inline-edit toggle. %>
+<li class="px-4 py-3 flex items-start gap-2" data-controller="inline-edit" data-action="keydown->inline-edit#keydown">
+  <div class="min-w-0 flex-1" data-inline-edit-target="display">
+    <p class="text-sm text-slate-100">
+      <% if activity.time_label.present? %><span class="text-amber-300/90 font-medium"><%= activity.time_label %> · </span><% end %>
+      <%= activity.title %>
+    </p>
+    <% sub = [ activity.location_name.presence, activity.notes.presence ].compact.join(" — ") %>
+    <% if sub.present? %><p class="text-xs text-slate-400 mt-0.5 line-clamp-2"><%= sub %></p><% end %>
+  </div>
+
+  <%= form_with url: trip_activity_path(trip, activity), method: :patch, class: "min-w-0 flex-1 space-y-2", data: { inline_edit_target: "form" }, html: { hidden: true } do %>
+    <div class="flex gap-2">
+      <%= text_field_tag "activity[title]", activity.title, required: true, data: { inline_edit_target: "field" },
+            class: "flex-1 rounded-md bg-slate-800 border border-slate-700 px-2 py-1.5 text-sm focus:border-amber-500 focus:outline-none" %>
+      <%= text_field_tag "activity[time_label]", activity.time_label, placeholder: "Time",
+            class: "w-24 rounded-md bg-slate-800 border border-slate-700 px-2 py-1.5 text-sm focus:border-amber-500 focus:outline-none" %>
+    </div>
+    <%= text_field_tag "activity[location_name]", activity.location_name, placeholder: "Location",
+          class: "w-full rounded-md bg-slate-800 border border-slate-700 px-2 py-1.5 text-sm focus:border-amber-500 focus:outline-none" %>
+    <%= text_area_tag "activity[notes]", activity.notes, rows: 2, placeholder: "Notes",
+          class: "w-full rounded-md bg-slate-800 border border-slate-700 px-2 py-1.5 text-sm focus:border-amber-500 focus:outline-none" %>
+    <div class="flex gap-1.5">
+      <button type="submit" class="px-2.5 py-1.5 bg-amber-500 text-slate-950 rounded-md text-xs font-semibold hover:bg-amber-400 cursor-pointer">Save</button>
+      <button type="button" data-action="inline-edit#cancel" class="px-2 py-1.5 text-xs text-slate-400 hover:text-slate-200 cursor-pointer">Cancel</button>
+    </div>
+  <% end %>
+
+  <div class="flex items-center gap-0.5 shrink-0">
+    <% unless index.zero? %>
+      <%= button_to move_trip_activity_path(trip, activity, direction: "up"), method: :patch, class: "p-1.5 text-slate-400 hover:text-amber-300 rounded hover:bg-slate-800 cursor-pointer", form: { title: "Move up" } do %>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><polyline points="18 15 12 9 6 15"/></svg>
+      <% end %>
+    <% end %>
+    <% unless last %>
+      <%= button_to move_trip_activity_path(trip, activity, direction: "down"), method: :patch, class: "p-1.5 text-slate-400 hover:text-amber-300 rounded hover:bg-slate-800 cursor-pointer", form: { title: "Move down" } do %>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+      <% end %>
+    <% end %>
+    <button type="button" data-action="inline-edit#edit" aria-label="Edit stop" class="p-1.5 text-slate-400 hover:text-amber-300 rounded hover:bg-slate-800 cursor-pointer">
+      <%= icon :pencil, class: "w-4 h-4" %>
+    </button>
+    <%= button_to trip_activity_path(trip, activity), method: :delete, form: { data: { turbo_confirm: "Delete this stop?" } }, class: "p-1.5 text-rose-400 hover:text-rose-300 rounded hover:bg-rose-500/10 cursor-pointer", aria: { label: "Delete stop" } do %>
+      <%= icon :trash, class: "w-4 h-4" %>
+    <% end %>
+  </div>
+</li>

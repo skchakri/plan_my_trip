@@ -73,6 +73,16 @@
       </div>
     <% end %>
 
+    <%# Click-to-load rich detail: best time to go, things to do, pro tips.
+        AI-backed (HighlightDetail, 30-day cache) — only fetched on demand. %>
+    <%= turbo_frame_tag "place-more-info", class: "block aria-busy:opacity-60 aria-busy:animate-pulse" do %>
+      <%= link_to more_info_place_path(@place.slug.presence || @place.id),
+                  class: "w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-200 text-sm font-semibold transition-colors" do %>
+        <%= icon :sparkles, class: "w-4 h-4" %>
+        More about this place — best time, things to do, tips
+      <% end %>
+    <% end %>
+
     <%# Open in Maps + image attribution %>
     <div class="flex flex-wrap items-center gap-3 pt-3 border-t border-slate-800">
       <% if @place.latitude && @place.longitude %>

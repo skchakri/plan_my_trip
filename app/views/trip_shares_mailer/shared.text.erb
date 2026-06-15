@@ -1,0 +1,11 @@
+<%= @inviter.display_name %> shared a trip with you on Plan My Trip
+
+Hi <%= @user.display_name %>,
+
+<%= @inviter.display_name %> (<%= @inviter.email %>) gave you access to "<%= @trip.title %>". It's already in your trips.
+
+<% if @trip.destination.present? %>Destination: <%= @trip.destination %><% end %>
+<% if @trip.start_date && @trip.end_date %>Dates: <%= @trip.start_date.strftime("%b %-d") %> – <%= @trip.end_date.strftime("%b %-d, %Y") %><% end %>
+
+Open the trip:
+<%= @url %>

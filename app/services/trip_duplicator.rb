@@ -110,7 +110,7 @@ class TripDuplicator
   def clone_checklist_items(trip)
     # Day labels stay the same string — we shifted dates but not labels, so
     # day-scoped items still anchor correctly to their cloned trip_days.
-    source.checklist_items.find_each do |item|
+    source.checklist_items.kept.find_each do |item|
       attrs = item.attributes.slice(*COPYABLE_CHECKLIST_FIELDS).merge("packed" => false)
       trip.checklist_items.create!(attrs)
     end

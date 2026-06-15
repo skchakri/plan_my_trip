@@ -1,5 +1,6 @@
 <% content_for :title, @trip.title_for(current_user) %>
 <% is_owner = (@trip.owner_id == current_user.id) %>
+<% can_edit = @trip.editable_by?(current_user) %>
 <% day_trip = @trip.day_trip? %>
 
 <div class="mb-5">
@@ -21,6 +22,11 @@
           <span class="inline-block w-1.5 h-1.5 rounded-full bg-amber-400"></span> Your trip
         <% else %>
           <span class="inline-block w-1.5 h-1.5 rounded-full bg-sky-400"></span> Shared by <%= @trip.owner.display_name %>
+          <% if can_edit %>
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-200 border border-sky-500/30 text-[10px] font-semibold tracking-normal normal-case ml-1">
+              <%= icon :pencil, class: "w-3 h-3" %> Can edit
+            </span>
+          <% end %>
         <% end %>
         <% if day_trip %>
           <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-200 border border-emerald-500/30 text-[10px] font-semibold tracking-normal normal-case ml-1">
@@ -44,6 +50,11 @@
             <%= icon :more_horizontal, class: "w-4 h-4" %> More <%= icon :chevron_down, class: "w-3.5 h-3.5 -ml-0.5 text-slate-400" %>
           </button>
           <div data-menu-target="panel" hidden class="absolute right-0 top-full mt-1.5 z-30 w-56 rounded-lg border border-slate-700 bg-slate-900 shadow-xl shadow-black/50 py-1 text-sm">
+            <% if can_edit %>
+              <%= link_to edit_plan_trip_path(@trip), title: "Add, edit, reorder stops and days", class: "w-full flex items-center gap-2 px-3 py-2 text-slate-200 hover:bg-slate-800 transition-colors" do %>
+                <%= icon :list, class: "w-4 h-4 text-slate-400" %> Edit itinerary
+              <% end %>
+            <% end %>
             <%= link_to webcal, title: "Subscribe in Google/Apple/Outlook Calendar", class: "w-full flex items-center gap-2 px-3 py-2 text-slate-200 hover:bg-slate-800 transition-colors" do %>
               <%= icon :calendar, class: "w-4 h-4 text-slate-400" %> Subscribe to calendar
             <% end %>
@@ -59,10 +70,12 @@
           </div>
         </div>
 
-        <% if is_owner %>
+        <% if can_edit %>
           <%= link_to edit_trip_path(@trip), class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 text-slate-200 text-sm hover:border-amber-500/50 hover:bg-slate-800/50 transition-colors" do %>
             <%= icon :pencil, class: "w-4 h-4" %> Edit
           <% end %>
+        <% end %>
+        <% if is_owner %>
           <%= link_to new_trip_share_path(@trip), class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-semibold text-sm shadow-lg shadow-amber-500/20 hover:bg-amber-400 transition-all" do %>
             <%= icon :share, class: "w-4 h-4" %> Share
           <% end %>
@@ -126,6 +139,39 @@
     <% end %>
   </div>
 </section>
+
+<%# First-share nudge — only for the owner of a still-solo trip, dismissible
+    (remembered in localStorage so it won't nag). %>
+<% if is_owner && @trip.member_count == 1 && @trip.invitations.pending.none? %>
+  <div data-controller="dismissible" data-dismissible-key-value="invite-crew-<%= @trip.id %>"
+       class="mb-6 rounded-2xl border border-sky-500/30 bg-gradient-to-br from-sky-500/10 to-transparent p-4 sm:p-5 flex items-start gap-3">
+    <span class="shrink-0 mt-0.5 text-sky-300"><%= icon :users, class: "w-5 h-5" %></span>
+    <div class="min-w-0 flex-1">
+      <p class="font-medium text-slate-100">Planning with others? Invite your crew.</p>
+      <p class="text-sm text-slate-400 mt-0.5">Add the people coming along so everyone can see the plan, suggest stops, and check off the packing list together.</p>
+      <div class="mt-3 flex items-center gap-2">
+        <%= link_to new_trip_share_path(@trip), class: "inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-sky-500 text-slate-950 font-semibold text-sm hover:bg-sky-400 transition-colors" do %>
+          <%= icon :plus, class: "w-4 h-4" %> Invite people
+        <% end %>
+        <button type="button" data-action="dismissible#dismiss" class="px-3 py-2 text-sm text-slate-400 hover:text-slate-200 transition-colors cursor-pointer">Maybe later</button>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<%# Trip snapshot — honest destination brief, loaded lazily (cached 30d) so a
+    miss never blocks the page; frame-timeout guards a slow AI call. %>
+<% if @trip.destination.present? %>
+  <%= turbo_frame_tag "trip-brief", src: brief_trip_path(@trip), loading: :lazy,
+        data: { controller: "frame-timeout", frame_timeout_timeout_value: 45000 } do %>
+    <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 sm:p-6 mb-6 animate-pulse" aria-busy="true">
+      <div class="h-3 w-28 bg-slate-800 rounded mb-3"></div>
+      <div class="h-5 w-2/3 bg-slate-800 rounded mb-2.5"></div>
+      <div class="h-3 w-full bg-slate-800/70 rounded mb-1.5"></div>
+      <div class="h-3 w-5/6 bg-slate-800/70 rounded"></div>
+    </div>
+  <% end %>
+<% end %>
 
 <%# Trip Concierge — ask-anything agent grounded in this trip. %>
 <%= render "concierge" %>
@@ -235,7 +281,7 @@
               <% end %>
             </div>
           </div>
-          <% if is_owner %>
+          <% if can_edit %>
             <%= button_to trip_person_path(@trip, p), method: :delete, form: { data: { turbo_confirm: "Remove #{p.name}?" } }, class: "text-xs text-rose-400 hover:text-rose-300 px-2 py-1 rounded hover:bg-rose-500/10 transition-colors" do %>
               Remove
             <% end %>
@@ -245,7 +291,7 @@
     </ul>
   <% end %>
 
-  <% if is_owner %>
+  <% if can_edit %>
     <details class="rounded-xl border border-slate-800 bg-slate-900/30">
       <summary class="cursor-pointer px-4 py-3 text-sm font-medium text-slate-300">
         <span class="inline-flex items-center gap-2"><%= icon :plus, class: "w-4 h-4" %> Add a traveler</span>
@@ -290,6 +336,36 @@
   <%= render "bookings", booking: @booking %>
 <% end %>
 
+<%# Pre-trip prep — bridge to Travel Trivia / Country Explorer so the trip
+    connects to the engagement section. %>
+<section class="rounded-2xl border border-sky-500/20 bg-gradient-to-br from-sky-500/8 to-transparent p-5 sm:p-7 mt-6">
+  <h2 class="font-display text-xl font-semibold flex items-center gap-2 mb-1.5">
+    <%= icon :globe, class: "w-5 h-5 text-sky-400/80" %> Brush up before you go
+  </h2>
+  <p class="text-sm text-slate-400 mb-4">
+    <% if @destination_country %>
+      Learn the capital, flag, currency and more about <strong class="text-slate-200"><%= @destination_country.name %></strong> — then test yourself.
+    <% else %>
+      Sharpen your travel knowledge with quick quizzes — capitals, flags, currencies and more.
+    <% end %>
+  </p>
+  <div class="flex flex-wrap items-center gap-2">
+    <% if @destination_country %>
+      <%= link_to quiz_explore_path(c: @destination_country.iso2), class: "inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-sky-500/15 text-sky-100 border border-sky-500/30 text-sm hover:bg-sky-500/25 transition-colors" do %>
+        <%= image_tag @destination_country.flag_url(width: 40), alt: "", class: "w-5 h-auto rounded-sm", loading: "lazy" %>
+        Explore <%= @destination_country.name %>
+      <% end %>
+    <% else %>
+      <%= link_to quiz_explore_path, class: "inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-sky-500/15 text-sky-100 border border-sky-500/30 text-sm hover:bg-sky-500/25 transition-colors" do %>
+        <%= icon :compass, class: "w-4 h-4" %> Country Explorer
+      <% end %>
+    <% end %>
+    <%= link_to quizzes_path, class: "inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-slate-700 text-slate-200 text-sm hover:border-sky-500/50 hover:bg-slate-800/50 transition-colors" do %>
+      <%= icon :sparkles, class: "w-4 h-4 text-sky-300" %> Play Travel Trivia
+    <% end %>
+  </div>
+</section>
+
 <!-- Trip documents (hotel, car, flight confirmations) -->
 <section class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 sm:p-7 mt-6">
   <h2 class="font-display text-xl font-semibold flex items-center gap-2 mb-3">
@@ -305,7 +381,7 @@
             <span class="truncate"><%= doc.filename %></span>
             <span class="shrink-0 text-[11px] text-slate-500">· <%= number_to_human_size(doc.byte_size) %></span>
           <% end %>
-          <% if is_owner %>
+          <% if can_edit %>
             <%= button_to trip_document_path(@trip, doc), method: :delete, form: { data: { turbo_confirm: "Remove #{doc.filename}?" } }, class: "shrink-0 text-rose-400 hover:text-rose-300 p-1 rounded transition-colors cursor-pointer", aria: { label: "Remove" } do %>
               <%= icon :trash, class: "w-3.5 h-3.5" %>
             <% end %>
@@ -394,15 +470,30 @@
             <div class="min-w-0">
               <div class="flex items-center gap-2 flex-wrap">
                 <span class="font-medium text-slate-100 truncate"><%= m.user.display_name %></span>
-                <% if m.owner? %><span class="text-[10px] uppercase tracking-widest px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 font-semibold">Owner</span><% end %>
+                <% if m.owner? %>
+                  <span class="text-[10px] uppercase tracking-widest px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 font-semibold">Owner</span>
+                <% elsif m.editor? %>
+                  <span class="text-[10px] uppercase tracking-widest px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-200 font-semibold">Editor</span>
+                <% else %>
+                  <span class="text-[10px] uppercase tracking-widest px-1.5 py-0.5 rounded bg-slate-700 text-slate-200 font-semibold">Viewer</span>
+                <% end %>
               </div>
               <span class="text-xs text-slate-400 truncate block"><%= m.user.email %></span>
             </div>
           </div>
           <% unless m.owner? %>
-            <%= button_to trip_share_path(@trip, m), method: :delete, form: { data: { turbo_confirm: "Remove access for #{m.user.display_name}?" } }, class: "text-xs text-rose-400 hover:text-rose-300 px-2 py-1 rounded hover:bg-rose-500/10 transition-colors" do %>
-              Remove
-            <% end %>
+            <div class="flex items-center gap-1 shrink-0">
+              <% if m.editor? %>
+                <%= button_to "Make viewer", trip_share_path(@trip, m), method: :patch, params: { role: "member" },
+                      class: "text-xs text-slate-300 hover:text-slate-100 px-2 py-1 rounded hover:bg-slate-700/50 transition-colors cursor-pointer" %>
+              <% else %>
+                <%= button_to "Make editor", trip_share_path(@trip, m), method: :patch, params: { role: "editor" },
+                      class: "text-xs text-sky-300 hover:text-sky-200 px-2 py-1 rounded hover:bg-sky-500/10 transition-colors cursor-pointer" %>
+              <% end %>
+              <%= button_to trip_share_path(@trip, m), method: :delete, form: { data: { turbo_confirm: "Remove access for #{m.user.display_name}?" } }, class: "text-xs text-rose-400 hover:text-rose-300 px-2 py-1 rounded hover:bg-rose-500/10 transition-colors" do %>
+                Remove
+              <% end %>
+            </div>
           <% end %>
         </li>
       <% end %>

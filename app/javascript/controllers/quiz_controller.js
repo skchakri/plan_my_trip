@@ -37,6 +37,7 @@ export default class extends Controller {
     this.streak = 0
     this.locked = false
     this.log = []
+    this.flushQueuedAttempts()
     if (this.questionsValue.length) this.renderQuestion()
   }
 
@@ -173,7 +174,7 @@ export default class extends Controller {
     this.renderRecap()
     if (pct >= 80) this.celebrate()
 
-    this.record(pct)
+    this.record()
     this.resultsTarget.scrollIntoView({ behavior: "smooth", block: "center" })
   }
 
@@ -213,21 +214,62 @@ export default class extends Controller {
     }
   }
 
-  record(pct) {
+  static QUEUE_KEY = "pmt:pendingQuizAttempts"
+
+  record() {
+    this.saveAttempt({ url: this.recordUrlValue, score: this.correct, total: this.total }, 2, true)
+  }
+
+  // POST a score with bounded retries. On terminal failure the attempt is
+  // queued in localStorage and flushed on the next quiz load, and the player
+  // is told (toast) instead of losing the score silently.
+  saveAttempt(attempt, retries, surfaceBest) {
     const token = document.querySelector('meta[name="csrf-token"]')?.content
-    fetch(this.recordUrlValue, {
+    fetch(attempt.url, {
       method: "POST",
       headers: { "Content-Type": "application/json", "Accept": "application/json", "X-CSRF-Token": token },
-      body: JSON.stringify({ score: this.correct, total: this.total })
+      body: JSON.stringify({ score: attempt.score, total: attempt.total })
     })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (!data || !this.hasBestBadgeTarget) return
-        this.bestBadgeTarget.classList.remove("hidden")
-        this.bestBadgeTarget.innerHTML =
-          `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5"><path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526"/><circle cx="12" cy="8" r="6"/></svg> Best ${data.best}%`
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`)
+        return r.json()
       })
-      .catch(() => {})
+      .then((data) => {
+        if (surfaceBest) this.showBest(data)
+      })
+      .catch(() => {
+        if (retries > 0) {
+          setTimeout(() => this.saveAttempt(attempt, retries - 1, surfaceBest), 1500)
+        } else {
+          this.queueAttempt(attempt)
+          window.dispatchEvent(new CustomEvent("toast", {
+            detail: { type: "alert", message: "Couldn't save your score — we'll save it next time you're online." }
+          }))
+        }
+      })
+  }
+
+  showBest(data) {
+    if (!data || !this.hasBestBadgeTarget) return
+    this.bestBadgeTarget.classList.remove("hidden")
+    this.bestBadgeTarget.innerHTML =
+      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5"><path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526"/><circle cx="12" cy="8" r="6"/></svg> Best ${data.best}%`
+  }
+
+  queueAttempt(attempt) {
+    try {
+      const q = JSON.parse(localStorage.getItem(this.constructor.QUEUE_KEY) || "[]")
+      q.push(attempt)
+      localStorage.setItem(this.constructor.QUEUE_KEY, JSON.stringify(q.slice(-50)))
+    } catch (_) { /* storage unavailable — nothing more we can do */ }
+  }
+
+  flushQueuedAttempts() {
+    let q
+    try { q = JSON.parse(localStorage.getItem(this.constructor.QUEUE_KEY) || "[]") } catch (_) { return }
+    if (!Array.isArray(q) || !q.length) return
+    localStorage.removeItem(this.constructor.QUEUE_KEY)
+    q.forEach((attempt) => { if (attempt && attempt.url) this.saveAttempt(attempt, 1, false) })
   }
 
   playAgain() {

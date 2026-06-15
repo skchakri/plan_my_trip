@@ -1,9 +1,11 @@
 ---
 slug: highlight_detail.v1
 name: Highlight detail card
-description: 'Magazine-style detail blob for a single attraction. Filled into the wizard''s tap-a-card modal: tagline, why-you''ll-love-it, best time, pro tips, perfect-for tags.'
-provider: claude_cli
-model: claude-sonnet-4-6
+description: 'Magazine-style detail blob for a single attraction. Filled into the wizard''s tap-a-card modal and the day-trip/place "More about this place" sections: tagline, things-to-do, why-you''ll-love-it, best time, pro tips, perfect-for tags.'
+# Interactive path (modal tap → content) — must answer in seconds, and Sonar's
+# live web index keeps hours/seasonal caveats current.
+provider: perplexity
+model: sonar
 kind: text
 max_tokens: 1024
 temperature:
@@ -16,8 +18,9 @@ system_template: |
   {
     "tagline": "One-line hook, magazine-headline energy. Max ~80 chars.",
     "overview": "Two short sentences with concrete, vivid sensory detail. Avoid generic adjectives.",
+    "things_to_do": ["3-6 concrete activities a visitor can DO there ('Walk the 1.2-mi rim loop', 'Rent a kayak at the south dock'). Specific, not 'enjoy the views'."],
     "why_youll_love_it": ["3-5 bullets, each starting with a strong verb", "..."],
-    "best_time": "One sentence on when to visit (time of day / season / lighting).",
+    "best_time": "One sentence on when to visit (time of day / season / lighting / which months).",
     "pro_tips": ["3-4 short, insider tips. Practical, not obvious."],
     "perfect_for": ["3-5 short tags like 'sunset photographers', 'kids 8+', 'first-time visitors'"]
   }

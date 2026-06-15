@@ -3,7 +3,7 @@
 // page has been visited it stays available offline. Asset files are
 // cached on first request and refreshed in the background.
 
-const VERSION = "v6";
+const VERSION = "v7";
 const RUNTIME_CACHE = `pmt-runtime-${VERSION}`;
 const ASSET_CACHE   = `pmt-assets-${VERSION}`;
 const PAGE_CACHE    = `pmt-pages-${VERSION}`;
@@ -161,6 +161,8 @@ self.addEventListener("message", (event) => {
       const total = pages.length + images.length;
       let cached = 0;
 
+      let succeeded = 0;
+
       const fill = async (urls, cacheName, mode) => {
         const cache = await caches.open(cacheName);
         let idx = 0;
@@ -168,13 +170,21 @@ self.addEventListener("message", (event) => {
           while (idx < urls.length) {
             const u = urls[idx++];
             try {
-              if (!(await cache.match(u))) {
-                const res = await fetch(u, mode ? { mode } : undefined);
-                await cache.put(u, res);
+              if (await cache.match(u)) {
+                succeeded++;
+              } else {
+                const res = await fetchWithRetry(u, mode ? { mode } : undefined, 2);
+                // Never cache an error response (404/500) — only OK or opaque
+                // (no-cors CDN) responses, so a transient blip doesn't poison
+                // the offline cache with a broken entry.
+                if (res && (res.ok || res.type === "opaque")) {
+                  await cache.put(u, res);
+                  succeeded++;
+                }
               }
-            } catch (e) { /* partial success is fine */ }
+            } catch (e) { /* counted as attempted; not succeeded */ }
             cached++;
-            if (port) port.postMessage({ type: "PRECACHE_PROGRESS", cached, total });
+            if (port) port.postMessage({ type: "PRECACHE_PROGRESS", cached, total, succeeded });
           }
         });
         await Promise.all(workers);
@@ -182,12 +192,32 @@ self.addEventListener("message", (event) => {
 
       await fill(pages, PAGE_CACHE);            // same-origin deck pages (cookies sent)
       await fill(images, IMAGE_CACHE, "no-cors"); // flag + logo CDNs (opaque)
-      if (port) port.postMessage({ type: "PRECACHE_DONE", cached, total });
+      // Report succeeded vs total so the UI can be honest about partial saves.
+      if (port) port.postMessage({ type: "PRECACHE_DONE", cached, total, succeeded });
     } catch (err) {
       if (port) port.postMessage({ type: "PRECACHE_ERROR", error: String(err) });
     }
   })());
 });
+
+// Fetch with bounded retries + backoff, so one flaky CDN response doesn't drop
+// an asset from the offline precache. Returns the last response (caller decides
+// whether to cache it); throws only if every attempt threw.
+async function fetchWithRetry(url, opts, retries) {
+  let lastErr;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch(url, opts);
+      if (res && (res.ok || res.type === "opaque")) return res;
+      lastErr = null;
+    } catch (e) {
+      lastErr = e;
+    }
+    if (attempt < retries) await new Promise((r) => setTimeout(r, 300 * (attempt + 1)));
+  }
+  if (lastErr) throw lastErr;
+  return undefined;
+}
 
 async function cacheFirst(req, cacheName) {
   const cache = await caches.open(cacheName);

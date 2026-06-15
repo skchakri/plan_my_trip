@@ -173,7 +173,8 @@ module Trips
       return [ lat, lng ] if name.to_s.strip.blank? || @geocode_budget <= 0
 
       @geocode_budget -= 1
-      sleep(1) unless Rails.env.test? # Nominatim 1 req/sec
+      # Nominatim 1 req/sec pacing happens inside Places::Geocoder, only when
+      # a live Nominatim call is actually made.
       geo = Places::Geocoder.call(name, near_lat: anchor&.first, near_lng: anchor&.last, bias_km: 300)
       geo ? [ geo.lat, geo.lng ] : [ lat, lng ]
     end

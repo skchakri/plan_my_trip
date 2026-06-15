@@ -1,0 +1,76 @@
+<%# Rich "More about this place" sections from HighlightDetail (cached AI).
+    `detail` is a string-keyed hash; every section degrades to hidden when
+    blank, so the fallback shape still renders something useful. %>
+<div class="space-y-3">
+  <% if detail["tagline"].present? %>
+    <p class="text-amber-200/90 italic text-sm leading-snug">“<%= detail["tagline"] %>”</p>
+  <% end %>
+
+  <% if detail["overview"].present? %>
+    <div class="rounded-lg border border-slate-800 bg-slate-950/50 p-3">
+      <p class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-1">More about this place</p>
+      <p class="text-sm text-slate-200 leading-relaxed"><%= detail["overview"] %></p>
+    </div>
+  <% end %>
+
+  <% if detail["best_time"].present? %>
+    <div class="rounded-lg border border-teal-500/25 bg-teal-500/10 p-3 flex items-start gap-2">
+      <span class="shrink-0 mt-0.5 text-teal-300"><%= icon :clock, class: "w-4 h-4" %></span>
+      <div>
+        <p class="text-[10px] uppercase tracking-widest text-teal-300/80 font-semibold mb-0.5">Best time to go</p>
+        <p class="text-sm text-teal-100 leading-relaxed"><%= detail["best_time"] %></p>
+      </div>
+    </div>
+  <% end %>
+
+  <% if Array(detail["things_to_do"]).any? %>
+    <div class="rounded-lg border border-slate-800 bg-slate-950/50 p-3">
+      <p class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-1.5">What you can do</p>
+      <ul class="space-y-1.5">
+        <% Array(detail["things_to_do"]).each do |item| %>
+          <li class="flex items-start gap-2 text-sm text-slate-200 leading-snug">
+            <span class="shrink-0 mt-1 w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            <%= item %>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <% if Array(detail["why_youll_love_it"]).any? %>
+    <div class="rounded-lg border border-slate-800 bg-slate-950/50 p-3">
+      <p class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-1.5">Why you'll love it</p>
+      <ul class="space-y-1.5">
+        <% Array(detail["why_youll_love_it"]).each do |item| %>
+          <li class="flex items-start gap-2 text-sm text-slate-200 leading-snug">
+            <span class="shrink-0 mt-1 w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+            <%= item %>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <% if Array(detail["pro_tips"]).any? %>
+    <div class="rounded-lg border border-slate-800 bg-slate-950/50 p-3">
+      <p class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-1.5">Pro tips</p>
+      <ul class="space-y-1.5">
+        <% Array(detail["pro_tips"]).each do |item| %>
+          <li class="flex items-start gap-2 text-sm text-slate-300 leading-snug">
+            <span class="shrink-0 mt-0.5 text-slate-500"><%= icon :zap, class: "w-3.5 h-3.5" %></span>
+            <%= item %>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <% if Array(detail["perfect_for"]).any? %>
+    <div class="flex flex-wrap items-center gap-1.5">
+      <span class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">Perfect for</span>
+      <% Array(detail["perfect_for"]).each do |tag| %>
+        <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-800/80 border border-slate-700 text-[11px] text-slate-300"><%= tag %></span>
+      <% end %>
+    </div>
+  <% end %>
+</div>

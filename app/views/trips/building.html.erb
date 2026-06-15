@@ -12,18 +12,37 @@
 </div>
 
 <% if @trip.build_failed? %>
+  <% summary = @trip.build_failure_summary %>
   <section class="rounded-2xl border border-rose-500/30 bg-rose-500/5 p-8 text-center">
     <div class="mx-auto w-12 h-12 rounded-full bg-rose-500/15 border border-rose-500/30 flex items-center justify-center mb-4">
       <%= icon :alert_triangle, class: "w-6 h-6 text-rose-300" %>
     </div>
-    <h1 class="font-display text-2xl font-semibold text-slate-50 mb-1">We couldn't finish this plan</h1>
-    <p class="text-sm text-slate-400 max-w-md mx-auto mb-5">
-      Something went wrong while building <strong><%= @trip.title %></strong>. Your trip is saved — try building it again.
+    <h1 class="font-display text-2xl font-semibold text-slate-50 mb-1"><%= summary[:title] %></h1>
+    <p class="text-sm text-slate-400 max-w-md mx-auto mb-2">
+      We hit a snag building <strong><%= @trip.title %></strong>.
     </p>
-    <%= button_to "Try again", rebuild_trip_path(@trip), method: :post,
-          class: "inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-amber-500 text-slate-950 font-semibold hover:bg-amber-400 transition-colors cursor-pointer" %>
+    <p class="text-sm text-amber-200/90 max-w-md mx-auto mb-6"><%= summary[:hint] %></p>
+
+    <div class="flex flex-wrap items-center justify-center gap-2.5">
+      <%= button_to rebuild_trip_path(@trip), method: :post,
+            class: "inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-amber-500 text-slate-950 font-semibold hover:bg-amber-400 transition-colors cursor-pointer" do %>
+        <%= icon :refresh_cw, class: "w-4 h-4" %> Try again
+      <% end %>
+      <%= link_to edit_trip_path(@trip),
+            class: "inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg border border-slate-700 text-slate-200 hover:border-amber-500/50 hover:bg-slate-800/50 transition-colors" do %>
+        <%= icon :pencil, class: "w-4 h-4" %> Edit details
+      <% end %>
+      <%= button_to skip_build_trip_path(@trip), method: :post,
+            class: "inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg border border-slate-700 text-slate-300 hover:border-slate-500 hover:bg-slate-800/50 transition-colors cursor-pointer" do %>
+        Start a blank plan
+      <% end %>
+    </div>
+
     <% if @trip.build_error.present? %>
-      <p class="text-[11px] text-slate-600 mt-4 font-mono break-all"><%= @trip.build_error %></p>
+      <details class="mt-6 text-left max-w-md mx-auto">
+        <summary class="text-[11px] text-slate-600 cursor-pointer hover:text-slate-400">Technical details</summary>
+        <p class="text-[11px] text-slate-600 mt-2 font-mono break-all"><%= @trip.build_error %></p>
+      </details>
     <% end %>
   </section>
 <% else %>

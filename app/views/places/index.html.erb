@@ -1,0 +1,64 @@
+<% content_for :title, "Explore places" %>
+
+<header class="mb-6">
+  <p class="text-[11px] uppercase tracking-[0.18em] text-amber-400 font-medium mb-1.5 inline-flex items-center gap-2">
+    <%= icon :map_pin, class: "w-3.5 h-3.5" %> Place catalog
+  </p>
+  <h1 class="font-display text-3xl sm:text-4xl font-semibold tracking-tight">Explore places</h1>
+  <p class="text-sm text-slate-400 mt-2 max-w-2xl">Every spot anyone has added to a trip lives here — the more people plan, the richer it gets. Sorted by how often they're included.</p>
+</header>
+
+<%= form_with url: places_path, method: :get, class: "mb-4" do %>
+  <div class="relative max-w-xl">
+    <%= text_field_tag :q, @q, placeholder: "Search places by name…", autocomplete: "off",
+          class: "w-full rounded-xl bg-slate-900/60 border border-slate-700 px-4 py-2.5 pr-10 text-slate-100 placeholder-slate-500 focus:border-amber-500 focus:outline-none" %>
+    <% if @kind %><%= hidden_field_tag :kind, @kind %><% end %>
+    <button type="submit" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-amber-300" aria-label="Search">
+      <%= icon :target, class: "w-5 h-5" %>
+    </button>
+  </div>
+<% end %>
+
+<%# Kind filter chips %>
+<div class="flex flex-wrap gap-1.5 mb-6">
+  <%= link_to "All", places_path(q: @q), class: "px-3 py-1.5 rounded-full text-xs font-medium border transition-colors #{@kind.nil? ? 'bg-amber-500 text-slate-950 border-amber-500' : 'border-slate-700 text-slate-300 hover:border-amber-500/50'}" %>
+  <% @available_kinds.each do |k| %>
+    <%= link_to k.tr("_", " ").capitalize, places_path(kind: k, q: @q),
+          class: "px-3 py-1.5 rounded-full text-xs font-medium border transition-colors #{@kind == k ? 'bg-amber-500 text-slate-950 border-amber-500' : 'border-slate-700 text-slate-300 hover:border-amber-500/50'}" %>
+  <% end %>
+</div>
+
+<% if @places.any? %>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+    <% @places.each do |place| %>
+      <%= link_to (place.public_path || place_path(place)), class: "group rounded-2xl border border-slate-800 bg-slate-900/40 overflow-hidden hover:border-amber-500/40 transition-colors block" do %>
+        <div class="aspect-[16/10] bg-slate-800 overflow-hidden">
+          <img loading="lazy" src="<%= place.image_url %>" alt="<%= place.name %>" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" referrerpolicy="no-referrer">
+        </div>
+        <div class="p-3.5">
+          <div class="flex items-start justify-between gap-2">
+            <h2 class="font-semibold text-slate-100 leading-snug truncate"><%= place.name %></h2>
+            <% if place.tier == "iconic" %><span class="shrink-0 text-amber-400" title="Iconic"><%= icon :star, class: "w-4 h-4" %></span><% end %>
+          </div>
+          <% if place.region.present? || place.kind.present? %>
+            <p class="text-xs text-slate-400 mt-0.5 truncate">
+              <%= [ place.kind&.tr("_", " ")&.capitalize, place.region ].compact.join(" · ") %>
+            </p>
+          <% end %>
+          <% if place.famous_for.present? || place.description.present? %>
+            <p class="text-xs text-slate-500 mt-1.5 line-clamp-2"><%= (place.famous_for.presence || place.description).to_s.truncate(120) %></p>
+          <% end %>
+          <% if place.usage_count.positive? %>
+            <p class="text-[11px] text-slate-500 mt-2 inline-flex items-center gap-1">
+              <%= icon :users, class: "w-3.5 h-3.5" %> In <%= pluralize(place.usage_count, "trip") %>
+            </p>
+          <% end %>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+<% else %>
+  <div class="rounded-2xl border border-dashed border-slate-700 bg-slate-900/30 p-10 text-center text-slate-400">
+    <p>No places match yet. <%= link_to "Clear filters", places_path, class: "text-amber-300 hover:text-amber-200 underline" %> or plan a trip to start filling the catalog.</p>
+  </div>
+<% end %>

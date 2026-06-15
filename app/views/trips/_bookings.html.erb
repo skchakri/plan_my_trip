@@ -21,6 +21,18 @@
   <% if @trip.destination.blank? %>
     <p class="text-sm text-slate-500 italic">Add a destination to this trip to see booking links.</p>
   <% else %>
+    <%# Handled summary strip — at-a-glance progress across the four categories. %>
+    <% handled = claims_by_kind.keys & BookingClaim::KINDS %>
+    <div class="mb-4 flex flex-wrap items-center gap-2 text-xs">
+      <% BookingClaim::KINDS.each do |k| %>
+        <% done = handled.include?(k) %>
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border <%= done ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-200' : 'border-slate-700 bg-slate-800/40 text-slate-400' %>">
+          <%= icon (done ? :check : :clock), class: "w-3.5 h-3.5" %><%= BookingClaim::KIND_LABELS[k] %>
+        </span>
+      <% end %>
+      <span class="text-slate-500 ml-auto"><%= handled.size %>/<%= BookingClaim::KINDS.size %> booked</span>
+    </div>
+
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
       <% sections.each do |title, kind, _method_alias, glyph_name, prompt_copy|
            claim = claims_by_kind[kind.to_s]
@@ -116,15 +128,22 @@
               <% end %>
             </ul>
 
-            <%# "I've got this" inline form %>
+            <%# One-tap "mark booked" — instant, no note/doc required. Details
+                can be added later via the handled-state form. %>
+            <div class="px-4 pb-3">
+              <%= button_to trip_booking_claims_path(@trip), method: :post,
+                    params: { booking_claim: { kind: kind } },
+                    class: "w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-emerald-500/40 bg-emerald-500/10 text-emerald-200 font-semibold text-sm hover:bg-emerald-500/20 transition-colors cursor-pointer" do %>
+                <%= icon :check, class: "w-4 h-4" %>
+                <%= kind == :cars ? "Using my own car / already booked" : "I've booked this" %>
+              <% end %>
+            </div>
+
+            <%# "I've got this" inline form — for adding a note/confirmation now %>
             <details class="mx-4 mb-4 mt-1 rounded-lg border border-emerald-500/20 bg-emerald-500/[0.04] open:bg-emerald-500/[0.06]">
               <summary class="cursor-pointer px-3 py-2 text-sm flex items-center gap-2 select-none text-emerald-200/90">
-                <%= icon :sparkles, class: "w-3.5 h-3.5" %>
-                <% if kind == :cars %>
-                  Bringing my own car / I've already booked
-                <% else %>
-                  I've already <%= kind == :stays ? "booked" : "ticketed" %> this
-                <% end %>
+                <%= icon :external_link, class: "w-3.5 h-3.5" %>
+                Add booking details &amp; confirmation
               </summary>
               <%= form_with url: trip_booking_claims_path(@trip), method: :post, multipart: true, class: "px-3 pb-3 space-y-2" do |f| %>
                 <%= f.hidden_field "booking_claim[kind]", value: kind %>

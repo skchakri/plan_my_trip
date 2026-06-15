@@ -1,6 +1,7 @@
 class ChecklistItemsController < ApplicationController
   before_action :set_trip
   before_action :set_item, only: %i[update destroy]
+  before_action :set_discarded_item, only: %i[restore]
 
   def create
     authorize @trip, :show?
@@ -15,17 +16,26 @@ class ChecklistItemsController < ApplicationController
     @item.update!(item_params)
     respond_to do |format|
       format.turbo_stream
-      format.html { redirect_to checklist_trip_path(@trip) }
+      format.html { redirect_to checklist_trip_path(@trip), notice: "Updated \"#{@item.title}\"" }
     end
   end
 
+  # Soft-delete so it can be undone. The row vanishes via Turbo + an undo bar
+  # is rendered into #checklist-flash.
   def destroy
     authorize @trip, :show?
-    @item.destroy
+    @item.discard
     respond_to do |format|
-      format.turbo_stream { render turbo_stream: turbo_stream.remove(@item) }
-      format.html { redirect_to checklist_trip_path(@trip) }
+      format.turbo_stream { render :destroy }
+      format.html { redirect_to checklist_trip_path(@trip), notice: "Removed \"#{@item.title}\"" }
     end
+  end
+
+  # Undo a soft-delete. Full reload re-inserts the row in its original section.
+  def restore
+    authorize @trip, :show?
+    @item.undiscard
+    redirect_to checklist_trip_path(@trip), notice: "Restored \"#{@item.title}\""
   end
 
   private
@@ -35,7 +45,11 @@ class ChecklistItemsController < ApplicationController
   end
 
   def set_item
-    @item = @trip.checklist_items.find(params[:id])
+    @item = @trip.checklist_items.kept.find(params[:id])
+  end
+
+  def set_discarded_item
+    @item = @trip.checklist_items.discarded.find(params[:id])
   end
 
   def item_params

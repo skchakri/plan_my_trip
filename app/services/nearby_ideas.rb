@@ -52,7 +52,12 @@ class NearbyIdeas
     end
   end
 
-  CACHE_TTL = 7.days
+  # 22h, not 7 days: Pixabay's API terms want image URLs re-requested after
+  # 24 hours, and the stock-photo URLs are baked into this cached result. A
+  # daily rebuild is cheap anyway — the inner AI (7d), wiki/image (30d), and
+  # geocode (90d) caches all still hit, so it's a re-rank plus at most a
+  # couple of stock re-fetches.
+  CACHE_TTL = 22.hours
   MAX_RESULTS = 24
   PROMPT_SLUG = "nearby_ideas.v1".freeze
   # LLMs invent coordinates. We only spend a geocode lookup when a pick's
@@ -107,9 +112,15 @@ class NearbyIdeas
         @trip_date
       ].join("|")
     )
-    # Bumped to v3 when the prompt gained coverage-floor + user_query support
-    # — invalidates older 17-item SLC responses that dropped Donut Falls.
-    "nearby_ideas/v3/#{digest}"
+    # v3: prompt gained coverage-floor + user_query support.
+    # v4: fill_missing_images backfills photos via PlaceImageLookup.
+    # v5: stock-photo (Pixabay) last tier for ideas Wikipedia/Commons can't
+    # illustrate; v6: dedupe casualties also fall back to stock. v7: drop
+    # non-free media (logos/cover art) + opensearch relevance guard in the
+    # image lookup, so collisions like the Kenny Rogers cover for "Donut
+    # Falls" re-resolve. Bumps re-enrich cheaply — the inner AI + image
+    # caches still hit.
+    "nearby_ideas/v7/#{digest}"
   end
 
   def fetch_ideas
@@ -124,6 +135,8 @@ class NearbyIdeas
       seen << key
       merged << i
     end
+
+    fill_missing_images(merged)
 
     PlaceRanker.rank!(
       merged.first(MAX_RESULTS),
@@ -186,12 +199,18 @@ class NearbyIdeas
     items = result.json
     return [] unless items.is_a?(Array)
 
-    items.first(MAX_RESULTS).filter_map do |item|
+    items = items.first(MAX_RESULTS)
+    # Wikipedia summaries used to be fetched serially inside the loop — one
+    # HTTP round-trip per idea (~20s for a 24-idea list). Prefetch them
+    # concurrently; each lookup is independently cached.
+    wiki_by_name = prefetch_wikipedia(items.map { |i| i["name"].to_s.strip })
+
+    items.filter_map do |item|
       name = item["name"].to_s.strip
       next if name.blank?
       lat, lng, distance_km = verified_coords(name, item["latitude"]&.to_f, item["longitude"]&.to_f)
 
-      wiki = enrich_with_wikipedia(name)
+      wiki = wiki_by_name[name]
 
       Idea.new(
         slug: slugify(name),
@@ -226,9 +245,8 @@ class NearbyIdeas
     return [ lat, lng, distance_km ] unless suspect && @geocode_budget.positive?
 
     @geocode_budget -= 1
-    # Respect Nominatim's 1 req/sec policy between live lookups. Cache hits
-    # short-circuit inside Geocoder, so this only paces genuine network calls.
-    sleep(1) unless Rails.env.test?
+    # Nominatim's 1 req/sec pacing lives inside Places::Geocoder now, wrapped
+    # around the actual network call — cache hits and Google lookups are free.
     geo = lookup_geocode(name)
     return [ lat, lng, distance_km ] if geo.nil?
 
@@ -263,11 +281,124 @@ class NearbyIdeas
     name.to_s.downcase.gsub(/[^a-z0-9]+/, "-").gsub(/(^-+|-+$)/, "")
   end
 
-  # Lightweight Wikipedia summary lookup. Returns nil silently — bad
+  WIKI_THREADS = 8
+  WIKI_CACHE_TTL = 30.days
+
+  # Most LLM ideas (trailheads, local waterfalls) have no exact-title Wikipedia
+  # page, so the title-based enrichment leaves them photo-less. Backfill via
+  # PlaceImageLookup, whose geosearch tiers (Wikipedia ≤1km, Commons geo-tagged
+  # photos ≤2km) work off the idea's *verified* coordinates. Concurrent +
+  # 30-day cached inside the lookup; runs once per anchor thanks to the
+  # result cache around fetch_ideas.
+  def fill_missing_images(ideas)
+    missing = ideas.select { |i| i.image_url.blank? && i.name.present? }
+    return ideas if missing.empty?
+
+    missing.each_slice(WIKI_THREADS) do |batch|
+      batch.map do |idea|
+        Thread.new do
+          idea.image_url = PlaceImageLookup.call(idea.name, lat: idea.latitude, lng: idea.longitude) ||
+                           stock_photo_for(idea)
+        rescue StandardError => e
+          Rails.logger.warn("[NearbyIdeas] image fill #{idea.name}: #{e.class}: #{e.message}")
+        end
+      end.each(&:join)
+    end
+
+    # Nearby ideas can geosearch onto the same Commons photo — a grid of
+    # repeated images reads as broken, so only the first keeps it; later
+    # claimants get a stock photo instead (or nothing if even that collides).
+    taken = Set.new
+    ideas.each do |idea|
+      next if idea.image_url.blank?
+      next if taken.add?(idea.image_url)
+      idea.image_url = stock_photo_for(idea)
+      idea.image_url = nil if idea.image_url.present? && !taken.add?(idea.image_url)
+    end
+    ideas
+  end
+
+  # Last-tier photo source when Wikipedia/Commons have nothing: stock search.
+  # Pixabay only — its 1 req/sec budget (5k/hr) is the lone stock API safe for
+  # the live path (Pexels/Unsplash throttle at 19s/75s between calls; they
+  # stay reserved for batch seeding via LandmarkImageFinder defaults). Tries
+  # the actual place name first, then a category keyword for a representative
+  # (not place-specific) shot. Each query cached 30 days.
+  STOCK_PROVIDERS = %i[pixabay].freeze
+  # Descriptive tags first (most specific), then category fallbacks.
+  STOCK_KEYWORDS = {
+    "waterfall"   => "waterfall canyon",
+    "swimming"    => "swimming hole creek",
+    "wildlife"    => "wildlife mountains",
+    "dark_sky"    => "starry night sky landscape",
+    "adventure"   => "hiking adventure mountains",
+    "scenic"      => "scenic mountain vista",
+    "family"      => "family park outdoors",
+    "food"        => "local restaurant food",
+    "cultural"    => "historic downtown street",
+    "history"     => "historic site monument",
+    "nature"      => "forest nature trail",
+    "relaxing"    => "peaceful lake morning",
+    "photography" => "dramatic landscape",
+    "shopping"    => "market street shops",
+    "nightlife"   => "city lights evening",
+    "event"       => "outdoor festival crowd"
+  }.freeze
+
+  def stock_photo_for(idea)
+    region = @anchor_label.split(",").last.to_s.strip
+    by_name = cached_stock_lookup("name|#{idea.name}|#{region}") do
+      LandmarkImageFinder.call(idea.name, state: region, providers: STOCK_PROVIDERS)&.dig(:url)
+    end
+    return by_name if by_name
+
+    keyword = (Array(idea.tags).map(&:to_s) & STOCK_KEYWORDS.keys).first || idea.category.to_s
+    query = STOCK_KEYWORDS[keyword]
+    return nil if query.blank?
+
+    cached_stock_lookup("kw|#{query}|#{region}") do
+      LandmarkImageFinder.call(query, state: region, providers: STOCK_PROVIDERS)&.dig(:url)
+    end
+  end
+
+  def cached_stock_lookup(key)
+    # Same 22h ceiling as CACHE_TTL — Pixabay URLs are only contractually
+    # valid for 24 hours, so don't hand a stale one to a fresh result build.
+    cached = Rails.cache.fetch("nearby_ideas/stock/v1/#{Digest::SHA256.hexdigest(key.downcase)}", expires_in: CACHE_TTL) do
+      yield || :miss
+    end
+    cached == :miss ? nil : cached
+  end
+
+  # Concurrent, cached Wikipedia prefetch for a batch of idea names.
+  # Returns { name => summary_hash_or_nil }. Wikipedia's REST API has no
+  # 1-req/sec policy, so a small thread pool is fine; failures degrade to
+  # the LLM's own summary per idea.
+  def prefetch_wikipedia(names)
+    names = names.reject(&:blank?).uniq
+    names.each_slice(WIKI_THREADS).flat_map do |batch|
+      batch.map { |name| Thread.new { [ name, enrich_with_wikipedia(name) ] } }.map(&:value)
+    end.to_h
+  rescue StandardError => e
+    Rails.logger.warn("[NearbyIdeas] wikipedia prefetch: #{e.class}: #{e.message}")
+    {}
+  end
+
+  # Lightweight Wikipedia summary lookup, cached — the same landmark name
+  # resolves identically for every user/anchor. Returns nil silently — bad
   # network shouldn't break the picker.
   def enrich_with_wikipedia(name)
     title = name.to_s.strip
     return nil if title.blank?
+    # v2: image_url now filtered to free media — re-fetch so cached covers/logos
+    # (e.g. a song cover for a place-name collision) get dropped.
+    cached = Rails.cache.fetch("nearby_ideas/wiki/v2/#{Digest::SHA256.hexdigest(title.downcase)}", expires_in: WIKI_CACHE_TTL) do
+      fetch_wikipedia_summary(title) || :miss
+    end
+    cached == :miss ? nil : cached
+  end
+
+  def fetch_wikipedia_summary(title)
     encoded = URI.encode_www_form_component(title.tr(" ", "_"))
     uri = URI("https://en.wikipedia.org/api/rest_v1/page/summary/#{encoded}")
     res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true, open_timeout: 3, read_timeout: 4) do |http|
@@ -275,10 +406,14 @@ class NearbyIdeas
     end
     return nil unless res.is_a?(Net::HTTPSuccess)
     json = JSON.parse(res.body)
+    thumb = json.dig("thumbnail", "source")
     {
       name: json["title"],
       summary: json["extract"],
-      image_url: json.dig("thumbnail", "source"),
+      # Drop non-free media (a song/film/brand whose name collides with a place
+      # returns its cover/logo, not a photo) so the card falls through to the
+      # coordinate-anchored image tiers in fill_missing_images.
+      image_url: (thumb if PlaceImageLookup.usable_photo_url?(thumb)),
       wikipedia_url: json.dig("content_urls", "desktop", "page")
     }
   rescue StandardError => _

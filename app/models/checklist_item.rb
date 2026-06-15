@@ -1,4 +1,6 @@
 class ChecklistItem < ApplicationRecord
+  include Discard::Model
+
   SCOPES = %w[before_trip day activity].freeze
   SCOPE_LABELS = {
     "before_trip" => "Before trip",

@@ -11,10 +11,13 @@
     <%= icon :check, class: "w-3.5 h-3.5 text-emerald-400" %> Checklist
   </p>
   <h1 class="font-display text-3xl sm:text-4xl font-semibold tracking-tight"><%= @trip.title_for(current_user) %></h1>
-  <p class="text-sm text-slate-400 mt-2">Items grouped by when they matter — overall trip, each day, each activity. Toggles save instantly and pages work offline once visited.</p>
+  <p class="text-sm text-slate-400 mt-2">Items grouped by when they matter — overall trip, each day, each activity. Toggles save instantly. Once you've opened this page online it stays viewable offline; reconnect to save new changes.</p>
 </header>
 
 <%= render "checklist_progress", trip: @trip %>
+
+<%# Undo bar target — destroy renders an undo affordance here. %>
+<div id="checklist-flash" aria-live="polite"></div>
 
 <% if @trip.pwa_packing_url.present? %>
   <div class="mt-4 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4 flex items-start gap-3">

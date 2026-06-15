@@ -1,4 +1,4 @@
-<% items = trip.checklist_items.reload
+<% items = trip.checklist_items.kept.reload
    total = items.size
    packed = items.count(&:packed)
    pct = total.zero? ? 0 : (packed * 100.0 / total).round %>

@@ -2,8 +2,10 @@
 slug: place_search.v1
 name: Place search (free-form query → real-world places)
 description: Resolves a free-form user query (typed into the destination/home-base typeahead) to a small list of real-world places. Used to top up the local catalog when the LIKE search returns thin results.
-provider: claude_cli
-model: claude-sonnet-4-6
+# Interactive typeahead path — must answer in seconds. Sonar resolves real
+# places (with plausible coords) from a live web index in one fast call.
+provider: perplexity
+model: sonar
 kind: text
 max_tokens: 1024
 temperature:
