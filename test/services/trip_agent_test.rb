@@ -72,4 +72,13 @@ class TripAgentTest < ActiveSupport::TestCase
     assert_includes d, "Empty"
     assert_includes d, "ITINERARY: not built yet."
   end
+
+  test "dossier surfaces confirmed bookings with their notes" do
+    @trip.booking_claims.create!(kind: "stays", note: "Hampton Inn Springdale, conf #ABC123")
+    d = TripAgent.new(trip: @trip, user: @user, question: "where am I staying?").dossier
+    assert_includes d, "Confirmed by the traveler:"
+    assert_includes d, "Stays: booked"
+    assert_includes d, "Hampton Inn Springdale"
+    assert_includes d, "Not booked yet:"
+  end
 end

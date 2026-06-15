@@ -59,7 +59,7 @@ export default class extends Controller {
     if (this._enabled) return
 
     if (!("geolocation" in navigator)) {
-      this._renderStatus("This browser doesn't support geolocation.", "error")
+      this._renderStatus("No location on this device — use “Next landmark” to narrate stops by hand.", "warn")
       return
     }
     if (!("speechSynthesis" in window)) {
@@ -94,6 +94,29 @@ export default class extends Controller {
   skipCurrent(event) {
     event?.preventDefault()
     this._stopSpeaking()
+  }
+
+  // Manual mode — narrate the next un-played stop without GPS. Works when the
+  // user declines location, is on a device without geolocation, or just wants
+  // to drive the tour by hand. Loops back to the start once all are played.
+  playNext(event) {
+    event?.preventDefault()
+    if (!("speechSynthesis" in window)) {
+      this._renderStatus("This browser doesn't support speech synthesis.", "error")
+      return
+    }
+    const stops = (this.stopsValue || []).filter((s) => s.script)
+    if (!stops.length) {
+      this._renderStatus("No landmarks with narration on this trip yet.", "warn")
+      return
+    }
+    let next = stops.find((s) => !this._played.has(s.id))
+    if (!next) {
+      this._played.clear()
+      next = stops[0]
+      this._renderStatus("Replaying from the first landmark…")
+    }
+    this._speak(next)
   }
 
   // --- internals ---
@@ -143,7 +166,7 @@ export default class extends Controller {
       this._stopSpeaking()
       this._enabled = false
       this._toggleButtons()
-      this._renderStatus("Permission denied. Click the 🔒/📍 icon in the address bar → Location → Allow, then tap Enable again.", "error")
+      this._renderStatus("Location off. Tap “Next landmark” to narrate stops by hand, or allow location (🔒/📍 in the address bar → Location → Allow) and tap Enable.", "error")
       return
     }
     let msg = "Location error."

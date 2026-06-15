@@ -24,3 +24,9 @@ production:
   sweep_expired_draft_trips:
     class: DraftTripSweeperJob
     schedule: at 3am every day
+
+  # Countdown reminders to trip members 7/3/1 days before departure.
+  # Idempotent per (offset + start_date) via Trip#reminders_sent.
+  pre_trip_reminders:
+    class: PreTripReminderJob
+    schedule: at 9am every day

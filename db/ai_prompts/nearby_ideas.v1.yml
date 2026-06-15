@@ -2,8 +2,11 @@
 slug: nearby_ideas.v1
 name: Nearby day-trip ideas
 description: Given a home base coordinate + a drive radius + user interest tags (and optional free-form question), returns 18-24 day-trip-worthy spots ranked by interest match. Powers /day_trips/suggestions. Use web search aggressively to surface seasonal openings, hidden trails, local events, locals-only picks.
-provider: claude_cli
-model: claude-sonnet-4-6
+# Perplexity Sonar: search-augmented answer in ONE fast API call (seconds).
+# claude_cli does deeper agentic research but takes minutes — unusable on the
+# live /day_trips/suggestions path; keep it for offline seeding only.
+provider: perplexity
+model: sonar
 kind: text
 max_tokens: 4096
 temperature: 0.4

@@ -32,6 +32,35 @@ class PlaceImageLookup
   COMMONS_THUMB_WIDTH = 800
   COMMONS_RESULT_LIMIT = 10
   PHOTO_EXTENSIONS = %w[.jpg .jpeg .png .webp].freeze
+  # Significant words are >= 3 chars: drops "of"/"st"/"UT" so "Beaver UT" still
+  # matches "Beaver, Utah" on "beaver" but a phonetic collision can't sneak in
+  # on a stop-word.
+  MIN_TOKEN_LEN = 3
+  # Real, freely-licensed photos live under Commons
+  # (upload.wikimedia.org/wikipedia/commons/...). Media hosted locally on a
+  # language wiki (.../wikipedia/en/, /de/, ...) is non-free — logos, album /
+  # single covers, film posters — surfaced when a place name collides with a
+  # song or brand. Those are never a photo of a *place*, so drop them.
+  NONFREE_WIKIMEDIA = %r{//upload\.wikimedia\.org/wikipedia/(?!commons/)}i
+
+  def self.usable_photo_url?(url)
+    url.present? && !NONFREE_WIKIMEDIA.match?(url.to_s)
+  end
+
+  # Does `title` plausibly name the same thing as `query`? Requires the
+  # resolved article to share at least half of the query's distinctive words,
+  # so opensearch's fuzzy matcher can't hand back an unrelated article
+  # ("Donut Falls" -> "Don't Fall in Love with a Dreamer").
+  def self.relevant_match?(query, title)
+    q = significant_tokens(query)
+    return false if q.empty?
+    t = significant_tokens(title)
+    (q & t).size >= (q.size / 2.0).ceil
+  end
+
+  def self.significant_tokens(text)
+    text.to_s.downcase.scan(/[a-z0-9]+/).select { |w| w.length >= MIN_TOKEN_LEN }.to_set
+  end
 
   def self.call(name, lat: nil, lng: nil, exclude_urls: [])
     new(name, lat: lat, lng: lng).call(exclude_urls: exclude_urls)
@@ -59,7 +88,10 @@ class PlaceImageLookup
 
   def cache_key
     key = "#{@name.downcase}|#{@lat&.round(3)}|#{@lng&.round(3)}"
-    "place_image_lookup/v4/#{Digest::SHA256.hexdigest(key)}"
+    # v5: opensearch relevance guard + non-free media (logo/cover) filter, so
+    # cached collisions like the Kenny Rogers single cover for "Donut Falls"
+    # get re-resolved.
+    "place_image_lookup/v5/#{Digest::SHA256.hexdigest(key)}"
   end
 
   # Returns an ordered list of candidate thumbnail URLs: direct title hit
@@ -77,7 +109,7 @@ class PlaceImageLookup
     if @lat && @lng
       commons_geosearch_thumb_urls.each { |url| urls << url }
     end
-    urls.uniq.compact
+    urls.compact.uniq.select { |url| self.class.usable_photo_url?(url) }
   rescue StandardError => e
     Rails.logger.warn("[PlaceImageLookup] #{@name}: #{e.class}: #{e.message}")
     []
@@ -132,6 +164,7 @@ class PlaceImageLookup
     body = JSON.parse(res.body)
     title = body.is_a?(Array) ? body[1]&.first : nil
     return nil if title.blank? || title.casecmp?(query.to_s)
+    return nil unless self.class.relevant_match?(query, title)
 
     wikipedia_summary(title)
   rescue JSON::ParserError, Net::OpenTimeout, Net::ReadTimeout, SocketError, OpenSSL::SSL::SSLError => e

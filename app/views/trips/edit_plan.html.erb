@@ -1,0 +1,44 @@
+<% content_for :title, "Edit itinerary · #{@trip.title_for(current_user)}" %>
+
+<div class="mb-5">
+  <%= link_to @trip, class: "inline-flex items-center gap-1 text-sm text-slate-400 hover:text-amber-300 transition-colors" do %>
+    <%= icon :arrow_left, class: "w-4 h-4" %> <%= @trip.title_for(current_user) %>
+  <% end %>
+</div>
+
+<header class="mb-6">
+  <p class="text-[11px] uppercase tracking-[0.18em] text-amber-400 font-medium mb-1.5 inline-flex items-center gap-2">
+    <%= icon :pencil, class: "w-3.5 h-3.5" %> Edit itinerary
+  </p>
+  <h1 class="font-display text-3xl sm:text-4xl font-semibold tracking-tight"><%= @trip.title_for(current_user) %></h1>
+  <p class="text-sm text-slate-400 mt-2">Add, edit, reorder, or remove days and stops. Changes show up on the
+    <%= link_to "Final plan", plan_trip_path(@trip), class: "text-teal-300 hover:text-teal-200 underline-offset-2 hover:underline" %> and the public share view.</p>
+</header>
+
+<div class="space-y-5">
+  <% @days.each_with_index do |day, i| %>
+    <%= render "trips/day_editor", trip: @trip, day: day, index: i, last: (i == @days.size - 1) %>
+  <% end %>
+
+  <% if @days.empty? %>
+    <div class="rounded-2xl border border-dashed border-slate-700 bg-slate-900/30 p-6 text-center text-sm text-slate-400">
+      No days yet — add your first day below to start building the plan.
+    </div>
+  <% end %>
+</div>
+
+<%# Add a day %>
+<section class="mt-6 rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
+  <details>
+    <summary class="cursor-pointer text-sm font-medium text-slate-200 inline-flex items-center gap-2">
+      <%= icon :plus, class: "w-4 h-4 text-amber-400" %> Add a day
+    </summary>
+    <%= form_with url: trip_trip_days_path(@trip), method: :post, class: "mt-3 grid grid-cols-1 sm:grid-cols-4 gap-2" do %>
+      <%= text_field_tag "trip_day[label]", nil, placeholder: "Label (e.g. Day 3 — Canyon)", required: true,
+            class: "sm:col-span-2 rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none" %>
+      <%= date_field_tag "trip_day[date]", nil,
+            class: "rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none" %>
+      <%= submit_tag "Add day", class: "px-4 py-2 bg-amber-500 text-slate-950 rounded-lg font-semibold text-sm hover:bg-amber-400 cursor-pointer" %>
+    <% end %>
+  </details>
+</section>

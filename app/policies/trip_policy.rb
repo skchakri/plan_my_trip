@@ -8,10 +8,16 @@ class TripPolicy < ApplicationPolicy
   end
   alias_method :new?, :create?
 
+  # Owners AND editors may change the plan.
   def update?
-    owner?
+    record.editable_by?(user)
   end
   alias_method :edit?, :update?
+
+  # Promoting/demoting members (changing roles) is owner-only.
+  def manage_roles?
+    owner?
+  end
 
   def destroy?
     owner?

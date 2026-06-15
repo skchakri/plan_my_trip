@@ -1,4 +1,26 @@
 class PlacesController < ApplicationController
+  PER_PAGE = 36
+
+  # Browse the shared place catalog — the more people plan, the richer it gets.
+  # Sorted by usage (social proof), filterable by kind / region / free text.
+  def index
+    @kind = params[:kind].to_s.presence
+    @region = params[:region].to_s.presence
+    @q = params[:q].to_s.strip
+
+    scope = Place.kept.with_image
+    scope = scope.where(kind: @kind) if @kind && Place::KINDS.include?(@kind)
+    scope = scope.where(region: @region) if @region
+    if @q.length >= 2
+      pattern = "%#{@q.downcase}%"
+      scope = scope.where("lower(name) LIKE ? OR lower(canonical_name) LIKE ?", pattern, pattern)
+    end
+
+    @places = scope.order(usage_count: :desc, community_rating: :desc, name: :asc).limit(PER_PAGE)
+    # Kinds that actually have entries, for the filter chips.
+    @available_kinds = Place.kept.with_image.where.not(kind: nil).distinct.pluck(:kind).compact.sort
+  end
+
   # JSON autocomplete for any input that lets a user pick a known place
   # from the shared catalog. Currently called from the wizard's
   # destination input.
@@ -62,6 +84,20 @@ class PlacesController < ApplicationController
 
     @reviews = @place.reviews.includes(:author).to_a
     @my_review = @reviews.find { |r| r.author_id == current_user.id }
+  end
+
+  # GET /places/:id/more_info — click-to-load "More about this place" frame
+  # on the place page. HighlightDetail is 30-day cached, so the AI cost is
+  # paid once per place, and only when someone actually asks.
+  def more_info
+    @place = Place.kept.find_by(slug: params[:id]) || Place.kept.find(params[:id])
+    @detail = HighlightDetail.call(
+      destination: @place.region.presence || "the local area",
+      name: @place.name,
+      category: @place.kind,
+      summary: @place.famous_for.presence || @place.description.to_s.truncate(160)
+    )
+    render layout: false
   end
 
   # POST /places/rate

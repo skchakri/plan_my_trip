@@ -42,6 +42,7 @@ class HighlightDetail
   end
 
   def coerce(hash)
+    hash["things_to_do"] = Array(hash["things_to_do"])
     hash["why_youll_love_it"] = Array(hash["why_youll_love_it"])
     hash["pro_tips"] = Array(hash["pro_tips"])
     hash["perfect_for"] = Array(hash["perfect_for"])
@@ -52,6 +53,7 @@ class HighlightDetail
     {
       "tagline" => nil,
       "overview" => @summary.presence,
+      "things_to_do" => [],
       "why_youll_love_it" => [],
       "best_time" => nil,
       "pro_tips" => [],

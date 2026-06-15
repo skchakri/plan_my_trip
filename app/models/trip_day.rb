@@ -11,7 +11,7 @@ class TripDay < ApplicationRecord
   scope :ordered, -> { order(position: :asc, date: :asc, created_at: :asc) }
 
   def checklist_items
-    trip.checklist_items.where(scope: "day", day_label: label)
+    trip.checklist_items.kept.where(scope: "day", day_label: label)
   end
 
   def packed_count

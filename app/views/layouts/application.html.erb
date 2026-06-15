@@ -81,21 +81,15 @@
       </header>
     <% end %>
 
-    <% if notice.present? %>
-      <div class="max-w-5xl mx-auto px-4 sm:px-6 mt-4">
-        <div role="status" class="rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-200 px-4 py-2.5 text-sm flex items-start gap-2">
-          <%= icon :check, class: "w-4 h-4 mt-0.5 shrink-0" %>
-          <span><%= notice %></span>
-        </div>
-      </div>
-    <% end %>
-    <% if alert.present? %>
-      <div class="max-w-5xl mx-auto px-4 sm:px-6 mt-4">
-        <div role="alert" class="rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-200 px-4 py-2.5 text-sm">
-          <%= alert %>
-        </div>
-      </div>
-    <% end %>
+    <div data-controller="network-status" hidden role="status"
+         class="sticky top-0 z-40 bg-amber-500/15 border-b border-amber-500/30 text-amber-100 text-sm text-center px-4 py-2">
+      <span class="inline-flex items-center gap-1.5"><%= icon :alert_triangle, class: "w-4 h-4" %> You're offline — saved pages still work, but new changes won't save until you reconnect.</span>
+    </div>
+
+    <div id="toast-stack" data-controller="toasts" data-action="toast@window->toasts#show"
+         class="fixed z-[60] bottom-20 sm:bottom-6 inset-x-4 sm:inset-x-auto sm:right-6 flex flex-col gap-2 pointer-events-none" aria-live="polite">
+      <%= render "layouts/flash" %>
+    </div>
 
     <main class="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10 pb-24 sm:pb-12">
       <%= yield %>

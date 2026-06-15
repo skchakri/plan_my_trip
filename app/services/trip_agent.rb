@@ -130,7 +130,23 @@ class TripAgent
     links = BookingLinks.new(@trip, viewer: @user)
     perks = links.discount_tips.to_a.filter_map { |t| t[:title] || t["title"] }.uniq
     summary = [ "BOOKING CONTEXT:" ]
-    summary << "- Hotel, car, flight, and activity search links are available in the app."
+
+    # What the traveler has actually confirmed (with any note — often the hotel
+    # name / confirmation #), so the concierge can answer "where am I staying?".
+    claims = @trip.booking_claims.to_a
+    if claims.any?
+      summary << "Confirmed by the traveler:"
+      claims.each do |c|
+        line = "- #{c.kind_label}: booked"
+        line += " — #{c.note.to_s.strip.truncate(160)}" if c.note.to_s.strip.present?
+        summary << line
+      end
+      pending = BookingClaim::KINDS - claims.map(&:kind)
+      summary << "- Not booked yet: #{pending.map { |k| BookingClaim::KIND_LABELS[k] }.join(', ')}" if pending.any?
+    else
+      summary << "- Nothing booked yet — hotel, car, flight, and activity search links are in the app."
+    end
+
     summary << "- Available booking perks: #{perks.join('; ')}" if perks.any?
     summary << "- Own-car trip: rental suggestions are suppressed." if links.own_car?
     summary.join("\n")

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_10_160000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_15_130000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -171,6 +171,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_160000) do
     t.string "category"
     t.datetime "created_at", null: false
     t.string "day_label"
+    t.datetime "discarded_at"
     t.boolean "packed", default: false, null: false
     t.string "person"
     t.integer "position", default: 0, null: false
@@ -178,6 +179,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_160000) do
     t.string "title", null: false
     t.uuid "trip_id", null: false
     t.datetime "updated_at", null: false
+    t.index ["discarded_at"], name: "index_checklist_items_on_discarded_at"
     t.index ["trip_id", "category"], name: "index_checklist_items_on_trip_id_and_category"
     t.index ["trip_id", "position"], name: "index_checklist_items_on_trip_id_and_position"
     t.index ["trip_id", "scope"], name: "index_checklist_items_on_trip_id_and_scope"
@@ -466,6 +468,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_160000) do
     t.text "preferences"
     t.string "pwa_packing_url"
     t.string "pwa_plan_url"
+    t.jsonb "reminders_sent", default: {}, null: false
     t.time "return_time"
     t.datetime "share_revoked_at"
     t.string "share_token"

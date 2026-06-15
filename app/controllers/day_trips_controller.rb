@@ -8,7 +8,7 @@
 class DayTripsController < ApplicationController
   before_action :authenticate_user!
   before_action :load_user_defaults, only: %i[new suggestions]
-  before_action :require_anchor,     only: %i[suggestions suggestions_results create idea_detail]
+  before_action :require_anchor,     only: %i[suggestions suggestions_results create idea_detail idea_more]
 
   # GET /day_trips/new — anchor + interests + date picker.
   def new
@@ -59,28 +59,28 @@ class DayTripsController < ApplicationController
   # picks the idea by slug. Kept independent of any persistent record so the
   # LLM-only ideas (not yet seeded to Place) can still open in a modal.
   def idea_detail
-    @date         = (Date.parse(params[:date].to_s) rescue Date.current)
-    @anchor_label = params[:anchor_label].to_s.strip
-    @anchor_lat   = params[:anchor_lat].to_f
-    @anchor_lng   = params[:anchor_lng].to_f
-    @radius_km    = params[:radius_km].to_i.nonzero? || 80
-    @interests    = Array(params[:interests]).map(&:to_s).reject(&:blank?)
-    @user_query   = params[:q].to_s.strip
-    slug          = params[:slug].to_s
-
-    ideas = NearbyIdeas.call(
-      anchor_label: @anchor_label,
-      lat: @anchor_lat, lng: @anchor_lng,
-      radius_km: @radius_km, interests: @interests,
-      user_query: @user_query, trip_date: @date.iso8601
-    )
-
-    @idea = ideas.find { |i| i.slug == slug }
+    @idea = find_idea_from_params
     if @idea.nil?
       render plain: "Not found", status: :not_found
     else
       render layout: false
     end
+  end
+
+  # GET /day_trips/idea_more — the click-to-load "More about this place"
+  # turbo-frame inside the idea modal. Runs HighlightDetail (30-day cached AI)
+  # only when the user asks for it, so the modal itself stays instant.
+  def idea_more
+    @idea = find_idea_from_params
+    return render(plain: "Not found", status: :not_found) if @idea.nil?
+
+    @detail = HighlightDetail.call(
+      destination: @anchor_label.presence || "the local area",
+      name: @idea.name,
+      category: @idea.category,
+      summary: @idea.summary
+    )
+    render layout: false
   end
 
   # POST /day_trips — persist a day-trip *shell* (status: building) and hand the
@@ -156,6 +156,29 @@ class DayTripsController < ApplicationController
   end
 
   private
+
+  # Shared by #idea_detail and #idea_more: re-runs NearbyIdeas (cache hit for
+  # any anchor the user is already browsing) and picks one idea by slug. Kept
+  # independent of any persistent record so LLM-only ideas (not yet seeded to
+  # Place) still open in the modal.
+  def find_idea_from_params
+    @date         = (Date.parse(params[:date].to_s) rescue Date.current)
+    @anchor_label = params[:anchor_label].to_s.strip
+    @anchor_lat   = params[:anchor_lat].to_f
+    @anchor_lng   = params[:anchor_lng].to_f
+    @radius_km    = params[:radius_km].to_i.nonzero? || 80
+    @interests    = Array(params[:interests]).map(&:to_s).reject(&:blank?)
+    @user_query   = params[:q].to_s.strip
+    slug          = params[:slug].to_s
+
+    ideas = NearbyIdeas.call(
+      anchor_label: @anchor_label,
+      lat: @anchor_lat, lng: @anchor_lng,
+      radius_km: @radius_km, interests: @interests,
+      user_query: @user_query, trip_date: @date.iso8601
+    )
+    ideas.find { |i| i.slug == slug }
+  end
 
   def load_user_defaults
     @user_has_home_base = current_user.home_base?

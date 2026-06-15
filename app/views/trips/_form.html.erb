@@ -14,7 +14,8 @@
   <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 sm:p-6 space-y-5">
     <div>
       <%= f.label :title, class: label_classes %>
-      <%= f.text_field :title, required: true, placeholder: "e.g. Vegas trip — May 7-10, 2026", class: input_classes %>
+      <%= f.text_field :title, required: true, placeholder: "e.g. Vegas trip — May 7-10, 2026", class: input_classes + input_error_classes(@trip, :title) %>
+      <%= field_errors(@trip, :title) %>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -31,11 +32,13 @@
     <div class="grid grid-cols-3 gap-3 sm:gap-4">
       <div>
         <%= f.label :start_date, "Start", class: label_classes %>
-        <%= f.date_field :start_date, class: input_classes %>
+        <%= f.date_field :start_date, class: input_classes + input_error_classes(@trip, :start_date) %>
+        <%= field_errors(@trip, :start_date) %>
       </div>
       <div>
         <%= f.label :end_date, "End", class: label_classes %>
-        <%= f.date_field :end_date, class: input_classes %>
+        <%= f.date_field :end_date, class: input_classes + input_error_classes(@trip, :end_date) %>
+        <%= field_errors(@trip, :end_date) %>
       </div>
       <div>
         <%= f.label :traveler_count, "Travelers", class: label_classes %>
@@ -57,11 +60,13 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
         <%= f.label :pwa_plan_url, "Plan URL", class: label_classes %>
-        <%= f.url_field :pwa_plan_url, placeholder: "/legacy/vegas-trip-4days.html", class: input_classes %>
+        <%= f.url_field :pwa_plan_url, placeholder: "/legacy/vegas-trip-4days.html", class: input_classes + input_error_classes(@trip, :pwa_plan_url) %>
+        <%= field_errors(@trip, :pwa_plan_url) %>
       </div>
       <div>
         <%= f.label :pwa_packing_url, "Checklist URL", class: label_classes %>
-        <%= f.url_field :pwa_packing_url, placeholder: "/legacy/vegas-packing.html", class: input_classes %>
+        <%= f.url_field :pwa_packing_url, placeholder: "/legacy/vegas-packing.html", class: input_classes + input_error_classes(@trip, :pwa_packing_url) %>
+        <%= field_errors(@trip, :pwa_packing_url) %>
       </div>
     </div>
   </fieldset>

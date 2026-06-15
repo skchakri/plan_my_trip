@@ -1,0 +1,15 @@
+<%# Server-rendered toast nodes. The fixed container + JS-dispatched toasts
+    live in the layout's #toast-stack (data-controller="toasts"). %>
+<% { notice: flash[:notice], alert: flash[:alert] }.select { |_, v| v.present? }.each do |kind, message| %>
+  <% accent = kind == :alert ? "border-rose-500/40 text-rose-100" : "border-emerald-500/40 text-emerald-100" %>
+  <div class="pointer-events-auto sm:max-w-sm rounded-xl border <%= accent %> bg-slate-900/95 backdrop-blur px-4 py-3 shadow-xl shadow-black/40 flex items-start gap-2.5"
+       role="<%= kind == :alert ? 'alert' : 'status' %>"
+       data-controller="auto-dismiss" data-auto-dismiss-delay-value="<%= kind == :alert ? 7000 : 4500 %>">
+    <%= icon (kind == :alert ? :alert_triangle : :check), class: "w-4 h-4 mt-0.5 shrink-0" %>
+    <span class="text-sm min-w-0 flex-1"><%= message %></span>
+    <button type="button" data-action="auto-dismiss#dismiss" aria-label="Dismiss"
+            class="shrink-0 -mr-1 -mt-0.5 p-1 rounded hover:bg-white/10 text-slate-400 hover:text-slate-100 cursor-pointer">
+      <%= icon :x, class: "w-3.5 h-3.5" %>
+    </button>
+  </div>
+<% end %>

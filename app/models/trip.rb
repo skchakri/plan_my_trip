@@ -36,6 +36,27 @@ class Trip < ApplicationRecord
     build_status == "failed"
   end
 
+  # Maps a raw build_error into a friendly { title:, hint: } so the failure page
+  # can guide recovery instead of dumping a stack-trace class name. The raw
+  # error stays available (shown collapsed) for debugging.
+  def build_failure_summary
+    err = build_error.to_s
+    case err
+    when /geocod|coordinate|anchor|nominatim|not found|no results|0 results|blank destination/i
+      { title: "We couldn't pin that destination",
+        hint: "Try a more specific place — e.g. “Las Vegas, NV” instead of “Vegas”, or add a state/country." }
+    when /timeout|timed out|etimedout|econnrefused|net::|faraday|socket|503|502|504|429|rate.?limit|overloaded/i
+      { title: "Our research service is busy",
+        hint: "This is usually temporary — wait a few seconds and try again." }
+    when /json|parse|unexpected token|keyerror|nomethoderror|missing key|undefined method|nil/i
+      { title: "The AI returned something we couldn't use",
+        hint: "Trying again almost always fixes this — the next response is usually clean." }
+    else
+      { title: "We couldn't finish this plan",
+        hint: "Your trip is saved. Try building it again, or start a blank plan and fill it in yourself." }
+    end
+  end
+
   belongs_to :owner, class_name: "User"
   has_many :trip_memberships, dependent: :destroy
   has_many :members, through: :trip_memberships, source: :user
@@ -93,6 +114,21 @@ class Trip < ApplicationRecord
   def shared_with?(user)
     return false if user.blank?
     trip_memberships.where(user_id: user.id).exists?
+  end
+
+  # Per-user role string ("owner"/"editor"/"member") or nil if no access.
+  def role_for(user)
+    return nil if user.blank?
+    return "owner" if owner_id == user.id
+    trip_memberships.find_by(user_id: user.id)&.role
+  end
+
+  # Owners and editors may change the plan (itinerary, days, activities,
+  # checklist). Plain members can collaborate but not edit.
+  def editable_by?(user)
+    return false if user.blank?
+    return true if owner_id == user.id
+    trip_memberships.where(user_id: user.id, role: %w[owner editor]).exists?
   end
 
   def share_link_active?

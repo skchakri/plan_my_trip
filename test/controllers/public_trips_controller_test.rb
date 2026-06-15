@@ -80,6 +80,36 @@ class PublicTripsControllerTest < ActionDispatch::IntegrationTest
     assert @trip.share_token.present?, "token is preserved across disable for re-enable"
   end
 
+  test "signed-in visitor can save a copy of a shared trip to their own trips" do
+    @trip.enable_share_link!
+    @trip.trip_days.create!(label: "Day 1", title: "Arrive", position: 0, accent: "gold")
+    visitor = User.create!(email: "v-#{SecureRandom.hex(4)}@test.example", password: "password123", name: "Val")
+    sign_in_as(visitor)
+
+    assert_difference -> { visitor.owned_trips.count }, 1 do
+      post save_public_trip_path(@trip.share_token)
+    end
+    clone = visitor.owned_trips.order(:created_at).last
+    assert_equal "Vegas", clone.title
+    assert_redirected_to clone
+    assert_equal 1, clone.trip_days.count
+  end
+
+  test "saving requires sign-in" do
+    @trip.enable_share_link!
+    post save_public_trip_path(@trip.share_token)
+    assert_response :redirect # bounced to sign in
+  end
+
+  test "saving a revoked link is gone" do
+    @trip.enable_share_link!
+    token = @trip.share_token
+    @trip.disable_share_link!
+    sign_in_as(@owner)
+    post save_public_trip_path(token)
+    assert_response :gone
+  end
+
   private
 
   def sign_in_as(user)

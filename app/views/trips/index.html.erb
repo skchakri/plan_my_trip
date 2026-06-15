@@ -141,7 +141,7 @@
               <% chips << "#{trip.trails.size} #{'trail'.pluralize(trip.trails.size)}" if trip.trails.any? %>
               <div class="flex flex-wrap items-center gap-1.5">
                 <% chips.each do |chip| %>
-                  <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-800/80 text-slate-300 text-[11px] font-medium border border-slate-700/50"><%= chip %></span>
+                  <span class="chip"><%= chip %></span>
                 <% end %>
                 <% if trip.member_count > 1 %>
                   <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-300/90 text-[11px] font-medium border border-amber-500/20"><%= icon :users, class: "w-3 h-3" %><%= trip.member_count %></span>

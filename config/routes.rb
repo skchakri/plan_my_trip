@@ -35,6 +35,9 @@ Rails.application.routes.draw do
     # streams the cards back into the frame — no multi-minute blocked page load.
     get  "suggestions_results", action: :suggestions_results, as: :day_trip_suggestions_results
     get  "idea_detail",    action: :idea_detail,    as: :day_trip_idea_detail
+    # Click-to-load "More about this place" frame inside the idea modal —
+    # runs HighlightDetail (cached AI) off the initial modal render.
+    get  "idea_more",      action: :idea_more,      as: :day_trip_idea_more
     post "",               action: :create,         as: :day_trips
     post "save_home_base", action: :save_home_base, as: :day_trip_save_home_base
   end
@@ -42,24 +45,31 @@ Rails.application.routes.draw do
   # Shared place catalog — the same Goblin Valley row is referenced by
   # every trip that visits it. Show-only for now; index/upload/admin
   # tools land in a later slice.
-  resources :places, only: [ :show ] do
+  resources :places, only: [ :index, :show ] do
     collection do
       get :search
       post :rate # find-or-create from card metadata + POST review in one shot
+    end
+    member do
+      get :more_info # lazy "More about this place" frame (HighlightDetail)
     end
     resources :reviews, only: [ :create, :destroy ], controller: "place_reviews"
   end
 
   resources :trips do
-    resources :trip_days, only: [] do
+    resources :trip_days, only: [ :create, :update, :destroy ] do
+      member { patch :move }
       resources :suggestions, only: [ :create, :destroy ] do
         member { post :vote }
       end
     end
-    resources :shares, only: [ :new, :create, :destroy ], controller: "trip_shares"
+    resources :shares, only: [ :new, :create, :update, :destroy ], controller: "trip_shares"
     resources :invitations, only: [ :destroy ], controller: "trip_invitations"
-    resources :checklist_items, only: [ :create, :update, :destroy ]
-    resources :activities, only: [] do
+    resources :checklist_items, only: [ :create, :update, :destroy ] do
+      member { patch :restore }
+    end
+    resources :activities, only: [ :create, :update, :destroy ] do
+      member { patch :move }
       resources :documents, only: [ :create, :destroy ], controller: "activity_documents"
       resources :photos, only: [ :create, :destroy ], controller: "activity_photos"
       resources :comments, only: [ :create, :destroy ]
@@ -77,7 +87,10 @@ Rails.application.routes.draw do
       patch :restore
       delete :destroy_permanently
       post :rebuild
+      post :skip_build
       get :plan
+      get :edit_plan
+      get :brief
       get :checklist
       get :copilot
       get :copilot_question
@@ -96,6 +109,8 @@ Rails.application.routes.draw do
   # plan. No auth. Revocation/rotation lives under /trips/:id/share_link.
   get "s/:token", to: "public_trips#show", as: :public_trip, constraints: { token: /[A-Za-z0-9_-]+/ }
   get "s/:token/calendar.ics", to: "public_trips#calendar", as: :public_trip_calendar, constraints: { token: /[A-Za-z0-9_-]+/ }
+  # Clone a publicly-shared trip into the signed-in viewer's own trips.
+  post "s/:token/save", to: "public_trips#copy", as: :save_public_trip, constraints: { token: /[A-Za-z0-9_-]+/ }
 
   # SEO-indexed Place landing pages — public, crawlable, slug-stable.
   # Distinct from the auth-gated /places/:id used during trip planning.
