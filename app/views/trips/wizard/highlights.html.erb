@@ -54,3 +54,14 @@
     </div>
   </div>
 <% end %>
+
+<%# Always-available escape hatch — lives OUTSIDE the lazy frame, so even if the
+    highlights research fails to load (slow/unreachable AI), the wizard is never
+    a dead end: the day-by-day plan is built from destination/dates/travelers
+    regardless of highlights. %>
+<div class="mt-5 flex items-center justify-between gap-3 flex-wrap rounded-xl border border-slate-800 bg-slate-900/40 px-4 py-3">
+  <p class="text-sm text-slate-400">Highlights are optional — your day-by-day plan gets built either way.</p>
+  <%= button_to wizard_highlights_path, method: :post, params: { wizard: { selected_slugs: [] } }, data: { turbo_frame: "_top" }, class: "inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-500 text-slate-950 font-semibold text-sm hover:bg-amber-400 cursor-pointer" do %>
+    Skip &amp; continue to review →
+  <% end %>
+</div>
