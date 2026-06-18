@@ -3,7 +3,8 @@ require "uri"
 require "json"
 
 module Ai
-  # OpenAI provider. Currently used for image generation (gpt-image-1, dall-e-3).
+  # OpenAI provider. Used for image generation (gpt-image-2; gpt-image-1 retires
+  # 2026-12-01 and dall-e-* were removed 2026-05-12 — set the model per-prompt).
   # Text mode is also supported via the Chat Completions API for parity with
   # Anthropic — admin can swap providers per-prompt without code changes.
   class OpenaiProvider

@@ -3,7 +3,7 @@ slug: place_hero_image.v1
 name: Place hero image (OpenAI)
 description: 'Reserved: generate a hero image for a place when no Wikipedia photo exists. Not wired into any caller yet — admin can enable + plug into HighlightDetail later.'
 provider: openai
-model: gpt-image-1
+model: gpt-image-2
 kind: image
 max_tokens:
 temperature:
