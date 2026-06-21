@@ -1,0 +1,51 @@
+<% content_for :title, "Itinerary · #{@trip.title}" %>
+
+<header class="mb-6 pb-4 border-b border-slate-300">
+  <p class="text-[10px] uppercase tracking-[0.2em] text-slate-500">Itinerary</p>
+  <h1 class="font-semibold text-2xl mt-0.5"><%= @trip.title %></h1>
+  <div class="flex flex-wrap gap-x-5 gap-y-1 mt-2 text-sm text-slate-700">
+    <% if @trip.start_date && @trip.end_date %>
+      <span><%= @trip.start_date.strftime("%a, %b %-d") %> – <%= @trip.end_date.strftime("%a, %b %-d, %Y") %></span>
+    <% end %>
+    <% if @trip.destination.present? %><span>·</span><span><%= @trip.destination %></span><% end %>
+    <% if @trip.traveler_count.to_i.positive? %><span>·</span><span><%= pluralize(@trip.traveler_count, "traveler") %></span><% end %>
+  </div>
+</header>
+
+<% if @days.any? %>
+  <div class="space-y-6">
+    <% @days.each_with_index do |day, idx| %>
+      <section class="wallet-card">
+        <h2 class="font-semibold text-base text-slate-900">
+          Day <%= idx + 1 %><% if day.date %> · <%= day.date.strftime("%A, %b %-d") %><% end %><% if day.title.present? %> — <%= day.title %><% end %>
+        </h2>
+        <% if day.summary.present? %>
+          <p class="text-sm text-slate-600 mt-0.5"><%= day.summary %></p>
+        <% end %>
+        <% if day.activities.any? %>
+          <ol class="mt-2 space-y-2">
+            <% day.activities.each do |a| %>
+              <li class="flex gap-3 text-sm">
+                <span class="shrink-0 w-16 text-slate-500 tabular-nums"><%= a.time_label.presence %></span>
+                <div class="min-w-0">
+                  <p class="font-medium text-slate-900"><%= a.title %></p>
+                  <% loc = a.location_name.presence || a.address.presence %>
+                  <% if loc %><p class="text-slate-600"><%= loc %></p><% end %>
+                  <% if a.notes.present? %><p class="text-slate-700 mt-0.5"><%= a.notes %></p><% end %>
+                </div>
+              </li>
+            <% end %>
+          </ol>
+        <% else %>
+          <p class="text-sm text-slate-500 mt-1 italic">No stops added yet.</p>
+        <% end %>
+      </section>
+    <% end %>
+  </div>
+<% elsif @trip.body.present? %>
+  <div class="text-sm leading-relaxed text-slate-800 [&_h1]:text-lg [&_h1]:font-semibold [&_h2]:text-base [&_h2]:font-semibold [&_h2]:mt-4 [&_ul]:list-disc [&_ul]:pl-5 [&_a]:underline">
+    <%= render_markdown(@trip.body) %>
+  </div>
+<% else %>
+  <p class="text-slate-500">This trip has no itinerary yet.</p>
+<% end %>

@@ -102,6 +102,7 @@ Rails.application.routes.draw do
       post   :duplicate
       get    :calendar, defaults: { format: :ics }, constraints: { format: :ics }
       get    :wallet
+      get    :printable
     end
   end
 
