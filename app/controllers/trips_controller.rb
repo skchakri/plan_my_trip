@@ -287,6 +287,7 @@ class TripsController < ApplicationController
   def trip_params
     params.require(:trip).permit(
       :title, :destination, :origin, :start_date, :end_date, :traveler_count, :body,
+      :pace, :budget, :preferences, :transport_mode,
       :pwa_plan_url, :pwa_packing_url,
       trails_attributes: [ :id, :name, :alltrails_url, :notes, :position, :_destroy ],
       people_attributes: [ :id, :name, :age, :_destroy, { interests: [] } ]
