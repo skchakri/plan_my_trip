@@ -54,6 +54,29 @@
     <%= f.text_area :body, rows: 18, class: "#{input_classes} font-mono text-sm leading-relaxed" %>
   </div>
 
+  <fieldset class="rounded-2xl border border-amber-500/20 bg-amber-500/[0.03] p-5 sm:p-6 space-y-4">
+    <legend class="px-2 text-xs uppercase tracking-widest text-amber-300 font-semibold">Trip style · optional</legend>
+    <p class="text-xs text-slate-400 leading-relaxed">These shape how the AI builds the day-by-day plan. Change them, then hit <strong>Rebuild</strong> on the trip to regenerate with the new style.</p>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div>
+        <%= f.label :pace, "Pace", class: label_classes %>
+        <%= f.select :pace, Trip::PACES.map { |p| [ p.capitalize, p ] }, { include_blank: "No preference" }, class: input_classes %>
+      </div>
+      <div>
+        <%= f.label :budget, "Budget", class: label_classes %>
+        <%= f.select :budget, Trip::BUDGETS.map { |b| [ b.capitalize, b ] }, { include_blank: "No preference" }, class: input_classes %>
+      </div>
+      <div>
+        <%= f.label :transport_mode, "Getting around", class: label_classes %>
+        <%= f.select :transport_mode, [ [ "Own car", "own_car" ], [ "Rental car", "rental" ], [ "Flying", "flying" ], [ "Mixed", "mixed" ] ], { include_blank: "No preference" }, class: input_classes %>
+      </div>
+    </div>
+    <div>
+      <%= f.label :preferences, "Anything we should know?", class: label_classes %>
+      <%= f.text_area :preferences, rows: 2, placeholder: "Dietary needs, mobility/accessibility, must-dos, things to avoid…", class: input_classes %>
+    </div>
+  </fieldset>
+
   <fieldset class="rounded-2xl border border-teal-500/20 bg-teal-500/[0.03] p-5 sm:p-6 space-y-4">
     <legend class="px-2 text-xs uppercase tracking-widest text-teal-300 font-semibold">Mobile PWA links · optional</legend>
     <p class="text-xs text-slate-400 leading-relaxed">If you have standalone mobile PWA pages for this trip's day-by-day itinerary or packing checklist, paste their URLs here. They'll appear as quick-access buttons next to the trip.</p>
