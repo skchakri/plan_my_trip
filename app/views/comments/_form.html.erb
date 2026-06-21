@@ -8,6 +8,7 @@
     <%= f.text_area :body,
           rows: 1,
           placeholder: "Discuss this stop…",
+          aria: { label: "Add a comment about this stop" },
           class: "flex-1 min-w-0 px-3 py-2 rounded-lg bg-slate-950/60 border border-slate-700 text-sm text-slate-100 placeholder-slate-500 focus:border-amber-500/60 outline-none resize-none",
           data: { controller: "auto-grow", action: "input->auto-grow#resize" },
           required: true %>

@@ -40,7 +40,13 @@
       html, body { font-family: var(--font-sans); font-feature-settings: 'cv11', 'ss01'; font-synthesis-weight: none; }
       .font-display { font-family: var(--font-display); letter-spacing: -0.02em; font-synthesis-weight: none; }
       *:focus-visible { outline: 2px solid #f0b870; outline-offset: 2px; border-radius: 6px; }
-      input:focus-visible, select:focus-visible, textarea:focus-visible { outline: none; }
+      /* Inputs suppress the outline via per-field `focus:outline-none`, so the
+         keyboard focus cue is a box-shadow ring instead (survives outline:none;
+         was previously just a 1px border shift, failing WCAG 2.4.11). Fields that
+         define their own focus:ring keep it — higher specificity wins. */
+      input:focus-visible, select:focus-visible, textarea:focus-visible {
+        box-shadow: 0 0 0 2px #0a0e1a, 0 0 0 4px rgba(240, 184, 112, 0.55);
+      }
       .bg-noise { background-image: radial-gradient(rgba(232,160,79,0.04) 1px, transparent 1px); background-size: 24px 24px; }
 
       /* Hide Turbo's default top progress bar — replaced by centered spinner. */
