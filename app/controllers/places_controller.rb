@@ -37,16 +37,21 @@ class PlacesController < ApplicationController
                    .limit(limit)
                    .to_a
 
-    # Top up with AI-discovered places when the catalog is thin. Discoverer
-    # caches per query 30d and persists every result through Places::Seeder
-    # so subsequent searches hit the catalog directly.
+    # AI discovery (Perplexity web search, ~3-5s) is gated behind an explicit
+    # `discover=1` second pass so the FIRST autocomplete request returns instantly
+    # from the catalog and never blocks the dropdown. The client renders catalog
+    # hits immediately, then (when `discoverable`) fires the slow pass and appends.
+    # Discoverer caches per query 30d and persists results via Places::Seeder, so
+    # repeat searches hit the catalog directly.
+    discoverable = catalog.size < 4 && q.length >= Places::Discoverer::MIN_QUERY_LENGTH
     discovered = []
-    if catalog.size < 4 && q.length >= Places::Discoverer::MIN_QUERY_LENGTH
+    if discoverable && params[:discover].present?
       seen_ids = catalog.map(&:id).to_set
       discovered = Places::Discoverer.call(q, user: current_user).reject { |p| seen_ids.include?(p.id) }
     end
 
     render json: {
+      discoverable: discoverable && params[:discover].blank?,
       results: (catalog + discovered).first(limit).map do |p|
         {
           id: p.id,

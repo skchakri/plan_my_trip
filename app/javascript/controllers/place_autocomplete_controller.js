@@ -32,11 +32,14 @@ export default class extends Controller {
     this._items = []
     this._lastQuery = ""
     this._abort = null
+    this._discoverAbort = null
+    this._cache = new Map() // query -> results, so backspace/retype is instant
   }
 
   disconnect() {
     if (this._timer) clearTimeout(this._timer)
     if (this._abort) this._abort.abort()
+    if (this._discoverAbort) this._discoverAbort.abort()
   }
 
   // Debounced fetch on every keystroke (and on focus).
@@ -50,9 +53,15 @@ export default class extends Controller {
     this._timer = setTimeout(() => this._fetch(q), this.debounceMsValue)
   }
 
+  // Phase 1: instant catalog results (no AI). Then, if the catalog is thin,
+  // phase 2 runs the slow web-discovery pass in the background and appends.
   async _fetch(q) {
     if (q === this._lastQuery) return
     this._lastQuery = q
+    if (this._discoverAbort) this._discoverAbort.abort()
+
+    if (this._cache.has(q)) { this._render(this._cache.get(q)); return }
+
     if (this._abort) this._abort.abort()
     this._abort = new AbortController()
     try {
@@ -64,8 +73,42 @@ export default class extends Controller {
       })
       if (!res.ok) return
       const data = await res.json()
-      this._render(data.results || [])
+      const results = data.results || []
+      this._cache.set(q, results)
+      this._render(results)
+      if (data.discoverable) this._fetchDiscover(q, results)
     } catch (err) {
+      if (err.name !== "AbortError") console.warn("[place-autocomplete]", err)
+    }
+  }
+
+  // Phase 2: the ~3-5s web search, fired only when the catalog was thin. Appends
+  // its results to the already-visible dropdown, unless the user has moved on.
+  async _fetchDiscover(q, base) {
+    if (this._discoverAbort) this._discoverAbort.abort()
+    this._discoverAbort = new AbortController()
+    if (!this.resultsTarget.hidden) {
+      const hint = document.createElement("li")
+      hint.dataset.discoverHint = "1"
+      hint.className = "px-3 py-2 text-[11px] text-slate-500 border-t border-slate-800/80"
+      hint.textContent = "Searching the web…"
+      this.resultsTarget.appendChild(hint)
+    }
+    try {
+      const url = `${this.searchUrlValue}?q=${encodeURIComponent(q)}&limit=8&discover=1`
+      const res = await fetch(url, {
+        headers: { Accept: "application/json" },
+        credentials: "same-origin",
+        signal: this._discoverAbort.signal
+      })
+      if (!res.ok || this._lastQuery !== q) return
+      const data = await res.json()
+      const merged = (data.results && data.results.length) ? data.results : base
+      this._cache.set(q, merged)
+      this._render(merged)
+    } catch (err) {
+      const hint = this.resultsTarget.querySelector("[data-discover-hint]")
+      if (hint) hint.remove()
       if (err.name !== "AbortError") console.warn("[place-autocomplete]", err)
     }
   }
