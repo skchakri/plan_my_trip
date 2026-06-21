@@ -303,12 +303,13 @@
              data-interests-input-name-value="person[interests][]"
              data-interests-input-known-value="<%= (@known_traveler_interests || {}).to_json %>">
           <%= text_field_tag "person[name]", nil, required: true, placeholder: "Name",
+                aria: { label: "Traveler name" },
                 class: "rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none",
                 data: { interests_input_target: "nameField", action: "change->interests-input#nameChanged blur->interests-input#nameChanged" } %>
-          <%= number_field_tag "person[age]", nil, placeholder: "Age (optional)", class: "rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none" %>
+          <%= number_field_tag "person[age]", nil, placeholder: "Age (optional)", aria: { label: "Traveler age (optional)" }, class: "rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none" %>
           <%= submit_tag "Add", class: "px-4 py-2 bg-amber-500 text-slate-950 rounded-lg font-semibold text-sm hover:bg-amber-400 cursor-pointer" %>
           <div class="sm:col-span-3">
-            <p class="text-xs uppercase tracking-widest text-slate-500 font-semibold mb-1.5">Personal interests</p>
+            <p class="text-xs uppercase tracking-widest text-slate-400 font-semibold mb-1.5">Personal interests</p>
             <%= hidden_field_tag "person[interests][]", "", data: { interests_input_target: "emptyMarker" } %>
             <div class="flex flex-wrap items-center gap-1.5 rounded-lg bg-slate-800/40 border border-slate-700 px-2 py-1.5 focus-within:border-amber-500/60"
                  data-interests-input-target="chips">
@@ -316,6 +317,7 @@
                      data-interests-input-target="newInput"
                      data-action="keydown->interests-input#keydown blur->interests-input#commit"
                      placeholder="sports, art, photography…"
+                     aria-label="Add an interest"
                      class="flex-1 min-w-[10ch] bg-transparent border-0 px-1 py-0.5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-0">
             </div>
             <p class="text-[10px] text-slate-500 mt-1">Press Enter or comma to add. Saved for this person — pre-fills on your next trip.</p>

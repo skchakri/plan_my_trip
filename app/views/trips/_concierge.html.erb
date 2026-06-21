@@ -57,11 +57,11 @@
   <%= form_with url: concierge_trip_path(@trip), method: :post,
         data: { action: "turbo:submit-start->concierge#pending turbo:submit-end->concierge#done" },
         class: "border-t border-slate-800/80 p-3 sm:p-4" do |f| %>
-    <div data-concierge-target="pending" hidden class="flex items-center gap-2 text-xs text-slate-500 mb-2 pl-1">
+    <div data-concierge-target="pending" hidden class="flex items-center gap-2 text-xs text-slate-400 mb-2 pl-1">
       <span class="inline-flex gap-1">
-        <span class="w-1.5 h-1.5 rounded-full bg-teal-400/80 animate-bounce" style="animation-delay:0ms"></span>
-        <span class="w-1.5 h-1.5 rounded-full bg-teal-400/80 animate-bounce" style="animation-delay:120ms"></span>
-        <span class="w-1.5 h-1.5 rounded-full bg-teal-400/80 animate-bounce" style="animation-delay:240ms"></span>
+        <span class="w-1.5 h-1.5 rounded-full bg-teal-400/80 motion-safe:animate-bounce" style="animation-delay:0ms"></span>
+        <span class="w-1.5 h-1.5 rounded-full bg-teal-400/80 motion-safe:animate-bounce" style="animation-delay:120ms"></span>
+        <span class="w-1.5 h-1.5 rounded-full bg-teal-400/80 motion-safe:animate-bounce" style="animation-delay:240ms"></span>
       </span>
       Thinking…
     </div>

@@ -31,6 +31,7 @@
     <%= text_field_tag :q, @user_query,
           placeholder: "Ask anything — \"waterfalls nearby\", \"family hikes\", \"events this weekend\"",
           autocomplete: "off",
+          aria: { label: "Search nearby ideas" },
           data: { voice_input_target: "input" },
           class: "w-full bg-transparent text-slate-100 placeholder-slate-500 px-4 py-3 pr-24 rounded-2xl focus:outline-none" %>
 
@@ -52,7 +53,7 @@
   </div>
   <p data-voice-input-target="status" hidden class="text-[11px] text-emerald-300 mt-2"></p>
   <% if @user_query.present? %>
-    <p class="text-[11px] text-slate-500 mt-2">
+    <p class="text-[11px] text-slate-400 mt-2">
       Filtered by: <span class="text-slate-300 italic">"<%= @user_query %>"</span> ·
       <%= link_to "clear",
             day_trip_suggestions_path(anchor_label: @anchor_label, anchor_lat: @anchor_lat, anchor_lng: @anchor_lng, radius_km: @radius_km, interests: @interests, date: @date),
@@ -87,12 +88,12 @@
       data: { controller: "frame-timeout", frame_timeout_timeout_value: 60000 } do %>
   <div class="space-y-5" aria-busy="true">
     <div class="flex items-center gap-2 text-sm text-emerald-300">
-      <svg class="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.4 0 0 5.4 0 12h4z"></path></svg>
+      <svg class="w-4 h-4 motion-safe:animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.4 0 0 5.4 0 12h4z"></path></svg>
       Scouting <%= km_to_miles(@radius_km, precision: 0) %> mi around <%= @anchor_label.presence || "your home base" %> — trails, viewpoints, food &amp; what's on this week…
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
       <% 6.times do %>
-        <div class="rounded-2xl border border-slate-800 bg-slate-900/40 overflow-hidden animate-pulse">
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/40 overflow-hidden motion-safe:animate-pulse">
           <div class="aspect-[16/10] bg-slate-800"></div>
           <div class="p-3.5 space-y-2.5">
             <div class="h-4 bg-slate-800 rounded w-3/4"></div>
@@ -116,11 +117,11 @@
 <div data-controller="place-modal">
   <div data-place-modal-target="dialog"
        data-action="click->place-modal#backdrop"
-       hidden
+       hidden role="dialog" aria-modal="true" aria-label="Place details"
        class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/70 backdrop-blur-sm transition-opacity duration-200 opacity-0 data-[open=true]:opacity-100">
     <div class="w-full sm:max-w-2xl max-h-[92vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl">
       <%= turbo_frame_tag "day-trip-idea-modal", data: { place_modal_target: "frame" } do %>
-        <div class="p-6 text-center text-sm text-slate-500">Loading…</div>
+        <div class="p-6 text-center text-sm text-slate-400" aria-live="polite">Loading…</div>
       <% end %>
     </div>
   </div>
