@@ -120,6 +120,12 @@ class TripsController < ApplicationController
   # GET /trips/:id/plan — rich day-by-day Final plan with photos and deep-linked maps
   def plan
     authorize @trip, :show?
+    # Mirror #show: a trip that's still building (or failed) has no plan to
+    # render yet — show the building page, which streams in via Turbo refresh
+    # when BuildTripJob finishes. The "Final plan" link is on every trip card
+    # regardless of build_status, so this path is reachable mid-build.
+    return render("trips/building", layout: "application") if @trip.building? || @trip.build_failed?
+
     @days = @trip.trip_days.ordered.includes(
       activities: { comments: :author },
       suggestions: %i[author suggestion_votes]
@@ -142,6 +148,12 @@ class TripsController < ApplicationController
     authorize @trip, :show?
     @brief = DestinationBrief.call(@trip.destination)
     render partial: "trips/brief", locals: { brief: @brief }, layout: false
+  rescue StandardError => e
+    # DestinationBrief self-rescues AI errors, but a cache-layer fault (e.g.
+    # Redis blip) could still escape. Never let the lazy frame render a 500 —
+    # the frame-timeout controller can't recover from an HTTP error response.
+    Rails.logger.warn("[TripsController#brief] trip=#{@trip.id}: #{e.class}: #{e.message}")
+    render partial: "trips/brief", locals: { brief: DestinationBrief::EMPTY }, layout: false
   end
 
   # GET /trips/:id/checklist — sectioned checklist (Before trip / By day / By activity)

@@ -52,6 +52,15 @@ class DayTripsController < ApplicationController
     )
 
     render partial: "day_trips/results", layout: false
+  rescue StandardError => e
+    # The lazy frame must always return a renderable 200. A 500 here paints the
+    # Rails error page *inside* the frame and fires turbo:frame-load, which
+    # clears the frame-timeout timer so the retry card never appears. Degrade to
+    # the existing empty-ideas state instead. (NearbyIdeas self-rescues to [];
+    # this catches a cache-layer fault around it.)
+    Rails.logger.warn("[DayTripsController#suggestions_results] #{e.class}: #{e.message}")
+    @ideas = []
+    render partial: "day_trips/results", layout: false
   end
 
   # GET /day_trips/idea_detail — renders a single idea's full details inside

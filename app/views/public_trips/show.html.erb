@@ -34,6 +34,13 @@
     </p>
   </header>
 
+  <% if @trip.building? %>
+    <div class="mb-10 rounded-xl border border-amber-500/30 bg-amber-500/10 p-5">
+      <p class="text-amber-100 font-medium">This plan is still being put together.</p>
+      <p class="text-sm text-amber-200/80 mt-1">Your host is generating the day-by-day itinerary — check back in a few minutes.</p>
+    </div>
+  <% end %>
+
   <% if @trip.body.present? %>
     <section class="prose prose-invert prose-amber max-w-none mb-12 text-slate-200">
       <%= sanitize Redcarpet::Markdown.new(Redcarpet::Render::HTML.new(filter_html: true, link_attributes: { rel: "noopener nofollow", target: "_blank" }), autolink: true, fenced_code_blocks: true, tables: true, no_intra_emphasis: true).render(@trip.body.to_s) %>

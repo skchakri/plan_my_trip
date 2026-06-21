@@ -55,6 +55,25 @@ class TripsBuildingStateTest < ActionDispatch::IntegrationTest
     assert_redirected_to edit_trip_path(t)
   end
 
+  test "the Final plan link on a still-building trip shows the building page, not a blank plan" do
+    get plan_trip_path(trip(status: "building"))
+    assert_response :success
+    assert_includes response.body, "Building your plan"
+  end
+
+  test "the Final plan link on a failed trip shows the failure page, not a blank plan" do
+    t = trip(status: "failed")
+    t.update_columns(build_error: "boom")
+    get plan_trip_path(t)
+    assert_response :success
+    assert_includes response.body, rebuild_trip_path(t)
+  end
+
+  test "a ready trip still renders its plan page" do
+    get plan_trip_path(trip(status: "ready"))
+    assert_response :success
+  end
+
   test "build_failure_summary classifies outages and malformed responses" do
     t = trip(status: "failed")
     t.update_columns(build_error: "Net::ReadTimeout")

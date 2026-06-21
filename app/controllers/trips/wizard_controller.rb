@@ -92,6 +92,16 @@ module Trips
       @brief = DestinationBrief.call(@draft["destination"])
       @selected_slugs = draft_selected_slug_set
       render partial: "trips/wizard/highlights_body"
+    rescue StandardError => e
+      # Same guard as the day-trip suggestions frame: never 500 inside the lazy
+      # wizard frame (the frame-timeout controller can't recover from it, and the
+      # "Skip & continue" button is outside the frame). Render the body's
+      # built-in empty state instead.
+      Rails.logger.warn("[Wizard#highlights_results] #{e.class}: #{e.message}")
+      @highlights = []
+      @brief = DestinationBrief::EMPTY
+      @selected_slugs ||= draft_selected_slug_set
+      render partial: "trips/wizard/highlights_body"
     end
 
     def save_highlights
