@@ -348,6 +348,14 @@ load Rails.root.join("db/seeds/brands.rb").to_s
 puts "Building the quiz question bank…"
 puts "Quiz questions: #{QuizQuestion.rebuild!}"
 
+# Drive Co-Pilot trivia pool — without this a fresh install leaves TriviaQuestion
+# empty and TriviaPool falls back to its hardcoded 2-question GENERIC list.
+puts "\nSeeding Drive Co-Pilot trivia pool…"
+require "rake"
+Rails.application.load_tasks unless Rake::Task.task_defined?("trivia:seed")
+Rake::Task["trivia:seed"].invoke
+puts "Trivia questions: #{TriviaQuestion.where(trip_id: nil).count}"
+
 puts "\nSeeding AI prompts…"
 load Rails.root.join("db/seed_ai_prompts.rb").to_s
 

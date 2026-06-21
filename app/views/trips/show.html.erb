@@ -203,10 +203,11 @@
   </summary>
   <div class="px-4 pb-4">
     <%= form_with url: rename_trip_path(@trip), method: :patch, class: "flex gap-2" do |f| %>
-      <%= f.text_field "trip_membership[custom_title]", value: @membership&.custom_title, placeholder: @trip.title, class: "flex-1 rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none" %>
+      <label for="custom-title" class="sr-only">Your custom title for this trip</label>
+      <%= f.text_field "trip_membership[custom_title]", id: "custom-title", value: @membership&.custom_title, placeholder: @trip.title, class: "flex-1 rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none" %>
       <%= f.submit "Save", class: "px-4 py-2 bg-amber-500 text-slate-950 rounded-lg font-semibold text-sm hover:bg-amber-400 cursor-pointer" %>
     <% end %>
-    <p class="text-xs text-slate-500 mt-2">Your custom title only changes how this trip looks in your list. Leave it blank to use the original.</p>
+    <p class="text-xs text-slate-400 mt-2">Your custom title only changes how this trip looks in your list. Leave it blank to use the original.</p>
   </div>
 </details>
 

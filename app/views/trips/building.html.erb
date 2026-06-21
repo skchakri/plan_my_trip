@@ -40,17 +40,17 @@
 
     <% if @trip.build_error.present? %>
       <details class="mt-6 text-left max-w-md mx-auto">
-        <summary class="text-[11px] text-slate-600 cursor-pointer hover:text-slate-400">Technical details</summary>
-        <p class="text-[11px] text-slate-600 mt-2 font-mono break-all"><%= @trip.build_error %></p>
+        <summary class="text-[11px] text-slate-400 cursor-pointer hover:text-slate-200">Technical details</summary>
+        <p class="text-[11px] text-slate-400 mt-2 font-mono break-all"><%= @trip.build_error %></p>
       </details>
     <% end %>
   </section>
 <% else %>
-  <section class="rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-900 to-slate-900/40 overflow-hidden">
+  <section role="status" aria-live="polite" class="rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-900 to-slate-900/40 overflow-hidden">
     <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(232,160,79,0.10),transparent_60%)] pointer-events-none"></div>
     <div class="relative p-8 sm:p-10 text-center">
       <div class="mx-auto w-14 h-14 rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center mb-5">
-        <svg class="w-7 h-7 animate-spin text-amber-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.4 0 0 5.4 0 12h4z"></path></svg>
+        <svg class="w-7 h-7 animate-spin text-amber-300" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.4 0 0 5.4 0 12h4z"></path></svg>
       </div>
       <p class="text-[11px] uppercase tracking-[0.18em] text-amber-400 font-medium mb-2"><%= @trip.day_trip? ? "Building your day plan" : "Building your plan" %></p>
       <h1 class="font-display text-3xl sm:text-4xl font-semibold tracking-tight text-slate-50 mb-2"><%= @trip.title_for(current_user) %></h1>
@@ -76,7 +76,7 @@
         <% end %>
       </div>
 
-      <p class="text-[11px] text-slate-600 mt-6">
+      <p class="text-[11px] text-slate-400 mt-6">
         Taking too long? <%= link_to "Refresh", trip_path(@trip), class: "text-amber-300 hover:text-amber-200 underline" %>.
       </p>
     </div>

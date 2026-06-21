@@ -17,7 +17,7 @@
 
 <div class="max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
   <header class="mb-10">
-    <p class="text-xs uppercase tracking-[0.22em] text-slate-500 mb-2">
+    <p class="text-xs uppercase tracking-[0.22em] text-slate-400 mb-2">
       <% if @trip.start_date && @trip.end_date %>
         <%= @trip.start_date.strftime("%b %-d") %> – <%= @trip.end_date.strftime("%b %-d, %Y") %>
         <% if @trip.nights %>· <%= pluralize(@trip.nights, "night") %><% end %>
@@ -29,7 +29,7 @@
     <% if @trip.destination.present? %>
       <p class="mt-2 text-slate-300 text-lg"><%= @trip.destination %></p>
     <% end %>
-    <p class="mt-4 text-sm text-slate-500">
+    <p class="mt-4 text-sm text-slate-400">
       Shared by <span class="text-slate-300"><%= @trip.owner.display_name %></span>
     </p>
   </header>
@@ -50,7 +50,7 @@
               Day <%= idx + 1 %><% if day.respond_to?(:title) && day.title.present? %> · <%= day.title %><% end %>
             </h3>
             <% if day.respond_to?(:date) && day.date %>
-              <span class="text-xs uppercase tracking-wider text-slate-500"><%= day.date.strftime("%a · %b %-d") %></span>
+              <span class="text-xs uppercase tracking-wider text-slate-400"><%= day.date.strftime("%a · %b %-d") %></span>
             <% end %>
           </div>
 
@@ -81,7 +81,7 @@
               <% end %>
             </ol>
           <% else %>
-            <p class="text-sm text-slate-500 italic">No stops added yet.</p>
+            <p class="text-sm text-slate-400 italic">No stops added yet.</p>
           <% end %>
         </article>
       <% end %>
@@ -92,7 +92,7 @@
   <div class="mt-10 rounded-xl border border-slate-800 bg-slate-900/40 p-5 flex items-center justify-between gap-4 flex-wrap no-print">
     <div class="min-w-0">
       <p class="text-sm text-slate-200 font-medium">Take it with you</p>
-      <p class="text-xs text-slate-500 mt-0.5">Subscribe for live updates, or save a PDF for offline.</p>
+      <p class="text-xs text-slate-400 mt-0.5">Subscribe for live updates, or save a PDF for offline.</p>
     </div>
     <div class="flex items-center gap-2">
       <button type="button" onclick="window.print()"

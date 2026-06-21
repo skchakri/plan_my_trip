@@ -7,10 +7,10 @@
 </style>
 
 <header class="mb-7">
-  <p class="text-[11px] uppercase tracking-[0.2em] text-slate-500 font-medium">Plan My Trip · Play</p>
+  <p class="text-[11px] uppercase tracking-[0.2em] text-slate-400 font-medium">Plan My Trip · Play</p>
   <h1 class="font-display text-3xl sm:text-4xl font-semibold text-slate-50 mt-1 flex items-center gap-3">
     Travel Trivia
-    <span class="text-2xl sm:text-3xl">🌍</span>
+    <span class="text-2xl sm:text-3xl" aria-hidden="true">🌍</span>
   </h1>
   <p class="text-sm text-slate-400 mt-2 max-w-xl leading-relaxed">
     Sharpen your geography between trips. Ten quick questions a round — pick a deck and
@@ -25,11 +25,11 @@
 <% if total_plays.positive? %>
   <div class="flex flex-wrap items-center gap-x-6 gap-y-2 mb-7 text-sm">
     <div class="flex items-center gap-2 text-slate-300">
-      <%= icon :play, class: "w-4 h-4 text-slate-500" %>
+      <%= icon :play, class: "w-4 h-4 text-slate-400" %>
       <span><span class="font-semibold text-slate-100"><%= total_plays %></span> rounds played</span>
     </div>
     <div class="flex items-center gap-2 text-slate-300">
-      <%= icon :target, class: "w-4 h-4 text-slate-500" %>
+      <%= icon :target, class: "w-4 h-4 text-slate-400" %>
       <span><span class="font-semibold text-slate-100"><%= played_categories %></span> of <%= @categories.size %> decks tried</span>
     </div>
     <% if (top = @best.values.max) %>

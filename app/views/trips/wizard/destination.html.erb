@@ -88,10 +88,10 @@
 
   <%# ---- Trip style: levers that actually change the plan ---- %>
   <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 sm:p-6 space-y-5">
-    <p class="text-[11px] uppercase tracking-[0.18em] text-amber-400/90 font-semibold">Trip style <span class="text-slate-600 normal-case tracking-normal font-normal">optional · shapes the day-by-day plan</span></p>
+    <p class="text-[11px] uppercase tracking-[0.18em] text-amber-400/90 font-semibold">Trip style <span class="text-slate-400 normal-case tracking-normal font-normal">optional · shapes the day-by-day plan</span></p>
 
-    <div>
-      <span class="<%= label_classes %>">Pace</span>
+    <fieldset class="border-0 p-0 m-0">
+      <legend class="<%= label_classes %>">Pace</legend>
       <div class="grid grid-cols-3 gap-2">
         <% [["relaxed", "Relaxed", "fewer stops, more downtime"], ["balanced", "Balanced", "a comfortable mix"], ["packed", "Packed", "see as much as possible"]].each do |val, title, hint| %>
           <% checked = (@draft["pace"].presence || "balanced") == val %>
@@ -104,7 +104,7 @@
           </label>
         <% end %>
       </div>
-    </div>
+    </fieldset>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div>

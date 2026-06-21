@@ -67,7 +67,7 @@
       <% if Array(@idea.tags).any? %>
         <div class="flex flex-wrap gap-1.5">
           <% @idea.tags.each do |tag| %>
-            <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-800/80 border border-slate-700 text-[11px] text-slate-300"><%= tag.to_s.tr("_", " ") %></span>
+            <span class="chip"><%= tag.to_s.tr("_", " ") %></span>
           <% end %>
         </div>
       <% end %>
