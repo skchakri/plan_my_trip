@@ -42,7 +42,8 @@ files.each do |path|
       max_tokens:      attrs["max_tokens"],
       temperature:     attrs["temperature"],
       system_template: attrs["system_template"].to_s,
-      user_template:   attrs["user_template"].to_s
+      user_template:   attrs["user_template"].to_s,
+      output_schema:   attrs["output_schema"]
     }.merge(cache_attrs)
   )
   rec.active = true if rec.active.nil?
