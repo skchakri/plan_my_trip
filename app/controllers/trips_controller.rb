@@ -1,7 +1,7 @@
 class TripsController < ApplicationController
   include MarkdownHelper
 
-  before_action :set_trip, only: %i[show edit update destroy rename archive plan checklist copilot copilot_question copilot_response concierge duplicate calendar wallet rebuild skip_build edit_plan brief]
+  before_action :set_trip, only: %i[show edit update destroy rename archive plan checklist copilot copilot_question copilot_response concierge duplicate calendar wallet printable rebuild skip_build edit_plan brief]
   before_action :set_owned_trip, only: %i[restore destroy_permanently]
 
   def index
@@ -262,6 +262,17 @@ class TripsController < ApplicationController
     authorize @trip, :show?
     @days = @trip.trip_days.ordered.includes(:activities)
     @bookings = @trip.booking_claims.includes(documents_attachments: :blob)
+    render layout: "wallet"
+  end
+
+  # GET /trips/:id/printable — full day-by-day itinerary in a clean, print- and
+  # PDF-ready layout. Reuses the wallet print chrome ("Save as PDF" + @media
+  # print). Distinct from #wallet, which is a bookings/addresses survival sheet.
+  def printable
+    authorize @trip, :show?
+    return redirect_to(@trip) if @trip.building? || @trip.build_failed?
+
+    @days = @trip.trip_days.ordered.includes(:activities)
     render layout: "wallet"
   end
 
