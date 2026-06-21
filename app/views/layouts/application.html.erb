@@ -98,13 +98,13 @@
     <% if user_signed_in? && !hotwire_native_app? %>
       <nav class="sm:hidden fixed bottom-0 inset-x-0 z-30 border-t border-slate-800 bg-slate-950/95 backdrop-blur-xl pb-[env(safe-area-inset-bottom)]" aria-label="Primary">
         <div class="grid grid-cols-3 px-2 py-2">
-          <%= link_to trips_path, class: "flex flex-col items-center gap-0.5 py-1.5 rounded-md #{(controller_name == 'trips' && action_name == 'index') ? 'text-amber-300' : 'text-slate-400 hover:text-white'}" do %>
+          <%= link_to trips_path, aria: { current: (controller_name == 'trips' && action_name == 'index') ? "page" : nil }, class: "flex flex-col items-center gap-0.5 py-1.5 rounded-md #{(controller_name == 'trips' && action_name == 'index') ? 'text-amber-300' : 'text-slate-400 hover:text-white'}" do %>
             <%= icon :list, class: "w-5 h-5" %><span class="text-[10px] font-medium">Trips</span>
           <% end %>
-          <%= link_to new_trip_path, class: "flex flex-col items-center gap-0.5 py-1.5 rounded-md #{action_name == 'new' ? 'text-amber-300' : 'text-slate-400 hover:text-white'}" do %>
+          <%= link_to new_trip_path, aria: { current: action_name == 'new' ? "page" : nil }, class: "flex flex-col items-center gap-0.5 py-1.5 rounded-md #{action_name == 'new' ? 'text-amber-300' : 'text-slate-400 hover:text-white'}" do %>
             <%= icon :plus, class: "w-5 h-5" %><span class="text-[10px] font-medium">New</span>
           <% end %>
-          <%= link_to edit_user_registration_path, class: "flex flex-col items-center gap-0.5 py-1.5 rounded-md #{controller_name == 'registrations' ? 'text-amber-300' : 'text-slate-400 hover:text-white'}" do %>
+          <%= link_to edit_user_registration_path, aria: { current: controller_name == 'registrations' ? "page" : nil }, class: "flex flex-col items-center gap-0.5 py-1.5 rounded-md #{controller_name == 'registrations' ? 'text-amber-300' : 'text-slate-400 hover:text-white'}" do %>
             <%= icon :user_circle, class: "w-5 h-5" %><span class="text-[10px] font-medium">Account</span>
           <% end %>
         </div>

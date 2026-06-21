@@ -66,7 +66,8 @@
       Thinking…
     </div>
     <div class="flex items-end gap-2">
-      <textarea name="question" rows="1" data-concierge-target="input" data-action="keydown->concierge#keydown"
+      <label for="concierge-question" class="sr-only">Ask a question about this trip</label>
+      <textarea name="question" id="concierge-question" rows="1" data-concierge-target="input" data-action="keydown->concierge#keydown"
                 placeholder="Ask about this trip…"
                 class="flex-1 resize-none rounded-xl bg-slate-800/60 border border-slate-700 text-slate-100 placeholder-slate-500 text-sm px-3.5 py-2.5 focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/30"></textarea>
       <button type="submit" data-concierge-target="submit"
@@ -74,6 +75,6 @@
         <%= icon :sparkles, class: "w-4 h-4" %> Ask
       </button>
     </div>
-    <p class="text-[10px] text-slate-600 mt-2 pl-1">Answers use only your trip's details · it can suggest edits but can't change the plan yet</p>
+    <p class="text-[10px] text-slate-400 mt-2 pl-1">Answers use only your trip's details · it can suggest edits but can't change the plan yet</p>
   <% end %>
 </section>

@@ -69,7 +69,7 @@
     <div class="flex flex-wrap items-center gap-1.5">
       <span class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">Perfect for</span>
       <% Array(detail["perfect_for"]).each do |tag| %>
-        <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-800/80 border border-slate-700 text-[11px] text-slate-300"><%= tag %></span>
+        <span class="chip"><%= tag %></span>
       <% end %>
     </div>
   <% end %>
