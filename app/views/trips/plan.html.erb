@@ -443,13 +443,22 @@
               <% end %>
             </div>
             <% read_text = "Day #{idx + 1}, #{day.title}.#{day.summary.present? ? " #{day.summary}" : ""} #{day.activities.map { |a| [a.time_label, a.title, a.famous_for.presence || a.notes.to_s.split('.').first].compact.join('. ') }.join(' Then, ')}" %>
-            <button type="button"
-                    data-controller="tts"
-                    data-tts-text-value="<%= read_text %>"
-                    class="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md border border-slate-700 bg-slate-900/60 text-slate-200 text-xs hover:border-amber-500/50">
-              <%= icon :sparkles, class: "w-3.5 h-3.5 text-amber-400" %>
-              <span data-tts-label data-play-label="Read day" data-stop-label="Stop">Read day</span>
-            </button>
+            <div class="shrink-0 flex items-center gap-2">
+              <% if (dir_url = day_directions_url(day)) %>
+                <%= link_to dir_url, target: "_blank", rel: "noopener",
+                      class: "inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md border border-slate-700 bg-slate-900/60 text-slate-200 text-xs hover:border-amber-500/50" do %>
+                  <%= icon :navigation, class: "w-3.5 h-3.5 text-amber-400" %>
+                  Navigate day
+                <% end %>
+              <% end %>
+              <button type="button"
+                      data-controller="tts"
+                      data-tts-text-value="<%= read_text %>"
+                      class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md border border-slate-700 bg-slate-900/60 text-slate-200 text-xs hover:border-amber-500/50">
+                <%= icon :sparkles, class: "w-3.5 h-3.5 text-amber-400" %>
+                <span data-tts-label data-play-label="Read day" data-stop-label="Stop">Read day</span>
+              </button>
+            </div>
           </div>
         </header>
 
