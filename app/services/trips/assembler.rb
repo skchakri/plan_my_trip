@@ -42,6 +42,7 @@ module Trips
       # so clear them first — otherwise the rebuild stacks a fresh plan on top of
       # the old one. On a first build the shell is empty, so this is a no-op.
       reset_generated_content!
+      advance_build_step!(0)
 
       structure = TripStructureBuilder.call(
         destination: @trip.destination,
@@ -56,17 +57,31 @@ module Trips
         preferences: @trip.preferences
       )
 
+      advance_build_step!(1)
       build_days_and_activities(structure)
+      advance_build_step!(2)
       build_checklist(structure)
       @trip.excitement_pitch = structure["excitement_pitch"].presence || @trip.excitement_pitch
       @trip.body = MarkdownItinerary.from_structure(structure, destination: @trip.destination, people: people_payload)
       @trip.save!
 
+      advance_build_step!(3)
       build_route_landmarks(structure)
       @trip
     end
 
     private
+
+    # Bump the visible build stage and push it to the waiting screen's Turbo
+    # stream, so the user watches progress tick through instead of a static
+    # spinner. Best-effort: a broadcast/DB hiccup must never fail the build.
+    def advance_build_step!(step)
+      @trip.update_columns(build_step: step)
+      @trip.broadcast_replace_to(@trip, target: "trip-build-progress",
+                                 partial: "trips/build_progress", locals: { trip: @trip })
+    rescue StandardError => e
+      Rails.logger.warn("[Trips::Assembler] build progress: #{e.class}: #{e.message}")
+    end
 
     # Wipe AI-generated plan rows so a rebuild replaces rather than duplicates.
     # Destroying trip_days cascades to activities (and their comments/photos/

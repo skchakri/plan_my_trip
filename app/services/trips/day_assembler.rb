@@ -30,6 +30,7 @@ module Trips
       # Idempotent rebuild — clear any prior generated rows first (see
       # Trips::Assembler#reset_generated_content!). No-op on a first build.
       reset_generated_content!
+      advance_build_step!(0)
 
       structure = DayPlanBuilder.call(
         anchor_label: @trip.anchor_label,
@@ -43,14 +44,27 @@ module Trips
         people: []
       )
 
+      advance_build_step!(1)
       build_days_and_activities(structure)
+      advance_build_step!(2)
       build_checklist(structure)
       @trip.excitement_pitch = structure["excitement_pitch"].presence || @trip.excitement_pitch
+      advance_build_step!(3)
       @trip.save!
       @trip
     end
 
     private
+
+    # Mirror Trips::Assembler — push each stage to the waiting screen's Turbo
+    # stream so the day-plan build shows live progress. Best-effort.
+    def advance_build_step!(step)
+      @trip.update_columns(build_step: step)
+      @trip.broadcast_replace_to(@trip, target: "trip-build-progress",
+                                 partial: "trips/build_progress", locals: { trip: @trip })
+    rescue StandardError => e
+      Rails.logger.warn("[Trips::DayAssembler] build progress: #{e.class}: #{e.message}")
+    end
 
     def reset_generated_content!
       return unless @trip.persisted?

@@ -64,17 +64,7 @@
         </p>
       <% end %>
 
-      <% steps = @trip.day_trip? ?
-           [ "Routing your stops to minimize backtracking", "Pinning coordinates + adding meal stops", "Finding photos for each stop", "Writing day-of essentials" ] :
-           [ "Sketching the day-by-day route", "Pinning real coordinates for each stop", "Finding photos + drive-by landmarks", "Writing your packing checklist" ] %>
-      <div class="mt-7 max-w-md mx-auto space-y-3 text-left">
-        <% steps.each do |step| %>
-          <div class="flex items-center gap-3 rounded-lg border border-slate-800 bg-slate-900/40 px-3.5 py-2.5">
-            <span class="w-1.5 h-1.5 rounded-full bg-amber-400/70 animate-pulse"></span>
-            <span class="text-[13px] text-slate-300"><%= step %></span>
-          </div>
-        <% end %>
-      </div>
+      <%= render "trips/build_progress", trip: @trip %>
 
       <p class="text-[11px] text-slate-400 mt-6">
         Taking too long? <%= link_to "Refresh", trip_path(@trip), class: "text-amber-300 hover:text-amber-200 underline" %>.

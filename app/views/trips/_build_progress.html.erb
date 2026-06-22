@@ -1,0 +1,25 @@
+<%# Live build progress. The assembler bumps trip.build_step and broadcasts a
+    replace of this element to the trip's Turbo stream, so the waiting screen
+    ticks through stages instead of sitting on a static spinner. %>
+<div id="trip-build-progress" class="mt-7 max-w-md mx-auto space-y-3 text-left">
+  <% steps = trip.day_trip? ?
+       [ "Routing your stops", "Pinning coordinates & meal stops", "Day-of essentials & checklist", "Finishing your day plan" ] :
+       [ "Researching & sketching your itinerary", "Pinning real coordinates for each stop", "Writing the day-by-day & packing checklist", "Finding drive-by landmarks for the road" ] %>
+  <% current = trip.build_step.to_i %>
+  <% steps.each_with_index do |label, i| %>
+    <% done = i < current %>
+    <% active = i == current %>
+    <div class="flex items-center gap-3 rounded-lg border px-3.5 py-2.5 <%= active ? "border-amber-500/40 bg-amber-500/[0.06]" : "border-slate-800 bg-slate-900/40" %>">
+      <% if done %>
+        <span class="w-4 h-4 shrink-0 rounded-full bg-emerald-500 flex items-center justify-center">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#0a0e1a" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" class="w-2.5 h-2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+        </span>
+      <% elsif active %>
+        <svg class="w-4 h-4 shrink-0 motion-safe:animate-spin text-amber-300" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.4 0 0 5.4 0 12h4z"></path></svg>
+      <% else %>
+        <span class="w-4 h-4 shrink-0 flex items-center justify-center"><span class="w-1.5 h-1.5 rounded-full bg-slate-600"></span></span>
+      <% end %>
+      <span class="text-[13px] <%= done ? "text-slate-400" : active ? "text-amber-100 font-medium" : "text-slate-500" %>"><%= label %></span>
+    </div>
+  <% end %>
+</div>
