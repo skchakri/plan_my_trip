@@ -68,7 +68,7 @@ class SuggestionsController < ApplicationController
   private
 
   def set_trip_day
-    @trip_day = TripDay.joins(:trip).find(params[:trip_day_id])
+    @trip_day = TripDay.joins(:trip).where(trips: { discarded_at: nil }).find(params[:trip_day_id])
     @trip     = @trip_day.trip
   end
 

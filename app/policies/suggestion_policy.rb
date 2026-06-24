@@ -1,9 +1,13 @@
 class SuggestionPolicy < ApplicationPolicy
-  def create? = trip_member?
-  def vote?   = trip_member?
-  def destroy? = own? || trip_owner?
+  def create? = active? && trip_member?
+  def vote?   = active? && trip_member?
+  def destroy? = active? && (own? || trip_owner?)
 
   private
+
+  def active?
+    record.trip&.kept?
+  end
 
   def trip_member?
     record.trip&.shared_with?(user)
