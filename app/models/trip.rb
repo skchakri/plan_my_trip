@@ -65,6 +65,7 @@ class Trip < ApplicationRecord
   has_many :invitations, class_name: "TripInvitation", dependent: :destroy
   has_many :checklist_items, dependent: :destroy
   has_many :booking_claims, dependent: :destroy
+  has_many :reservations, -> { kept.ordered }, dependent: :destroy
   has_many :trip_days, -> { ordered }, dependent: :destroy
   has_many :route_landmarks, -> { kept.ordered }, dependent: :destroy
   has_many :people, -> { ordered }, dependent: :destroy
@@ -151,6 +152,26 @@ class Trip < ApplicationRecord
       share_token:      SecureRandom.urlsafe_base64(SHARE_TOKEN_BYTES),
       share_revoked_at: nil
     )
+  end
+
+  # Per-trip email address travelers forward hotel/flight/car confirmations to.
+  # The token is minted lazily on first read (mirrors share_token) and kept
+  # separate from share_token so revoking the public link never breaks import.
+  # Address shape: trip-<inbox_token>@<INBOUND_EMAIL_DOMAIN>.
+  INBOX_TOKEN_BYTES = 18 # 144 bits, ~24 URL-safe chars
+
+  def forwarding_address
+    "trip-#{ensure_inbox_token!}@#{self.class.inbound_email_domain}"
+  end
+
+  def ensure_inbox_token!
+    return inbox_token if inbox_token.present?
+    update!(inbox_token: SecureRandom.urlsafe_base64(INBOX_TOKEN_BYTES))
+    inbox_token
+  end
+
+  def self.inbound_email_domain
+    AppSetting.get("INBOUND_EMAIL_DOMAIN").presence || "inbound.planmytrip.app"
   end
 
   def title_for(user)

@@ -372,6 +372,9 @@
   </div>
 </section>
 
+<!-- Booking-confirmation email import -->
+<%= render "reservations", trip: @trip, can_edit: can_edit %>
+
 <!-- Trip documents (hotel, car, flight confirmations) -->
 <section class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 sm:p-7 mt-6">
   <h2 class="font-display text-xl font-semibold flex items-center gap-2 mb-3">
