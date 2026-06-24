@@ -10,6 +10,10 @@
     <meta name="theme-color" content="#0a0e1a">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
+    <%# Turbo 8 page refreshes morph the DOM in place (idiomorph) and keep the
+        scroll position — so a collaborator's broadcast_refresh updates trips/show
+        without a full-frame replace, lost scroll, or a closed menu. %>
+    <%= turbo_refreshes_with method: :morph, scroll: :preserve %>
 
     <%= yield :head %>
 
