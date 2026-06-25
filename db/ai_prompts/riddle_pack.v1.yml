@@ -2,8 +2,11 @@
 slug: riddle_pack.v1
 name: Riddle pack (Drive Co-Pilot)
 description: Generates a batch of family-friendly multiple-choice riddles for the Drive Co-Pilot game. Runs on the local Claude CLI subscription so bulk fills don't burn metered API credit.
+# Haiku 4.5: kid-friendly riddles are simple generation — latency-only win here
+# (claude_cli runs on the subscription, no metered savings). ClaudeCliProvider's
+# model_alias maps any *haiku* id to `--model haiku`, so this resolves fine.
 provider: claude_cli
-model: claude-sonnet-4-6
+model: claude-haiku-4-5-20251001
 kind: text
 max_tokens: 4096
 temperature:

@@ -4,8 +4,10 @@ name: Destination brief
 description: 'Honest one-card pitch shown above the highlights grid: tagline + 2-3 sentence character pitch + practical watch-outs + best-for tags. Works for any destination from tiny rural towns to major cities.'
 # Anthropic Messages API (not claude_cli): an evergreen destination pitch needs
 # no web search, and this renders in the lazy highlights frame — speed matters.
+# Haiku 4.5: a short one-card pitch is simple template writing — ~3x cheaper and
+# noticeably faster in the lazy frame than Sonnet, with no quality loss here.
 provider: anthropic
-model: claude-sonnet-4-6
+model: claude-haiku-4-5-20251001
 kind: text
 max_tokens: 1024
 temperature:
