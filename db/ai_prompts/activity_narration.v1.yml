@@ -3,9 +3,11 @@ slug: activity_narration.v1
 name: Activity narration (guide_script backfill)
 description: One activity's 150-220 word spoken guide_script, generated per-activity AFTER the trip structure is built so the main build stays fast. Powers the read-aloud podcast + live Drive Co-Pilot narration. Cached/deduped by Ai::Caller so the same spot is narrated once across trips.
 # Anthropic API (no web search needed) — runs in BackfillTripNarrationsJob, one
-# call per activity, off the critical build path.
+# call per activity, off the critical build path. Haiku 4.5: this is high-volume
+# template writing (one metered call per blank activity), well within Haiku's
+# range — ~3x cheaper / 2x faster than Sonnet. Keep trip_structure.v1 on Sonnet.
 provider: anthropic
-model: claude-sonnet-4-6
+model: claude-haiku-4-5-20251001
 kind: text
 max_tokens: 600
 temperature: 0.6
