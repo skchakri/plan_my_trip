@@ -40,6 +40,10 @@ class AppSetting < ApplicationRecord
     Definition.new(key: "GOOGLE_PLACES_API_KEY", label: "Google Places API key", category: "Place data", secret: true,
       description: "When set, Places::Geocoder uses Google Places Text Search for coordinate lookups (better POI matching, no 1-req/sec cap). Blank → free OpenStreetMap Nominatim. console.cloud.google.com → enable Places API.", placeholder: "AIza…"),
 
+    # ── Travel data ──
+    Definition.new(key: "EIA_API_KEY", label: "EIA gas-price API key", category: "Travel data", secret: true,
+      description: "Free U.S. Energy Information Administration API (api.eia.gov/register) — current gas price for RoadTripEstimator's fuel estimate. Blank → a hardcoded national-average price is used.", placeholder: nil),
+
     # ── Image search ──
     Definition.new(key: "PEXELS_API_KEY", label: "Pexels API key", category: "Image search", secret: true,
       description: "Photo source for LandmarkImageFinder / place hero images.", placeholder: nil),

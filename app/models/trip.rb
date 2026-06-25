@@ -13,6 +13,19 @@ class Trip < ApplicationRecord
   TRANSPORT_MODES = %w[own_car rental flying mixed].freeze
   validates :transport_mode, inclusion: { in: TRANSPORT_MODES }, allow_nil: true
 
+  # Self-declared fuel economy (mpg) for the group's own car. Feeds the
+  # road-trip fuel + drive-time estimator (RoadTripEstimator). Nullable;
+  # a default is used (and labelled an estimate) when blank.
+  validates :vehicle_mpg,
+            numericality: { greater_than: 0, less_than_or_equal_to: 200 },
+            allow_nil: true
+
+  # True when the group is driving their own car — gates the road-trip stats
+  # card and suppresses rental-car booking suggestions (see BookingLinks).
+  def own_car?
+    transport_mode == "own_car"
+  end
+
   # Planning levers fed to TripStructureBuilder so the itinerary honors the
   # group's style, not just where/when/who.
   PACES = %w[relaxed balanced packed].freeze

@@ -50,4 +50,28 @@ class TripTest < ActiveSupport::TestCase
     refute trip.valid?
     assert trip.errors[:pwa_packing_url].any?
   end
+
+  test "vehicle_mpg allows nil" do
+    trip = @user.owned_trips.build(title: "T", vehicle_mpg: nil)
+    assert trip.valid?
+  end
+
+  test "vehicle_mpg accepts a positive value within range" do
+    trip = @user.owned_trips.build(title: "T", vehicle_mpg: 28.5)
+    assert trip.valid?
+  end
+
+  test "vehicle_mpg rejects zero, negatives, and absurdly high values" do
+    [ 0, -1, 250 ].each do |bad|
+      trip = @user.owned_trips.build(title: "T", vehicle_mpg: bad)
+      refute trip.valid?, "#{bad} mpg should be invalid"
+      assert trip.errors[:vehicle_mpg].any?
+    end
+  end
+
+  test "own_car? reflects the transport_mode" do
+    assert @user.owned_trips.build(title: "T", transport_mode: "own_car").own_car?
+    refute @user.owned_trips.build(title: "T", transport_mode: "rental").own_car?
+    refute @user.owned_trips.build(title: "T", transport_mode: nil).own_car?
+  end
 end

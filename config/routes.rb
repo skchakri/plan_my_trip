@@ -91,6 +91,7 @@ Rails.application.routes.draw do
       get :plan
       get :edit_plan
       get :brief
+      get :road_trip_stats
       get :checklist
       get :copilot
       get :copilot_question

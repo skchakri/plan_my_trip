@@ -4,7 +4,7 @@ class TripDuplicator
   # don't accidentally leak per-trip state into clones.
   COPYABLE_TRIP_FIELDS = %w[
     title destination origin body pwa_plan_url pwa_packing_url
-    traveler_count transport_mode departure_time return_time
+    traveler_count transport_mode vehicle_mpg departure_time return_time
     day_trip max_radius_km interests anchor_label anchor_lat anchor_lng
     excitement_pitch
   ].freeze
