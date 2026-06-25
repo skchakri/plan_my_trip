@@ -29,7 +29,7 @@
           <% end %>
           <div class="flex flex-wrap items-center gap-1.5 mt-2 text-[10px] uppercase tracking-widest font-semibold">
             <% if @place.kind.present? %>
-              <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300"><%= @place.kind %></span>
+              <span class="chip"><%= @place.kind %></span>
             <% end %>
             <% if @place.tier.present? %>
               <span class="px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300"><%= @place.tier %></span>
@@ -38,7 +38,7 @@
               <span class="px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300">verified</span>
             <% end %>
             <% if @place.usage_count.to_i > 0 %>
-              <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-400"><%= @place.usage_count %> trips</span>
+              <span class="chip"><%= @place.usage_count %> trips</span>
             <% end %>
           </div>
         </div>
