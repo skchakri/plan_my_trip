@@ -3,7 +3,7 @@
     <%= render "block_header", title: "Highlights grid (#{Array(@result[:value]).size})", result: @result %>
     <% highlights = Array(@result[:value]) %>
     <% if highlights.empty? %>
-      <p class="text-sm text-slate-500 italic">No highlights returned. Check Wikivoyage coverage for the destination — and that the catalog has rows in this region.</p>
+      <p class="text-sm text-slate-400 italic">No highlights returned. Check Wikivoyage coverage for the destination — and that the catalog has rows in this region.</p>
     <% else %>
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         <% highlights.each do |h| %>

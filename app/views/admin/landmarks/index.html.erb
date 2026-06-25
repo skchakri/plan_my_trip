@@ -8,7 +8,7 @@
 <div class="grid grid-cols-3 gap-3 mb-4 max-w-md">
   <% [["All", :all], ["Trip-scoped", :trip], ["Global", :global]].each do |label, key| %>
     <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-3">
-      <p class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold"><%= label %></p>
+      <p class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold"><%= label %></p>
       <p class="font-display text-2xl font-semibold mt-1 tabular-nums"><%= @counts[key].to_i %></p>
     </div>
   <% end %>
@@ -16,7 +16,7 @@
 
 <%= form_with url: admin_landmarks_path, method: :get, local: true, class: "flex flex-wrap items-center gap-2 mb-4" do %>
   <%= text_field_tag :q, params[:q], placeholder: "name, narration, trip…",
-        class: "px-3 py-1.5 rounded-md bg-slate-900/60 border border-slate-700 text-sm text-slate-100 placeholder:text-slate-500 w-72" %>
+        class: "px-3 py-1.5 rounded-md bg-slate-900/60 border border-slate-700 text-sm text-slate-100 placeholder:text-slate-400 w-72" %>
   <%= select_tag :scope, options_for_select([["All", "all"], ["Trip-scoped", "trip"], ["Global only", "global"]], @scope),
         class: "px-3 py-1.5 rounded-md bg-slate-900/60 border border-slate-700 text-sm" %>
   <%= select_tag :kind, options_for_select([["All kinds", ""]] + @kinds.map { |k| [k, k] }, params[:kind]),
@@ -28,11 +28,11 @@
 <% end %>
 
 <% if @entries.empty? %>
-  <p class="text-sm text-slate-500 italic">No landmarks yet. They're seeded by the Drive Co-Pilot when a trip route is built.</p>
+  <p class="text-sm text-slate-400 italic">No landmarks yet. They're seeded by the Drive Co-Pilot when a trip route is built.</p>
 <% else %>
   <div class="rounded-xl border border-slate-800 overflow-hidden">
     <table class="w-full text-sm">
-      <thead class="bg-slate-900/60 text-[10px] uppercase tracking-widest text-slate-500">
+      <thead class="bg-slate-900/60 text-[10px] uppercase tracking-widest text-slate-400">
         <tr>
           <th class="text-left px-3 py-2">Landmark</th>
           <th class="text-left px-3 py-2">Kind</th>
@@ -47,16 +47,16 @@
           <tr class="hover:bg-slate-900/40">
             <td class="px-3 py-2">
               <%= link_to e[:name], admin_landmark_path(e[:id]), class: "text-amber-300 hover:text-amber-200 font-medium" %>
-              <% if e[:narration].present? %><div class="text-[11px] text-slate-500 truncate max-w-md"><%= e[:narration].to_s.truncate(120) %></div><% end %>
+              <% if e[:narration].present? %><div class="text-[11px] text-slate-400 truncate max-w-md"><%= e[:narration].to_s.truncate(120) %></div><% end %>
             </td>
             <td class="px-3 py-2 text-slate-300 text-xs"><%= e[:kind] || "—" %></td>
             <td class="px-3 py-2 text-xs text-slate-300 truncate max-w-[200px]"><%= e[:trip_title] %></td>
-            <td class="px-3 py-2 text-[11px] text-slate-500 tabular-nums">
+            <td class="px-3 py-2 text-[11px] text-slate-400 tabular-nums">
               <% if e[:latitude] && e[:longitude] %>
                 <%= e[:latitude].to_f.round(4) %>, <%= e[:longitude].to_f.round(4) %>
               <% else %>—<% end %>
             </td>
-            <td class="px-3 py-2 text-[11px] text-slate-500 uppercase tracking-widest"><%= e[:source] || "—" %></td>
+            <td class="px-3 py-2 text-[11px] text-slate-400 uppercase tracking-widest"><%= e[:source] || "—" %></td>
             <td class="px-3 py-2 text-right">
               <%= link_to "view", admin_landmark_path(e[:id]), class: "text-xs text-slate-400 hover:text-amber-300" %>
             </td>
@@ -65,5 +65,5 @@
       </tbody>
     </table>
   </div>
-  <p class="text-[11px] text-slate-500 mt-2">Showing up to 300 entries across all kept trips.</p>
+  <p class="text-[11px] text-slate-400 mt-2">Showing up to 300 entries across all kept trips.</p>
 <% end %>

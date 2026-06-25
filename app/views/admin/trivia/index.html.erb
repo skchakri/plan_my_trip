@@ -13,18 +13,18 @@
     ["Answered",    @stats[:answered]]
   ].each do |label, value| %>
     <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-3">
-      <p class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold"><%= label %></p>
+      <p class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold"><%= label %></p>
       <p class="font-display text-2xl font-semibold mt-1 tabular-nums"><%= value.to_i %></p>
     </div>
   <% end %>
 </div>
 
 <section class="mb-6">
-  <h2 class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-2">By source</h2>
+  <h2 class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mb-2">By source</h2>
   <div class="flex flex-wrap gap-2 text-xs">
     <% @sources.each do |source, count| %>
       <span class="px-2 py-1 rounded-md bg-slate-900/60 border border-slate-700 text-slate-300">
-        <span class="uppercase tracking-widest text-slate-500"><%= source %></span>
+        <span class="uppercase tracking-widest text-slate-400"><%= source %></span>
         <span class="ml-1 tabular-nums"><%= count %></span>
       </span>
     <% end %>
@@ -50,14 +50,14 @@
   </div>
 </section>
 
-<h2 class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-2">By tag</h2>
+<h2 class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mb-2">By tag</h2>
 
 <% if @tags.empty? %>
-  <p class="text-sm text-slate-500 italic">No questions in the DB yet. Run the seed task to load <code>TriviaPool::SEED_POOL</code>.</p>
+  <p class="text-sm text-slate-400 italic">No questions in the DB yet. Run the seed task to load <code>TriviaPool::SEED_POOL</code>.</p>
 <% else %>
   <div class="rounded-xl border border-slate-800 overflow-hidden">
     <table class="w-full text-sm">
-      <thead class="bg-slate-900/60 text-[10px] uppercase tracking-widest text-slate-500">
+      <thead class="bg-slate-900/60 text-[10px] uppercase tracking-widest text-slate-400">
         <tr>
           <th class="text-left px-3 py-2">Tag</th>
           <th class="text-right px-3 py-2">Questions</th>
@@ -70,7 +70,7 @@
           <tr class="hover:bg-slate-900/40">
             <td class="px-3 py-2">
               <%= link_to tag.humanize, admin_trivium_path(tag), class: "text-amber-300 hover:text-amber-200 font-medium" %>
-              <div class="text-[11px] text-slate-500"><%= tag %></div>
+              <div class="text-[11px] text-slate-400"><%= tag %></div>
             </td>
             <td class="px-3 py-2 text-right tabular-nums"><%= count %></td>
             <td class="px-3 py-2 text-xs text-slate-400 truncate max-w-md"><%= @previews[tag] %></td>

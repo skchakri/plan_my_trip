@@ -31,7 +31,7 @@
             </li>
           <% end %>
         </ul>
-        <p class="mt-6 text-xs text-slate-500">100% free, no credit card, no ads.</p>
+        <p class="mt-6 text-xs text-slate-400">100% free, no credit card, no ads.</p>
       </div>
     </div>
   </aside>
@@ -62,30 +62,30 @@
 
         <div>
           <%= f.label :name, "Your name", class: "block text-sm font-medium text-slate-200 mb-1.5" %>
-          <%= f.text_field :name, autofocus: true, required: true, placeholder: "Kalyan Setti", class: "w-full rounded-lg bg-slate-900 border border-slate-700 px-3.5 py-2.5 text-slate-100 placeholder:text-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/40 focus:outline-none transition-colors" %>
+          <%= f.text_field :name, autofocus: true, required: true, placeholder: "Kalyan Setti", class: "w-full rounded-lg bg-slate-900 border border-slate-700 px-3.5 py-2.5 text-slate-100 placeholder:text-slate-400 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/40 focus:outline-none transition-colors" %>
         </div>
 
         <div>
           <%= f.label :email, class: "block text-sm font-medium text-slate-200 mb-1.5" %>
-          <%= f.email_field :email, autocomplete: "email", required: true, placeholder: "you@example.com", class: "w-full rounded-lg bg-slate-900 border border-slate-700 px-3.5 py-2.5 text-slate-100 placeholder:text-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/40 focus:outline-none transition-colors" %>
+          <%= f.email_field :email, autocomplete: "email", required: true, placeholder: "you@example.com", class: "w-full rounded-lg bg-slate-900 border border-slate-700 px-3.5 py-2.5 text-slate-100 placeholder:text-slate-400 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/40 focus:outline-none transition-colors" %>
         </div>
 
         <div>
           <%= f.label :password, class: "block text-sm font-medium text-slate-200 mb-1.5" %>
-          <%= f.password_field :password, autocomplete: "new-password", required: true, placeholder: "Choose a strong password", class: "w-full rounded-lg bg-slate-900 border border-slate-700 px-3.5 py-2.5 text-slate-100 placeholder:text-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/40 focus:outline-none transition-colors" %>
+          <%= f.password_field :password, autocomplete: "new-password", required: true, placeholder: "Choose a strong password", class: "w-full rounded-lg bg-slate-900 border border-slate-700 px-3.5 py-2.5 text-slate-100 placeholder:text-slate-400 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/40 focus:outline-none transition-colors" %>
           <% if @minimum_password_length %>
-            <p class="text-xs text-slate-500 mt-1.5"><%= @minimum_password_length %> characters minimum</p>
+            <p class="text-xs text-slate-400 mt-1.5"><%= @minimum_password_length %> characters minimum</p>
           <% end %>
         </div>
 
         <div>
           <%= f.label :password_confirmation, "Confirm password", class: "block text-sm font-medium text-slate-200 mb-1.5" %>
-          <%= f.password_field :password_confirmation, autocomplete: "new-password", required: true, placeholder: "Type it again", class: "w-full rounded-lg bg-slate-900 border border-slate-700 px-3.5 py-2.5 text-slate-100 placeholder:text-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/40 focus:outline-none transition-colors" %>
+          <%= f.password_field :password_confirmation, autocomplete: "new-password", required: true, placeholder: "Type it again", class: "w-full rounded-lg bg-slate-900 border border-slate-700 px-3.5 py-2.5 text-slate-100 placeholder:text-slate-400 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/40 focus:outline-none transition-colors" %>
         </div>
 
         <%= f.submit "Create account", class: "w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-lg font-semibold shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40 transition-all cursor-pointer" %>
 
-        <p class="text-xs text-slate-500 text-center">By signing up, you're agreeing to be road-trip-ready. That's it. No fine print.</p>
+        <p class="text-xs text-slate-400 text-center">By signing up, you're agreeing to be road-trip-ready. That's it. No fine print.</p>
       <% end %>
     </div>
   </div>

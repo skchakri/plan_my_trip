@@ -11,7 +11,7 @@ const OPT = "quiz-opt-in w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl
 const IDLE = `${OPT} border-slate-700/70 bg-slate-800/40 text-slate-100 cursor-pointer hover:border-amber-400/70 hover:bg-slate-800`
 const CORRECT = `${OPT} border-emerald-400 bg-emerald-500/15 text-emerald-50 ring-1 ring-emerald-400/40`
 const WRONG = `${OPT} border-rose-400 bg-rose-500/15 text-rose-50`
-const DIM = `${OPT} border-slate-800 bg-slate-800/20 text-slate-500`
+const DIM = `${OPT} border-slate-800 bg-slate-800/20 text-slate-400`
 
 // Image-option variant: a logo on a light card you tap (the "pick the logo" twist).
 const IMG = "quiz-opt-in relative block rounded-xl border-2 p-2 transition-all duration-200 disabled:cursor-default"
@@ -183,7 +183,7 @@ export default class extends Controller {
       <div class="flex items-start gap-2 text-sm">
         <span class="mt-0.5 shrink-0 ${r.right ? "text-emerald-400" : "text-rose-400"}">${r.right ? CHECK : CROSS}</span>
         <span class="text-slate-300">${escapeHtml(r.prompt)}
-          ${r.right ? "" : `<span class="text-slate-500">→ ${escapeHtml(r.answer)}</span>`}</span>
+          ${r.right ? "" : `<span class="text-slate-400">→ ${escapeHtml(r.answer)}</span>`}</span>
       </div>`).join("")
   }
 

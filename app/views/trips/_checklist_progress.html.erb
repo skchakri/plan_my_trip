@@ -5,10 +5,10 @@
 <div id="checklist-progress" class="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
   <div class="flex items-center justify-between mb-2">
     <span class="text-xs uppercase tracking-widest text-slate-400 font-semibold">Packed</span>
-    <span class="font-display text-2xl font-semibold text-amber-200 tabular-nums"><%= packed %><span class="text-slate-500 text-base">/<%= total %></span></span>
+    <span class="font-display text-2xl font-semibold text-amber-200 tabular-nums"><%= packed %><span class="text-slate-400 text-base">/<%= total %></span></span>
   </div>
   <div class="h-2 rounded-full bg-slate-800 overflow-hidden">
     <div class="h-full bg-gradient-to-r from-amber-500 to-emerald-400 transition-all duration-300" style="width: <%= pct %>%;"></div>
   </div>
-  <p class="text-xs text-slate-500 mt-2"><%= pct %>% complete</p>
+  <p class="text-xs text-slate-400 mt-2"><%= pct %>% complete</p>
 </div>

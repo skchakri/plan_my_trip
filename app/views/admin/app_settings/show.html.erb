@@ -26,14 +26,14 @@
               <div class="flex items-start justify-between gap-3">
                 <div class="min-w-0">
                   <label for="app_settings_<%= d.key %>" class="<%= label %>"><%= d.label %></label>
-                  <p class="text-xs text-slate-500 mt-0.5"><%= d.description %></p>
+                  <p class="text-xs text-slate-400 mt-0.5"><%= d.description %></p>
                   <code class="text-[10px] text-slate-600"><%= d.key %></code>
                 </div>
                 <div class="shrink-0 text-right">
                   <% if row&.set? %>
                     <span class="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-200">● set</span>
                     <% if d.secret %>
-                      <div class="text-[11px] text-slate-500 mt-1 tabular-nums"><%= row.masked_hint %></div>
+                      <div class="text-[11px] text-slate-400 mt-1 tabular-nums"><%= row.masked_hint %></div>
                     <% end %>
                   <% elsif AppSetting.get(d.key).present? %>
                     <span class="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-sky-500/15 border border-sky-500/30 text-sky-200" title="Coming from ENV or a default — save here to take ownership.">env / default</span>
@@ -70,7 +70,7 @@
 
     <div class="flex items-center gap-3">
       <%= submit_tag "Save settings", class: "px-4 py-2 rounded-lg bg-amber-500 text-slate-950 text-sm font-semibold hover:bg-amber-400 cursor-pointer" %>
-      <span class="text-xs text-slate-500">Changes take effect immediately — no restart needed.</span>
+      <span class="text-xs text-slate-400">Changes take effect immediately — no restart needed.</span>
     </div>
   <% end %>
 </div>

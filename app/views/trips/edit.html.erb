@@ -3,7 +3,7 @@
   <%= link_to @trip, class: "inline-flex items-center gap-1 text-sm text-slate-400 hover:text-amber-300 transition-colors" do %>
     <%= icon :arrow_left, class: "w-4 h-4" %> <%= @trip.title %>
   <% end %>
-  <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500 font-medium mt-3">Edit</p>
+  <p class="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-medium mt-3">Edit</p>
   <h1 class="font-display text-3xl sm:text-4xl font-semibold tracking-tight"><%= @trip.title %></h1>
 </div>
 <%= render "form" %>

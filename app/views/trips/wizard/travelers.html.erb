@@ -6,7 +6,7 @@
   <%= link_to wizard_destination_path, class: "inline-flex items-center gap-1 text-sm text-slate-400 hover:text-amber-300 transition-colors" do %>
     <%= icon :arrow_left, class: "w-4 h-4" %> Destination
   <% end %>
-  <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500 font-medium mt-3">Plan a trip · step 2 of 4</p>
+  <p class="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-medium mt-3">Plan a trip · step 2 of 4</p>
   <h1 class="font-display text-3xl sm:text-4xl font-semibold tracking-tight">Who's going?</h1>
   <p class="text-sm text-slate-400 mt-1.5">Names, ages, and a few interests per traveler. The interests shape the day plan, the podcast intro, and the drive co-pilot game.</p>
 </div>
@@ -47,7 +47,7 @@
                       <%= Array(t[:interests]).first(3).map { |i| i.to_s.tr("_", " ") }.join(" · ") %>
                     </span>
                   <% else %>
-                    <span class="block text-[11px] text-slate-500 mt-0.5 italic">no interests yet</span>
+                    <span class="block text-[11px] text-slate-400 mt-0.5 italic">no interests yet</span>
                   <% end %>
                 </span>
                 <span class="shrink-0 text-amber-300/70 group-hover:text-amber-300 text-lg leading-none mt-0.5">+</span>
@@ -55,7 +55,7 @@
             </div>
           <% end %>
         </div>
-        <p class="text-[10px] text-slate-500">Tap to add — you can edit the age and interests for this trip.</p>
+        <p class="text-[10px] text-slate-400">Tap to add — you can edit the age and interests for this trip.</p>
       </div>
     <% end %>
 

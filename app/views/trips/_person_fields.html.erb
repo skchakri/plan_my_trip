@@ -26,7 +26,7 @@
   </div>
 
   <div>
-    <p class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-1.5">Personal interests</p>
+    <p class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mb-1.5">Personal interests</p>
     <%# Hidden empty value ensures Rails clears interests when none are
         present (otherwise the param key wouldn't appear at all). %>
     <%= hidden_field_tag interests_name, "", data: { interests_input_target: "emptyMarker" } %>
@@ -49,7 +49,7 @@
              placeholder="<%= current_interests.any? ? 'add another…' : 'sports, art, photography…' %>"
              class="flex-1 min-w-[10ch] bg-transparent border-0 px-1 py-0.5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-0">
     </div>
-    <p class="text-[10px] text-slate-500 mt-1">Press Enter or comma to add. Saved for this person — pre-fills on your next trip.</p>
+    <p class="text-[10px] text-slate-400 mt-1">Press Enter or comma to add. Saved for this person — pre-fills on your next trip.</p>
   </div>
 
   <% if pf.object.persisted? %>
@@ -61,7 +61,7 @@
     <%= pf.hidden_field :_destroy, value: "0", data: { nested_form_target: "destroyInput" } %>
     <button type="button"
             data-action="nested-form#remove"
-            class="text-xs text-slate-500 hover:text-rose-300 cursor-pointer">
+            class="text-xs text-slate-400 hover:text-rose-300 cursor-pointer">
       Remove this row
     </button>
   <% end %>

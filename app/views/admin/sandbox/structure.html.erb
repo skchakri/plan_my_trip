@@ -9,7 +9,7 @@
     <% end %>
 
     <% if days.empty? %>
-      <p class="text-sm text-slate-500 italic">No days returned. Check that <code class="text-amber-300">trip_structure.v1</code> is active.</p>
+      <p class="text-sm text-slate-400 italic">No days returned. Check that <code class="text-amber-300">trip_structure.v1</code> is active.</p>
     <% else %>
       <div class="space-y-3">
         <% days.each do |d| %>
@@ -17,7 +17,7 @@
             <div class="px-3 py-2 bg-slate-900/60 flex items-center justify-between gap-2">
               <div>
                 <p class="text-sm font-semibold text-slate-100"><%= d["title"] %></p>
-                <p class="text-xs text-slate-500"><%= d["date"] %> · <%= d["theme"] %></p>
+                <p class="text-xs text-slate-400"><%= d["date"] %> · <%= d["theme"] %></p>
               </div>
               <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 uppercase tracking-widest"><%= d["accent"] %></span>
             </div>
@@ -33,11 +33,11 @@
                       <%= a["title"] %>
                     </p>
                     <% if a["latitude"] && a["longitude"] %>
-                      <span class="text-[10px] text-slate-500 font-mono"><%= "%.3f, %.3f" % [ a["latitude"], a["longitude"] ] %></span>
+                      <span class="text-[10px] text-slate-400 font-mono"><%= "%.3f, %.3f" % [ a["latitude"], a["longitude"] ] %></span>
                     <% end %>
                   </div>
                   <% if a["location_name"].present? || a["address"].present? %>
-                    <p class="text-xs text-slate-500 mt-0.5">
+                    <p class="text-xs text-slate-400 mt-0.5">
                       <% if a["location_name"].present? %><span class="text-slate-400"><%= a["location_name"] %></span><% end %>
                       <% if a["address"].present? %> · <%= a["address"] %><% end %>
                     </p>
@@ -56,10 +56,10 @@
         <% before = Array(structure.dig("checklist", "before_trip")) %>
         <% if before.any? %>
           <div class="mt-4 rounded-lg border border-slate-800 bg-slate-950/40 p-3">
-            <p class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-1.5">Before-trip checklist</p>
+            <p class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mb-1.5">Before-trip checklist</p>
             <ul class="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-0.5 text-xs text-slate-300">
               <% before.each do |i| %>
-                <li>• <%= i["title"] %><span class="text-slate-500"> (<%= i["category"] %>)</span></li>
+                <li>• <%= i["title"] %><span class="text-slate-400"> (<%= i["category"] %>)</span></li>
               <% end %>
             </ul>
           </div>

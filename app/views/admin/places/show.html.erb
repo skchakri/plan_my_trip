@@ -8,7 +8,7 @@
   <div class="min-w-0">
     <h1 class="font-display text-2xl font-semibold"><%= @place.name %></h1>
     <% if @place.canonical_name.present? %><p class="text-sm text-slate-400"><%= @place.canonical_name %></p><% end %>
-    <p class="text-[11px] text-slate-500 mt-1"><%= @place.kind %><% if @place.latitude && @place.longitude %> · <%= @place.latitude.to_f.round(4) %>, <%= @place.longitude.to_f.round(4) %><% end %></p>
+    <p class="text-[11px] text-slate-400 mt-1"><%= @place.kind %><% if @place.latitude && @place.longitude %> · <%= @place.latitude.to_f.round(4) %>, <%= @place.longitude.to_f.round(4) %><% end %></p>
   </div>
   <div class="flex items-center gap-2">
     <%= button_to (@place.verified ? "Unverify" : "Verify"), verify_admin_place_path(@place), method: :post,
@@ -27,64 +27,64 @@
       <div class="rounded-xl border border-slate-800 overflow-hidden bg-slate-900/40">
         <img src="<%= @place.image_url %>" alt="<%= @place.name %>" class="w-full aspect-[16/9] object-cover" referrerpolicy="no-referrer">
         <% if @place.image_attribution.present? %>
-          <p class="text-[10px] text-slate-500 px-3 py-1.5"><%= @place.image_attribution %> · <span class="uppercase tracking-widest"><%= @place.image_source %></span></p>
+          <p class="text-[10px] text-slate-400 px-3 py-1.5"><%= @place.image_attribution %> · <span class="uppercase tracking-widest"><%= @place.image_source %></span></p>
         <% end %>
       </div>
     <% end %>
 
     <% if @place.famous_for.present? %>
       <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
-        <p class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-1">Famous for</p>
+        <p class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mb-1">Famous for</p>
         <p class="text-sm text-amber-200/90"><%= @place.famous_for %></p>
       </div>
     <% end %>
 
     <% if @place.description.present? %>
       <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
-        <p class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-1">Description</p>
+        <p class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mb-1">Description</p>
         <p class="text-sm text-slate-200 leading-relaxed whitespace-pre-line"><%= @place.description %></p>
       </div>
     <% end %>
 
     <section>
-      <h2 class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-2">Used in trips (<%= @recent_activities.size %>)</h2>
+      <h2 class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mb-2">Used in trips (<%= @recent_activities.size %>)</h2>
       <% if @recent_activities.any? %>
         <ul class="divide-y divide-slate-800/60 rounded-xl border border-slate-800 overflow-hidden">
           <% @recent_activities.each do |a| %>
             <li class="flex items-center justify-between gap-3 px-3 py-2 text-sm">
               <div class="min-w-0">
                 <p class="text-slate-200 truncate"><%= a.title %></p>
-                <p class="text-[11px] text-slate-500 truncate"><%= a.trip_day.trip.title %> · <%= a.trip_day.date&.strftime("%b %-d, %Y") %></p>
+                <p class="text-[11px] text-slate-400 truncate"><%= a.trip_day.trip.title %> · <%= a.trip_day.date&.strftime("%b %-d, %Y") %></p>
               </div>
-              <span class="text-[11px] text-slate-500 whitespace-nowrap"><%= time_ago_in_words(a.created_at) %> ago</span>
+              <span class="text-[11px] text-slate-400 whitespace-nowrap"><%= time_ago_in_words(a.created_at) %> ago</span>
             </li>
           <% end %>
         </ul>
       <% else %>
-        <p class="text-sm text-slate-500 italic">No activities link to this place.</p>
+        <p class="text-sm text-slate-400 italic">No activities link to this place.</p>
       <% end %>
     </section>
   </section>
 
   <aside class="space-y-3 text-sm">
     <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-4 space-y-2">
-      <p class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">Stats</p>
+      <p class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">Stats</p>
       <dl class="grid grid-cols-2 gap-x-3 gap-y-1.5">
-        <dt class="text-slate-500">Usage</dt>      <dd class="text-slate-200 tabular-nums"><%= @place.usage_count %></dd>
-        <dt class="text-slate-500">Verified</dt>   <dd><%= @place.verified ? "yes" : "no" %></dd>
-        <dt class="text-slate-500">Image source</dt><dd class="text-slate-300"><%= @place.image_source || "—" %></dd>
-        <dt class="text-slate-500">Contributed</dt><dd class="text-slate-300 truncate"><%= @place.contributed_by&.email || "—" %></dd>
-        <dt class="text-slate-500">Created</dt>    <dd class="text-slate-300"><%= @place.created_at.strftime("%Y-%m-%d") %></dd>
+        <dt class="text-slate-400">Usage</dt>      <dd class="text-slate-200 tabular-nums"><%= @place.usage_count %></dd>
+        <dt class="text-slate-400">Verified</dt>   <dd><%= @place.verified ? "yes" : "no" %></dd>
+        <dt class="text-slate-400">Image source</dt><dd class="text-slate-300"><%= @place.image_source || "—" %></dd>
+        <dt class="text-slate-400">Contributed</dt><dd class="text-slate-300 truncate"><%= @place.contributed_by&.email || "—" %></dd>
+        <dt class="text-slate-400">Created</dt>    <dd class="text-slate-300"><%= @place.created_at.strftime("%Y-%m-%d") %></dd>
       </dl>
     </div>
 
     <% if @place.source_urls.present? %>
       <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
-        <p class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-2">Source URLs</p>
+        <p class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mb-2">Source URLs</p>
         <ul class="space-y-1">
           <% @place.source_urls.each do |label, url| %>
             <li class="text-xs">
-              <span class="text-slate-500 uppercase tracking-widest"><%= label %></span>
+              <span class="text-slate-400 uppercase tracking-widest"><%= label %></span>
               <%= link_to url, url, target: "_blank", rel: "noopener", class: "block text-amber-300 hover:text-amber-200 truncate" %>
             </li>
           <% end %>

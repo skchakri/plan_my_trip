@@ -85,9 +85,9 @@ module PlacesHelper
   # "4.2 · 12 reviews" caption — collapses to "No ratings yet" when empty.
   def rating_caption(rating, count)
     if count.to_i.zero?
-      %(<span class="text-slate-500">No ratings yet</span>).html_safe
+      %(<span class="text-slate-400">No ratings yet</span>).html_safe
     else
-      %(<span class="text-slate-200 font-semibold">#{format("%.1f", rating.to_f)}</span> <span class="text-slate-500">· #{pluralize(count.to_i, "review")}</span>).html_safe
+      %(<span class="text-slate-200 font-semibold">#{format("%.1f", rating.to_f)}</span> <span class="text-slate-400">· #{pluralize(count.to_i, "review")}</span>).html_safe
     end
   end
 end

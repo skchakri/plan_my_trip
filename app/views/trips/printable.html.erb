@@ -1,7 +1,7 @@
 <% content_for :title, "Itinerary · #{@trip.title}" %>
 
 <header class="mb-6 pb-4 border-b border-slate-300">
-  <p class="text-[10px] uppercase tracking-[0.2em] text-slate-500">Itinerary</p>
+  <p class="text-[10px] uppercase tracking-[0.2em] text-slate-400">Itinerary</p>
   <h1 class="font-semibold text-2xl mt-0.5"><%= @trip.title %></h1>
   <div class="flex flex-wrap gap-x-5 gap-y-1 mt-2 text-sm text-slate-700">
     <% if @trip.start_date && @trip.end_date %>
@@ -26,7 +26,7 @@
           <ol class="mt-2 space-y-2">
             <% day.activities.each do |a| %>
               <li class="flex gap-3 text-sm">
-                <span class="shrink-0 w-16 text-slate-500 tabular-nums"><%= a.time_label.presence %></span>
+                <span class="shrink-0 w-16 text-slate-400 tabular-nums"><%= a.time_label.presence %></span>
                 <div class="min-w-0">
                   <p class="font-medium text-slate-900"><%= a.title %></p>
                   <% loc = a.location_name.presence || a.address.presence %>
@@ -37,7 +37,7 @@
             <% end %>
           </ol>
         <% else %>
-          <p class="text-sm text-slate-500 mt-1 italic">No stops added yet.</p>
+          <p class="text-sm text-slate-400 mt-1 italic">No stops added yet.</p>
         <% end %>
       </section>
     <% end %>
@@ -47,5 +47,5 @@
     <%= render_markdown(@trip.body) %>
   </div>
 <% else %>
-  <p class="text-slate-500">This trip has no itinerary yet.</p>
+  <p class="text-slate-400">This trip has no itinerary yet.</p>
 <% end %>

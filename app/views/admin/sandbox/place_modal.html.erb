@@ -57,7 +57,7 @@
 
       <% if @place.description.present? %>
         <div class="rounded-lg border border-slate-800 bg-slate-950/50 p-3">
-          <p class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-1">About</p>
+          <p class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mb-1">About</p>
           <p class="text-sm text-slate-200 leading-relaxed whitespace-pre-line"><%= @place.description %></p>
         </div>
       <% end %>
@@ -70,7 +70,7 @@
           [ "Image src", @place.image_source ]
         ].each do |label, value| %>
           <div class="rounded-md border border-slate-800 bg-slate-950/40 px-2 py-1.5">
-            <p class="text-[9px] uppercase tracking-widest text-slate-500 font-semibold"><%= label %></p>
+            <p class="text-[9px] uppercase tracking-widest text-slate-400 font-semibold"><%= label %></p>
             <p class="text-slate-200 font-mono text-[11px] truncate"><%= value || "—" %></p>
           </div>
         <% end %>
@@ -89,15 +89,15 @@
 
       <% if @recent_activities.any? %>
         <div>
-          <p class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-2">Used in trips (<%= @recent_activities.size %>)</p>
+          <p class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mb-2">Used in trips (<%= @recent_activities.size %>)</p>
           <ul class="divide-y divide-slate-800/60 rounded-lg border border-slate-800 overflow-hidden">
             <% @recent_activities.each do |a| %>
               <li class="flex items-center justify-between gap-3 px-3 py-2 text-sm">
                 <div class="min-w-0">
                   <p class="text-slate-200 truncate"><%= a.title %></p>
-                  <p class="text-[11px] text-slate-500 truncate"><%= a.trip_day.trip.title %> · <%= a.trip_day.date&.strftime("%b %-d, %Y") %></p>
+                  <p class="text-[11px] text-slate-400 truncate"><%= a.trip_day.trip.title %> · <%= a.trip_day.date&.strftime("%b %-d, %Y") %></p>
                 </div>
-                <span class="text-[11px] text-slate-500 whitespace-nowrap"><%= time_ago_in_words(a.created_at) %> ago</span>
+                <span class="text-[11px] text-slate-400 whitespace-nowrap"><%= time_ago_in_words(a.created_at) %> ago</span>
               </li>
             <% end %>
           </ul>
@@ -105,7 +105,7 @@
       <% end %>
 
       <% if @place.image_attribution.present? %>
-        <p class="text-[10px] text-slate-500"><%= @place.image_attribution %></p>
+        <p class="text-[10px] text-slate-400"><%= @place.image_attribution %></p>
       <% end %>
     </div>
   </article>

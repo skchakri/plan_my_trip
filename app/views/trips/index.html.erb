@@ -2,7 +2,7 @@
 
 <div class="flex items-end justify-between mb-6">
   <div>
-    <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500 font-medium">Plan My Trip</p>
+    <p class="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-medium">Plan My Trip</p>
     <h1 class="font-display text-3xl sm:text-4xl font-semibold text-slate-50">Your trips</h1>
     <p class="text-sm text-slate-400 mt-1.5">
       <%= pluralize(@trips.size, "trip") %> · plan, share, and book
@@ -44,7 +44,7 @@
   <section class="mt-10">
     <div class="flex items-baseline justify-between mb-4 flex-wrap gap-2">
       <h2 class="font-display text-lg font-semibold text-slate-100">…or start from a template</h2>
-      <p class="text-xs text-slate-500">Edit anything after — they're just a head start.</p>
+      <p class="text-xs text-slate-400">Edit anything after — they're just a head start.</p>
     </div>
     <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
       <% TripTemplate.all.each do |tmpl| %>
@@ -57,7 +57,7 @@
           <div class="p-5">
             <h3 class="font-display text-base font-semibold text-slate-100"><%= tmpl.title %></h3>
             <p class="mt-1 text-sm text-slate-400 line-clamp-3"><%= tmpl.tagline %></p>
-            <div class="flex items-center gap-2 mt-3 text-[11px] uppercase tracking-wider text-slate-500">
+            <div class="flex items-center gap-2 mt-3 text-[11px] uppercase tracking-wider text-slate-400">
               <span><%= pluralize(tmpl.duration_days, "day") %></span>
               <% if tmpl.destination.present? %>
                 <span aria-hidden>·</span>
@@ -126,10 +126,10 @@
             <%# Destination · dates %>
             <div class="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1 text-[13px]">
               <% if trip.destination.present? %>
-                <span class="inline-flex items-center gap-1 text-slate-300"><%= icon :map_pin, class: "w-3.5 h-3.5 text-slate-500" %><span class="truncate max-w-[14rem]"><%= trip.destination %></span></span>
+                <span class="inline-flex items-center gap-1 text-slate-300"><%= icon :map_pin, class: "w-3.5 h-3.5 text-slate-400" %><span class="truncate max-w-[14rem]"><%= trip.destination %></span></span>
               <% end %>
               <% if trip.start_date && trip.end_date %>
-                <span class="inline-flex items-center gap-1 text-slate-400"><%= icon :calendar, class: "w-3.5 h-3.5 text-slate-500" %><%= trip.start_date.strftime("%b %-d") %> – <%= trip.end_date.strftime("%b %-d, %Y") %></span>
+                <span class="inline-flex items-center gap-1 text-slate-400"><%= icon :calendar, class: "w-3.5 h-3.5 text-slate-400" %><%= trip.start_date.strftime("%b %-d") %> – <%= trip.end_date.strftime("%b %-d, %Y") %></span>
               <% end %>
             </div>
 

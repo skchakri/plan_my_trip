@@ -2,7 +2,7 @@
 
 <div class="flex items-end justify-between mb-6">
   <div>
-    <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500 font-medium">Plan My Trip</p>
+    <p class="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-medium">Plan My Trip</p>
     <h1 class="font-display text-3xl sm:text-4xl font-semibold text-slate-50">Archived trips</h1>
     <p class="text-sm text-slate-400 mt-1.5">
       <%= pluralize(@trips.size, "archived trip") %> · restore to your dashboard or delete for good
@@ -44,9 +44,9 @@
                     <span class="inline-flex items-center gap-1 text-slate-400"><%= icon :map_pin, class: "w-3.5 h-3.5 text-slate-600" %><%= trip.destination %></span>
                   <% end %>
                   <% if trip.start_date && trip.end_date %>
-                    <span class="inline-flex items-center gap-1 text-slate-500"><%= icon :calendar, class: "w-3.5 h-3.5 text-slate-600" %><%= trip.start_date.strftime("%b %-d") %> – <%= trip.end_date.strftime("%b %-d, %Y") %></span>
+                    <span class="inline-flex items-center gap-1 text-slate-400"><%= icon :calendar, class: "w-3.5 h-3.5 text-slate-600" %><%= trip.start_date.strftime("%b %-d") %> – <%= trip.end_date.strftime("%b %-d, %Y") %></span>
                   <% end %>
-                  <span class="inline-flex items-center gap-1 text-slate-500"><%= icon :clock, class: "w-3.5 h-3.5 text-slate-600" %>Archived <%= time_ago_in_words(trip.discarded_at) %> ago</span>
+                  <span class="inline-flex items-center gap-1 text-slate-400"><%= icon :clock, class: "w-3.5 h-3.5 text-slate-600" %>Archived <%= time_ago_in_words(trip.discarded_at) %> ago</span>
                 </div>
               </div>
             </div>

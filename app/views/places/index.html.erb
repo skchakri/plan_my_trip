@@ -46,10 +46,10 @@
             </p>
           <% end %>
           <% if place.famous_for.present? || place.description.present? %>
-            <p class="text-xs text-slate-500 mt-1.5 line-clamp-2"><%= (place.famous_for.presence || place.description).to_s.truncate(120) %></p>
+            <p class="text-xs text-slate-400 mt-1.5 line-clamp-2"><%= (place.famous_for.presence || place.description).to_s.truncate(120) %></p>
           <% end %>
           <% if place.usage_count.positive? %>
-            <p class="text-[11px] text-slate-500 mt-2 inline-flex items-center gap-1">
+            <p class="text-[11px] text-slate-400 mt-2 inline-flex items-center gap-1">
               <%= icon :users, class: "w-3.5 h-3.5" %> In <%= pluralize(place.usage_count, "trip") %>
             </p>
           <% end %>
