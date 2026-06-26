@@ -9,7 +9,7 @@
 
 <div class="rounded-xl border border-slate-800 overflow-hidden">
   <table class="w-full text-sm">
-    <thead class="bg-slate-900/60 text-[10px] uppercase tracking-widest text-slate-500">
+    <thead class="bg-slate-900/60 text-[10px] uppercase tracking-widest text-slate-400">
       <tr>
         <th class="text-left px-3 py-2">Slug · name</th>
         <th class="text-left px-3 py-2">Provider · model</th>
@@ -23,9 +23,9 @@
           <td class="px-3 py-2">
             <%= link_to p.slug, admin_ai_prompt_path(p), class: "text-amber-300 hover:text-amber-200 font-medium" %>
             <div class="text-xs text-slate-400"><%= p.name %></div>
-            <% if p.description.present? %><div class="text-xs text-slate-500 mt-0.5 line-clamp-1"><%= p.description %></div><% end %>
+            <% if p.description.present? %><div class="text-xs text-slate-400 mt-0.5 line-clamp-1"><%= p.description %></div><% end %>
           </td>
-          <td class="px-3 py-2 text-slate-300"><span class="text-[10px] uppercase tracking-widest text-slate-500"><%= p.provider %></span><br><%= p.model %></td>
+          <td class="px-3 py-2 text-slate-300"><span class="text-[10px] uppercase tracking-widest text-slate-400"><%= p.provider %></span><br><%= p.model %></td>
           <td class="px-3 py-2"><span class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold"><%= p.kind %></span></td>
           <td class="px-3 py-2 text-right">
             <% if p.active %>

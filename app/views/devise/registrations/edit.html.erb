@@ -44,7 +44,7 @@
 
     <fieldset class="rounded-lg border border-slate-800 bg-slate-900/40 p-4 space-y-3">
       <legend class="px-2 text-sm font-medium text-emerald-300">Home base for day trips</legend>
-      <p class="text-xs text-slate-500 -mt-2">Pre-fills the day-trip planner so we can suggest nearby spots without you having to type your city every time. Skip the lat/lng if you don't have it — entering your city is enough to start.</p>
+      <p class="text-xs text-slate-400 -mt-2">Pre-fills the day-trip planner so we can suggest nearby spots without you having to type your city every time. Skip the lat/lng if you don't have it — entering your city is enough to start.</p>
       <div data-controller="place-autocomplete" data-place-autocomplete-search-url-value="<%= search_places_path %>" class="relative">
         <%= f.label :home_city, "Home city / town", class: "block text-xs uppercase tracking-widest text-slate-400 font-semibold mb-1.5" %>
         <%= f.text_field :home_city, autocomplete: "off",
@@ -87,13 +87,13 @@
 
     <fieldset class="rounded-lg border border-slate-800 bg-slate-900/40 p-4 space-y-3">
       <legend class="px-2 text-sm font-medium text-amber-300">Memberships &amp; loyalty</legend>
-      <p class="text-xs text-slate-500 -mt-2">Tell us what you have. We'll badge "Member rate" links on trip pages and surface real discounts you qualify for. Nothing leaves your account — these are hints, not credentials.</p>
+      <p class="text-xs text-slate-400 -mt-2">Tell us what you have. We'll badge "Member rate" links on trip pages and surface real discounts you qualify for. Nothing leaves your account — these are hints, not credentials.</p>
       <% category_titles = { wholesale: "Wholesale / Auto clubs", hotel: "Hotel programs", airline: "Airlines", card: "Travel credit cards" } %>
       <% category_titles.each do |cat, label|
            items = User::MEMBERSHIPS.select { |_, v| v[:category] == cat }
            next if items.empty? %>
         <div>
-          <p class="text-xs uppercase tracking-widest text-slate-500 mb-1.5"><%= label %></p>
+          <p class="text-xs uppercase tracking-widest text-slate-400 mb-1.5"><%= label %></p>
           <div class="grid grid-cols-2 gap-x-3 gap-y-1.5">
             <% items.each do |key, info| %>
               <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">

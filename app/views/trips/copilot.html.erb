@@ -7,7 +7,7 @@
 </div>
 
 <header class="mb-6 text-center">
-  <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500 font-medium mb-1.5 inline-flex items-center gap-2">
+  <p class="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-medium mb-1.5 inline-flex items-center gap-2">
     <%= icon :car, class: "w-3.5 h-3.5 text-amber-400" %> Drive co-pilot
   </p>
   <h1 class="font-display text-3xl sm:text-4xl font-semibold tracking-tight">Pick a traveler</h1>
@@ -34,7 +34,7 @@
 <% if @people.empty? %>
   <div class="rounded-2xl border border-dashed border-slate-700/70 bg-slate-900/30 p-8 text-center">
     <p class="text-slate-300 font-medium mb-1">No travelers added yet</p>
-    <p class="text-sm text-slate-500 mb-4">Add the people on this trip with their interests so the co-pilot can ask the right questions.</p>
+    <p class="text-sm text-slate-400 mb-4">Add the people on this trip with their interests so the co-pilot can ask the right questions.</p>
     <%= link_to "Add travelers on the trip page", @trip, class: "inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-amber-500 text-slate-950 font-semibold text-sm hover:bg-amber-400" %>
   </div>
 <% else %>

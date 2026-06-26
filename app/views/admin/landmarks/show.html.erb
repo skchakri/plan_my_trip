@@ -7,7 +7,7 @@
 <div class="flex items-start justify-between gap-4 mb-4">
   <div class="min-w-0">
     <h1 class="font-display text-2xl font-semibold"><%= @entry[:name] %></h1>
-    <p class="text-[11px] text-slate-500 mt-1">
+    <p class="text-[11px] text-slate-400 mt-1">
       <%= @entry[:kind] || "scenic" %>
       <% if @entry[:source] %> · <span class="uppercase tracking-widest"><%= @entry[:source] %></span><% end %>
       <% if @entry[:latitude] && @entry[:longitude] %> · <%= @entry[:latitude].to_f.round(4) %>, <%= @entry[:longitude].to_f.round(4) %><% end %>
@@ -25,7 +25,7 @@
 
     <% if @entry[:narration].present? %>
       <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
-        <p class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-1">Narration</p>
+        <p class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mb-1">Narration</p>
         <p class="text-sm text-slate-200 leading-relaxed whitespace-pre-line"><%= @entry[:narration] %></p>
       </div>
     <% end %>
@@ -33,17 +33,17 @@
 
   <aside class="space-y-3 text-sm">
     <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
-      <p class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-2">Trip</p>
+      <p class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mb-2">Trip</p>
       <p class="text-slate-200"><%= @entry[:trip_title] %></p>
       <% if @entry[:trip] %>
-        <p class="text-[11px] text-slate-500 mt-1">Owner: <%= @entry[:trip].owner&.email %></p>
+        <p class="text-[11px] text-slate-400 mt-1">Owner: <%= @entry[:trip].owner&.email %></p>
         <%= link_to "Open plan →", plan_trip_path(@entry[:trip]), target: "_blank", class: "text-xs text-amber-300 hover:text-amber-200 mt-2 inline-block" %>
       <% end %>
     </div>
 
     <% if @entry[:wikipedia_url].present? %>
       <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
-        <p class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-1">Wikipedia</p>
+        <p class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mb-1">Wikipedia</p>
         <%= link_to @entry[:wikipedia_url], @entry[:wikipedia_url], target: "_blank", rel: "noopener", class: "text-xs text-amber-300 hover:text-amber-200 break-all" %>
       </div>
     <% end %>

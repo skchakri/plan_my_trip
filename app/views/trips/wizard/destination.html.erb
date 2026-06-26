@@ -6,7 +6,7 @@
   <%= link_to trips_path, class: "inline-flex items-center gap-1 text-sm text-slate-400 hover:text-amber-300 transition-colors" do %>
     <%= icon :arrow_left, class: "w-4 h-4" %> Trips
   <% end %>
-  <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500 font-medium mt-3">Plan a trip · step 1 of 4</p>
+  <p class="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-medium mt-3">Plan a trip · step 1 of 4</p>
   <h1 class="font-display text-3xl sm:text-4xl font-semibold tracking-tight">Where are you going?</h1>
   <p class="text-sm text-slate-400 mt-1.5">A destination and dates is all we need to start. We'll pull in highlights and a day-by-day plan in the next steps.</p>
 </div>
@@ -46,7 +46,7 @@
           hidden
           class="absolute left-0 right-0 top-full mt-1.5 z-30 rounded-xl border border-slate-700 bg-slate-900/95 backdrop-blur shadow-2xl shadow-black/60 overflow-hidden max-h-80 overflow-y-auto"></ul>
 
-      <p class="text-[11px] text-slate-500 mt-1.5">Type a city, park, or region. Picks from our shared catalog of places others have visited — or just type a fresh one.</p>
+      <p class="text-[11px] text-slate-400 mt-1.5">Type a city, park, or region. Picks from our shared catalog of places others have visited — or just type a fresh one.</p>
     </div>
 
     <div>
@@ -62,7 +62,7 @@
       <div>
         <%= f.label :departure_time, "Departure time", class: label_classes %>
         <%= f.time_field :departure_time, value: @draft["departure_time"], class: input_classes %>
-        <p class="text-[11px] text-slate-500 mt-1.5">When you're leaving home</p>
+        <p class="text-[11px] text-slate-400 mt-1.5">When you're leaving home</p>
       </div>
       <div class="hidden sm:block"></div>
       <div>
@@ -72,7 +72,7 @@
       <div>
         <%= f.label :return_time, "Return time", class: label_classes %>
         <%= f.time_field :return_time, value: @draft["return_time"], class: input_classes %>
-        <p class="text-[11px] text-slate-500 mt-1.5">When you want to be back</p>
+        <p class="text-[11px] text-slate-400 mt-1.5">When you want to be back</p>
       </div>
       <div>
         <%= f.label :traveler_count, "Travelers", class: label_classes %>
@@ -99,7 +99,7 @@
             <input type="radio" name="wizard[pace]" value="<%= val %>" <%= "checked" if checked %> class="peer sr-only">
             <span class="block rounded-lg border border-slate-700 bg-slate-800/60 px-3 py-2.5 text-center peer-checked:border-amber-500/60 peer-checked:bg-amber-500/10 peer-checked:text-amber-100 hover:border-amber-500/40 transition-colors">
               <span class="block text-sm font-semibold"><%= title %></span>
-              <span class="block text-[11px] text-slate-500 mt-0.5 leading-tight"><%= hint %></span>
+              <span class="block text-[11px] text-slate-400 mt-0.5 leading-tight"><%= hint %></span>
             </span>
           </label>
         <% end %>

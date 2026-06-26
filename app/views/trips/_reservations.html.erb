@@ -9,7 +9,7 @@
 <section class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 sm:p-7 mt-6">
   <h2 class="font-display text-xl font-semibold flex items-center gap-2 mb-1.5">
     <%= icon :inbox, class: "w-5 h-5 text-emerald-400/80" %> Forwarded reservations
-    <span class="text-xs text-slate-500 font-sans font-normal">auto-parsed from email</span>
+    <span class="text-xs text-slate-400 font-sans font-normal">auto-parsed from email</span>
   </h2>
   <p class="text-sm text-slate-400 mb-4">
     Forward any hotel, flight, car or tour confirmation to this trip and it’s read into a reservation automatically.
@@ -17,7 +17,7 @@
 
   <%# Per-trip forwarding address with copy-to-clipboard (reuses share-link JS). %>
   <div data-controller="share-link" class="mb-5">
-    <label class="block text-[11px] uppercase tracking-wider text-slate-500 mb-1.5">This trip’s forwarding address</label>
+    <label class="block text-[11px] uppercase tracking-wider text-slate-400 mb-1.5">This trip’s forwarding address</label>
     <div class="flex items-stretch gap-2 bg-slate-950/60 border border-slate-700 rounded-lg p-1 pl-3">
       <span class="shrink-0 self-center text-slate-500"><%= icon :mail, class: "w-4 h-4" %></span>
       <input type="text" readonly value="<%= trip.forwarding_address %>"
@@ -31,7 +31,7 @@
         Copy
       </button>
     </div>
-    <p class="text-[11px] text-slate-500 mt-1.5">Tip: in Gmail or Outlook, just hit “Forward” on the confirmation and send it here.</p>
+    <p class="text-[11px] text-slate-400 mt-1.5">Tip: in Gmail or Outlook, just hit “Forward” on the confirmation and send it here.</p>
   </div>
 
   <% if reservations.any? %>
@@ -49,7 +49,7 @@
                 <span class="shrink-0 mt-0.5 text-amber-400/80"><%= icon :alert_triangle, class: "w-4 h-4" %></span>
                 <div class="min-w-0">
                   <p class="text-sm text-slate-200">We couldn’t read this forwarded email.</p>
-                  <p class="text-xs text-slate-500 mt-0.5">It’s saved here in case you want to add the details by hand<% if r.source_from.present? %> · from <%= r.source_from %><% end %>.</p>
+                  <p class="text-xs text-slate-400 mt-0.5">It’s saved here in case you want to add the details by hand<% if r.source_from.present? %> · from <%= r.source_from %><% end %>.</p>
                 </div>
               </div>
               <% if can_edit %>
@@ -84,7 +84,7 @@
                     </p>
                   <% end %>
                   <% if r.notes.present? %>
-                    <p class="text-xs text-slate-500 mt-0.5"><%= r.notes %></p>
+                    <p class="text-xs text-slate-400 mt-0.5"><%= r.notes %></p>
                   <% end %>
                 </div>
               </div>
@@ -101,6 +101,6 @@
       <% end %>
     </ul>
   <% else %>
-    <p class="text-xs text-slate-500">No reservations yet — forward a confirmation to the address above to get started.</p>
+    <p class="text-xs text-slate-400">No reservations yet — forward a confirmation to the address above to get started.</p>
   <% end %>
 </section>

@@ -13,7 +13,7 @@
   <% if @posts.empty? %>
     <div class="rounded-2xl border border-dashed border-slate-700 bg-slate-900/30 p-16 text-center">
       <p class="text-slate-300 font-medium">No posts yet.</p>
-      <p class="text-sm text-slate-500 mt-1">Stories from the road are on the way.</p>
+      <p class="text-sm text-slate-400 mt-1">Stories from the road are on the way.</p>
     </div>
   <% else %>
     <%# Featured post (first) %>
@@ -38,7 +38,7 @@
           <% if featured.excerpt.present? %>
             <p class="mt-3 text-slate-400 leading-relaxed"><%= featured.excerpt %></p>
           <% end %>
-          <div class="mt-5 flex items-center gap-3 text-xs text-slate-500">
+          <div class="mt-5 flex items-center gap-3 text-xs text-slate-400">
             <% if featured.author.present? %><span><%= featured.author %></span><span aria-hidden="true">·</span><% end %>
             <% if featured.published_on.present? %><time datetime="<%= featured.published_on.iso8601 %>"><%= featured.published_on.strftime("%B %-d, %Y") %></time><span aria-hidden="true">·</span><% end %>
             <% if featured.reading_minutes.present? %><span><%= featured.reading_minutes %> min read</span><% end %>
@@ -66,7 +66,7 @@
               <% if post.excerpt.present? %>
                 <p class="mt-2 text-sm text-slate-400 leading-relaxed line-clamp-3"><%= post.excerpt %></p>
               <% end %>
-              <div class="mt-auto pt-4 flex items-center gap-2 text-xs text-slate-500">
+              <div class="mt-auto pt-4 flex items-center gap-2 text-xs text-slate-400">
                 <% if post.published_on.present? %><time datetime="<%= post.published_on.iso8601 %>"><%= post.published_on.strftime("%b %-d, %Y") %></time><% end %>
                 <% if post.reading_minutes.present? %><span aria-hidden="true">·</span><span><%= post.reading_minutes %> min</span><% end %>
               </div>

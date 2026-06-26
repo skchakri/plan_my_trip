@@ -5,7 +5,7 @@
 <%= form_with url: admin_ai_calls_path, method: :get, class: "mb-4 flex flex-wrap gap-2 items-end" do %>
   <% [ [ :slug, "Slug" ], [ :provider, "Provider" ], [ :status, "Status" ], [ :q, "Search prompt/response" ] ].each do |name, label| %>
     <div>
-      <%= label_tag name, label, class: "block text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-1" %>
+      <%= label_tag name, label, class: "block text-[10px] uppercase tracking-widest text-slate-400 font-semibold mb-1" %>
       <%= text_field_tag name, params[name], class: "rounded-md bg-slate-900/60 border border-slate-700 px-2.5 py-1.5 text-sm text-slate-100 focus:border-amber-500 focus:outline-none" %>
     </div>
   <% end %>

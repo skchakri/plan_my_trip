@@ -5,7 +5,7 @@
 <div class="flex items-start justify-between gap-4 mt-2 mb-5">
   <div class="min-w-0">
     <h1 class="font-display text-xl font-semibold"><%= @call.prompt_slug %></h1>
-    <p class="text-xs text-slate-500 mt-1 tabular-nums"><%= @call.created_at.strftime('%Y-%m-%d %H:%M:%S %Z') %> · <%= time_ago_in_words(@call.created_at) %> ago</p>
+    <p class="text-xs text-slate-400 mt-1 tabular-nums"><%= @call.created_at.strftime('%Y-%m-%d %H:%M:%S %Z') %> · <%= time_ago_in_words(@call.created_at) %> ago</p>
   </div>
   <div class="flex items-center gap-2 shrink-0">
     <% if @call.ai_prompt %>
@@ -31,7 +31,7 @@
 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
   <% cards.each do |label, value| %>
     <div class="rounded-lg border border-slate-800 bg-slate-900/40 p-2.5">
-      <p class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold"><%= label %></p>
+      <p class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold"><%= label %></p>
       <p class="text-sm text-slate-100 mt-0.5"><%= value %></p>
     </div>
   <% end %>
@@ -41,7 +41,7 @@
   <div>
     <p class="text-[11px] uppercase tracking-widest text-slate-400 font-semibold mb-1.5">User · trip</p>
     <p class="text-sm text-slate-200"><%= @call.user&.email || "—" %></p>
-    <% if @call.trip %><p class="text-xs text-slate-500"><%= link_to @call.trip.title, trip_path(@call.trip), class: "hover:text-amber-300" %></p><% end %>
+    <% if @call.trip %><p class="text-xs text-slate-400"><%= link_to @call.trip.title, trip_path(@call.trip), class: "hover:text-amber-300" %></p><% end %>
   </div>
   <div>
     <p class="text-[11px] uppercase tracking-widest text-slate-400 font-semibold mb-1.5">Input variables</p>
@@ -66,6 +66,6 @@
   <% elsif @call.error.present? %>
     <pre class="rounded-lg bg-rose-500/10 border border-rose-500/30 p-3 text-xs text-rose-200 whitespace-pre-wrap font-mono"><%= @call.error %></pre>
   <% else %>
-    <p class="text-sm text-slate-500 italic">No response captured.</p>
+    <p class="text-sm text-slate-400 italic">No response captured.</p>
   <% end %>
 </section>

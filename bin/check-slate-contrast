@@ -1,0 +1,54 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Slate-contrast guard (a11y regression gate).
+#
+# `text-slate-500` on slate-950 is ~3.1:1 — it FAILS WCAG AA (4.5:1) for any
+# text a user must read. `docs/DESIGN_SYSTEM.md` mandates muted text = `slate-400`
+# (~5.9:1). This script greps editable source for `text-slate-500` and fails on
+# any occurrence that is NOT a decorative icon.
+#
+# Heuristic, best-effort: a line is allowed to keep `text-slate-500` only if it
+# carries a decorative marker — an `<%= icon` / `icon :name` helper call, a raw
+# `<svg`, or an explicit `slate-ok` opt-out comment. Everything else is treated
+# as readable text and must use `text-slate-400`.
+#
+# Generated CSS is excluded (app/assets/builds is rebuilt by the Tailwind build).
+#
+# Run directly (`bin/check-slate-contrast`) or via `bin/ci`. Exits 0 when clean,
+# 1 (with the offending lines) on any readable-text violation.
+
+ROOTS = %w[app/views app/helpers app/javascript].freeze
+EXCLUDE = %r{\Aapp/assets/builds/}
+NEEDLE = "text-slate-500"
+# A line keeping text-slate-500 must look decorative (icon/svg) or opt out via comment.
+DECORATIVE = /<%=?\s*icon\b|\bicon\s+:|<svg\b|slate-ok/
+
+def source_files
+  ROOTS.flat_map { |root| Dir.glob("#{root}/**/*") }
+       .select { |path| File.file?(path) }
+       .reject { |path| path.match?(EXCLUDE) }
+end
+
+violations = []
+
+source_files.each do |path|
+  File.foreach(path).with_index(1) do |line, lineno|
+    next unless line.include?(NEEDLE)
+    next if line.match?(DECORATIVE)
+
+    violations << "#{path}:#{lineno}: #{line.strip}"
+  end
+end
+
+if violations.empty?
+  puts "Slate contrast guard: OK (no readable text-slate-500)."
+  exit 0
+end
+
+warn "Slate contrast guard: #{violations.size} readable `text-slate-500` occurrence(s) found."
+warn "Use `text-slate-400` for text users read (WCAG AA). Keep `text-slate-500` only on"
+warn "decorative icons (a line with `<%= icon`, `<svg`, or a trailing `slate-ok` comment)."
+warn ""
+violations.each { |v| warn "  #{v}" }
+exit 1

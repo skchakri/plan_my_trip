@@ -34,7 +34,7 @@
           class="absolute left-0 right-0 top-full mt-1.5 z-30 rounded-xl border border-slate-700 bg-slate-900/95 backdrop-blur shadow-2xl shadow-black/60 overflow-hidden max-h-80 overflow-y-auto"></ul>
 
       <% if current_user.home_base? %>
-        <p class="text-[11px] text-slate-500 mt-1.5">Default: <strong class="text-emerald-300"><%= current_user.home_label %></strong> · change above to plan a trip from somewhere else (visiting family, on the road, etc.)</p>
+        <p class="text-[11px] text-slate-400 mt-1.5">Default: <strong class="text-emerald-300"><%= current_user.home_label %></strong> · change above to plan a trip from somewhere else (visiting family, on the road, etc.)</p>
       <% else %>
         <p class="text-[11px] text-amber-300/80 mt-1.5">Pro tip: <%= link_to "save a home base on your account", edit_user_registration_path, class: "underline hover:text-amber-200" %> and it'll auto-fill next time.</p>
       <% end %>
@@ -55,7 +55,7 @@
       </div>
       <div class="col-span-2 sm:col-span-1">
         <p class="<%= label_classes %>">One-way</p>
-        <p class="text-xs text-slate-500 mt-2.5 leading-snug">We'll plan a round-trip back to your home base.</p>
+        <p class="text-xs text-slate-400 mt-2.5 leading-snug">We'll plan a round-trip back to your home base.</p>
       </div>
     </div>
 
@@ -73,7 +73,7 @@
           </label>
         <% end %>
       </div>
-      <p class="text-[11px] text-slate-500 mt-2">Skip if you want a balanced mix — we'll surface the top picks across categories.</p>
+      <p class="text-[11px] text-slate-400 mt-2">Skip if you want a balanced mix — we'll surface the top picks across categories.</p>
     </fieldset>
   </div>
 

@@ -19,7 +19,7 @@
   </div>
 
   <% if @trip.destination.blank? %>
-    <p class="text-sm text-slate-500 italic">Add a destination to this trip to see booking links.</p>
+    <p class="text-sm text-slate-400 italic">Add a destination to this trip to see booking links.</p>
   <% else %>
     <%# Handled summary strip — at-a-glance progress across the four categories. %>
     <% handled = claims_by_kind.keys & BookingClaim::KINDS %>
@@ -30,7 +30,7 @@
           <%= icon (done ? :check : :clock), class: "w-3.5 h-3.5" %><%= BookingClaim::KIND_LABELS[k] %>
         </span>
       <% end %>
-      <span class="text-slate-500 ml-auto"><%= handled.size %>/<%= BookingClaim::KINDS.size %> booked</span>
+      <span class="text-slate-400 ml-auto"><%= handled.size %>/<%= BookingClaim::KINDS.size %> booked</span>
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -47,7 +47,7 @@
                 <span class="text-[10px] uppercase tracking-widest font-semibold px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300">Handled</span>
               <% end %>
             </span>
-            <span class="inline-flex items-center gap-1 text-xs text-slate-500">
+            <span class="inline-flex items-center gap-1 text-xs text-slate-400">
               <% if claim %>
                 <%= pluralize(claim.documents.size, "doc") %>
               <% else %>
@@ -76,7 +76,7 @@
                         <%= link_to rails_blob_path(doc, disposition: "inline"), target: "_blank", rel: "noopener", class: "min-w-0 flex items-center gap-2 text-sm text-slate-200 hover:text-amber-200 truncate" do %>
                           <span class="shrink-0 text-slate-500"><%= icon :external_link, class: "w-3.5 h-3.5" %></span>
                           <span class="truncate"><%= doc.filename %></span>
-                          <span class="shrink-0 text-[10px] text-slate-500"><%= number_to_human_size(doc.byte_size) %></span>
+                          <span class="shrink-0 text-[10px] text-slate-400"><%= number_to_human_size(doc.byte_size) %></span>
                         <% end %>
                         <%= button_to document_trip_booking_claim_path(@trip, claim, doc_id: doc.id), method: :delete, data: { turbo_confirm: "Delete #{doc.filename}?" }, class: "text-rose-400 hover:text-rose-300 cursor-pointer" do %>
                           <%= icon :x, class: "w-3.5 h-3.5" %>
@@ -154,7 +154,7 @@
                 <div class="flex flex-wrap items-center gap-2">
                   <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-slate-900/60 border border-slate-700 text-sm text-slate-300 hover:border-amber-500/50 cursor-pointer">
                     <%= icon :external_link, class: "w-3.5 h-3.5" %>
-                    <span>Attach docs <span class="text-slate-500 font-normal">(optional)</span></span>
+                    <span>Attach docs <span class="text-slate-400 font-normal">(optional)</span></span>
                     <%= f.file_field "booking_claim[documents][]", multiple: true, class: "sr-only", accept: "image/*,application/pdf" %>
                   </label>
                   <%= f.submit kind == :cars ? "Yes — my own car" : "Mark as handled", class: "inline-flex items-center px-3 py-1.5 rounded-md bg-emerald-500 text-slate-950 font-semibold text-sm hover:bg-emerald-400 cursor-pointer" %>

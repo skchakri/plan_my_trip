@@ -109,7 +109,7 @@
     <aside class="space-y-5">
       <% if @place.latitude && @place.longitude %>
         <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
-          <p class="text-xs uppercase tracking-wider text-slate-500 mb-2">Location</p>
+          <p class="text-xs uppercase tracking-wider text-slate-400 mb-2">Location</p>
           <p class="text-slate-100"><%= @place.region.presence || "#{@place.latitude.to_f.round(3)}, #{@place.longitude.to_f.round(3)}" %></p>
           <%= link_to "Open in Google Maps →",
                 "https://www.google.com/maps/search/?api=1&query=#{CGI.escape(@place.canonical_name.presence || @place.name)}",
@@ -120,14 +120,14 @@
 
       <% if @place.usage_count.to_i.positive? %>
         <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
-          <p class="text-xs uppercase tracking-wider text-slate-500 mb-1">On Plan My Trip</p>
+          <p class="text-xs uppercase tracking-wider text-slate-400 mb-1">On Plan My Trip</p>
           <p class="text-slate-100 text-2xl font-display"><%= pluralize(@place.usage_count, "trip") %></p>
           <p class="text-sm text-slate-400">have added this place to a plan.</p>
         </div>
       <% end %>
 
       <% if @place.image_attribution.present? %>
-        <p class="text-xs text-slate-500">Image: <%= @place.image_attribution %></p>
+        <p class="text-xs text-slate-400">Image: <%= @place.image_attribution %></p>
       <% end %>
     </aside>
   </div>

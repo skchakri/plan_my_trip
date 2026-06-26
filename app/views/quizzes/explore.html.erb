@@ -1,7 +1,7 @@
 <% content_for :title, "Explore countries" %>
 
 <header class="mb-6">
-  <p class="text-[11px] uppercase tracking-[0.2em] text-slate-500 font-medium">Plan My Trip · Explore</p>
+  <p class="text-[11px] uppercase tracking-[0.2em] text-slate-400 font-medium">Plan My Trip · Explore</p>
   <h1 class="font-display text-3xl sm:text-4xl font-semibold text-slate-50 mt-1 flex items-center gap-3">
     Country Explorer
     <span class="text-2xl sm:text-3xl">🧭</span>
@@ -16,7 +16,7 @@
 <%= form_with url: quiz_explore_path, method: :get, data: { controller: "auto-submit", turbo_action: "replace" } do %>
   <label for="country-select" class="sr-only">Choose a country</label>
   <div class="relative max-w-sm">
-    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none">
+    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
       <%= icon :globe, class: "w-4 h-4" %>
     </span>
     <select id="country-select" name="c" data-action="change->auto-submit#submit"
@@ -25,7 +25,7 @@
         <option value="<%= c.iso2 %>" <%= "selected" if c.id == @country.id %>><%= c.name %></option>
       <% end %>
     </select>
-    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none">
+    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
       <%= icon :chevron_down, class: "w-4 h-4" %>
     </span>
   </div>
@@ -40,7 +40,7 @@
       <div class="min-w-0">
         <h2 class="font-display text-2xl font-semibold text-slate-50 leading-tight"><%= @country.name %></h2>
         <p class="text-sm text-slate-400 mt-0.5 flex items-center gap-1.5">
-          <%= icon :map_pin, class: "w-3.5 h-3.5 text-slate-500" %>
+          <%= icon :map_pin, class: "w-3.5 h-3.5 text-slate-400" %>
           <%= @country.capital %> · <%= @country.continent %>
         </p>
       </div>
@@ -53,7 +53,7 @@
             <%= icon ic, class: "w-4 h-4" %>
           </span>
           <div class="min-w-0">
-            <dt class="text-[11px] uppercase tracking-wide text-slate-500 font-medium"><%= label %></dt>
+            <dt class="text-[11px] uppercase tracking-wide text-slate-400 font-medium"><%= label %></dt>
             <dd class="text-sm text-slate-100 font-medium mt-0.5"><%= value %></dd>
           </div>
         </div>
@@ -61,7 +61,7 @@
     </dl>
 
     <% if @country.national_sport.present? %>
-      <p class="px-5 sm:px-6 py-3 text-[11px] text-slate-500 border-t border-slate-800/70">
+      <p class="px-5 sm:px-6 py-3 text-[11px] text-slate-400 border-t border-slate-800/70">
         National sport/animal reflect the most widely associated choice; not every country designates one officially.
       </p>
     <% end %>

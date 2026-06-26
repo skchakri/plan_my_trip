@@ -56,8 +56,8 @@
     <%# ---- Vibe filter chips (client-side, instant) ---- %>
     <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-4 sm:p-5 mb-5">
       <div class="flex items-baseline justify-between gap-3 mb-2.5">
-        <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500 font-semibold">What's the vibe? <span class="text-slate-600 normal-case tracking-normal font-normal">filters instantly · no reload</span></p>
-        <button type="button" data-action="vibe-filter#clear" class="text-[11px] text-slate-500 hover:text-rose-300 cursor-pointer">clear</button>
+        <p class="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-semibold">What's the vibe? <span class="text-slate-600 normal-case tracking-normal font-normal">filters instantly · no reload</span></p>
+        <button type="button" data-action="vibe-filter#clear" class="text-[11px] text-slate-400 hover:text-rose-300 cursor-pointer">clear</button>
       </div>
       <div class="flex flex-wrap gap-1.5">
         <% DestinationHighlights::VIBES.each do |vibe| %>
@@ -115,7 +115,7 @@
              class="rounded-2xl border border-slate-800 bg-slate-900/40 overflow-hidden mb-5">
           <div data-highlights-map-target="map"
                class="highlights-map h-64 sm:h-80 w-full"></div>
-          <div class="px-4 py-2.5 text-[11px] text-slate-500 border-t border-slate-800 flex items-center gap-3 flex-wrap">
+          <div class="px-4 py-2.5 text-[11px] text-slate-400 border-t border-slate-800 flex items-center gap-3 flex-wrap">
             <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span> nature</span>
             <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-cyan-400 inline-block"></span> scenic</span>
             <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-orange-500 inline-block"></span> adventure</span>
@@ -294,7 +294,7 @@
             <div class="h-3 rounded-full bg-slate-800/80 w-5/6 animate-pulse"></div>
             <div class="h-3 rounded-full bg-slate-800/80 w-2/3 animate-pulse"></div>
             <div class="h-3 rounded-full bg-slate-800/80 w-4/5 animate-pulse"></div>
-            <p class="text-xs text-slate-500 pt-2">✨ Pulling together the best parts of this spot…</p>
+            <p class="text-xs text-slate-400 pt-2">✨ Pulling together the best parts of this spot…</p>
           </div>
 
           <%# Rich body — populated async %>
@@ -345,7 +345,7 @@
                       placeholder="Optional note — what stood out, tips, the catch…"
                       class="w-full rounded-lg bg-slate-950/60 border border-slate-700 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-amber-500/60"></textarea>
             <div class="flex items-center justify-between mt-2 gap-2">
-              <span data-highlight-detail-target="ratingStatus" class="text-xs text-slate-500"></span>
+              <span data-highlight-detail-target="ratingStatus" class="text-xs text-slate-400"></span>
               <a href="#" target="_blank" rel="noopener" data-highlight-detail-target="modalAllReviews" hidden
                  class="text-xs text-amber-300 hover:text-amber-200">See all reviews →</a>
             </div>

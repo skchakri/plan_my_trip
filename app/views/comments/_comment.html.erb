@@ -16,7 +16,7 @@
         <%= button_to trip_activity_comment_path(comment.trip, comment.activity, comment),
               method: :delete,
               form: { data: { turbo_confirm: "Delete this comment?" }, class: "inline ml-auto opacity-0 group-hover:opacity-100 transition-opacity" },
-              class: "text-[11px] text-slate-500 hover:text-rose-300" do %>
+              class: "text-[11px] text-slate-400 hover:text-rose-300" do %>
           Delete
         <% end %>
       <% end %>

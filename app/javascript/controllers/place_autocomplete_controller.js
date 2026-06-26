@@ -90,7 +90,7 @@ export default class extends Controller {
     if (!this.resultsTarget.hidden) {
       const hint = document.createElement("li")
       hint.dataset.discoverHint = "1"
-      hint.className = "px-3 py-2 text-[11px] text-slate-500 border-t border-slate-800/80"
+      hint.className = "px-3 py-2 text-[11px] text-slate-400 border-t border-slate-800/80"
       hint.textContent = "Searching the web…"
       this.resultsTarget.appendChild(hint)
     }
@@ -173,7 +173,7 @@ export default class extends Controller {
       // Usage badge
       if (p.usage_count > 0) {
         const badge = document.createElement("span")
-        badge.className = "shrink-0 text-[10px] tabular-nums text-slate-500 font-medium"
+        badge.className = "shrink-0 text-[10px] tabular-nums text-slate-400 font-medium"
         badge.textContent = `${p.usage_count}× used`
         li.appendChild(badge)
       }

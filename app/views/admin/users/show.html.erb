@@ -8,7 +8,7 @@
   <div class="min-w-0">
     <h1 class="font-display text-2xl font-semibold"><%= @user.email %></h1>
     <% if @user.name.present? %><p class="text-sm text-slate-400"><%= @user.name %></p><% end %>
-    <p class="text-[11px] text-slate-500 mt-1">
+    <p class="text-[11px] text-slate-400 mt-1">
       Joined <%= @user.created_at.strftime("%b %-d, %Y") %>
       <% if @user.admin? %> · <span class="text-amber-300 font-semibold uppercase tracking-widest">admin</span><% end %>
     </p>
@@ -19,37 +19,37 @@
 <div class="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6">
   <section class="space-y-6">
     <div>
-      <h2 class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-2">Owned trips (<%= @owned_trips.size %>)</h2>
+      <h2 class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mb-2">Owned trips (<%= @owned_trips.size %>)</h2>
       <% if @owned_trips.any? %>
         <ul class="divide-y divide-slate-800/60 rounded-xl border border-slate-800 overflow-hidden">
           <% @owned_trips.each do |t| %>
             <li class="flex items-center justify-between gap-3 px-3 py-2 text-sm">
               <div class="min-w-0">
                 <%= link_to t.title, plan_trip_path(t), target: "_blank", class: "text-slate-200 hover:text-amber-200 truncate" %>
-                <p class="text-[11px] text-slate-500"><%= t.destination %><% if t.start_date %> · <%= t.start_date.strftime("%b %-d, %Y") %><% end %></p>
+                <p class="text-[11px] text-slate-400"><%= t.destination %><% if t.start_date %> · <%= t.start_date.strftime("%b %-d, %Y") %><% end %></p>
               </div>
-              <span class="text-[11px] text-slate-500 whitespace-nowrap"><%= time_ago_in_words(t.created_at) %> ago</span>
+              <span class="text-[11px] text-slate-400 whitespace-nowrap"><%= time_ago_in_words(t.created_at) %> ago</span>
             </li>
           <% end %>
         </ul>
       <% else %>
-        <p class="text-sm text-slate-500 italic">No owned trips yet.</p>
+        <p class="text-sm text-slate-400 italic">No owned trips yet.</p>
       <% end %>
     </div>
 
     <div>
-      <h2 class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-2">Recent AI calls (<%= @recent_calls.size %>)</h2>
+      <h2 class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mb-2">Recent AI calls (<%= @recent_calls.size %>)</h2>
       <% if @recent_calls.any? %>
         <%= render "admin/ai_calls/table", calls: @recent_calls %>
       <% else %>
-        <p class="text-sm text-slate-500 italic">No AI calls logged for this user.</p>
+        <p class="text-sm text-slate-400 italic">No AI calls logged for this user.</p>
       <% end %>
     </div>
   </section>
 
   <aside class="space-y-3 text-sm">
     <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
-      <p class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-2">Loyalty memberships</p>
+      <p class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mb-2">Loyalty memberships</p>
       <% active = @user.discount_memberships.to_h.select { |_, v| v } %>
       <% if active.any? %>
         <ul class="space-y-1 text-xs">
@@ -61,7 +61,7 @@
           <% end %>
         </ul>
       <% else %>
-        <p class="text-xs text-slate-500 italic">None active.</p>
+        <p class="text-xs text-slate-400 italic">None active.</p>
       <% end %>
       <% if @user.alltrails_pro? %>
         <p class="text-[11px] mt-3 text-emerald-300">AllTrails Pro</p>

@@ -19,12 +19,12 @@
       <% else %>
         <span class="text-slate-100 font-medium"><%= suggestion.title %></span>
       <% end %>
-      <span class="text-[11px] text-slate-500">by <%= suggestion.author.display_name %></span>
+      <span class="text-[11px] text-slate-400">by <%= suggestion.author.display_name %></span>
       <% if suggestion.author_id == current_user.id || suggestion.trip.owner_id == current_user.id %>
         <%= button_to trip_trip_day_suggestion_path(suggestion.trip, suggestion.trip_day, suggestion),
               method: :delete,
               form: { data: { turbo_confirm: "Delete this suggestion?" }, class: "inline ml-auto opacity-0 group-hover:opacity-100 transition-opacity" },
-              class: "text-[11px] text-slate-500 hover:text-rose-300" do %>
+              class: "text-[11px] text-slate-400 hover:text-rose-300" do %>
           Delete
         <% end %>
       <% end %>

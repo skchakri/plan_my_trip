@@ -3,7 +3,7 @@
     <%= render "block_header", title: "Drive-by landmarks (#{Array(@result[:value]).size})", result: @result %>
     <% landmarks = Array(@result[:value]) %>
     <% if landmarks.empty? %>
-      <p class="text-sm text-slate-500 italic">No drive-by landmarks. <code class="text-amber-300">route_landmarks.v1</code> may not be active, or the model returned nothing for this route.</p>
+      <p class="text-sm text-slate-400 italic">No drive-by landmarks. <code class="text-amber-300">route_landmarks.v1</code> may not be active, or the model returned nothing for this route.</p>
     <% else %>
       <ul class="space-y-2">
         <% landmarks.each do |l| %>
@@ -17,7 +17,7 @@
               <div class="flex items-center gap-2">
                 <p class="text-sm font-semibold text-slate-100"><%= l["name"] %></p>
                 <span class="text-[9px] px-1 py-0.5 rounded bg-slate-700 text-slate-100 uppercase tracking-widest"><%= l["kind"] %></span>
-                <span class="text-[10px] text-slate-500 font-mono"><%= "%.4f, %.4f" % [ l["lat"], l["lng"] ] %></span>
+                <span class="text-[10px] text-slate-400 font-mono"><%= "%.4f, %.4f" % [ l["lat"], l["lng"] ] %></span>
               </div>
               <p class="text-xs text-slate-400 mt-1 leading-relaxed line-clamp-3"><%= l["narration"] %></p>
             </div>

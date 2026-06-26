@@ -15,14 +15,14 @@
     ["With image", @stats[:with_image]]
   ].each do |label, value| %>
     <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-3">
-      <p class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold"><%= label %></p>
+      <p class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold"><%= label %></p>
       <p class="font-display text-2xl font-semibold mt-1 tabular-nums"><%= value.to_i %></p>
     </div>
   <% end %>
 </div>
 
 <%= form_with url: admin_places_path, method: :get, local: true, class: "flex flex-wrap items-center gap-2 mb-4" do %>
-  <%= text_field_tag :q, params[:q], placeholder: "name…", class: "px-3 py-1.5 rounded-md bg-slate-900/60 border border-slate-700 text-sm text-slate-100 placeholder:text-slate-500 focus:border-amber-500/50 focus:outline-none" %>
+  <%= text_field_tag :q, params[:q], placeholder: "name…", class: "px-3 py-1.5 rounded-md bg-slate-900/60 border border-slate-700 text-sm text-slate-100 placeholder:text-slate-400 focus:border-amber-500/50 focus:outline-none" %>
   <%= select_tag :scope, options_for_select([
         ["Kept",        "kept"],
         ["All",         "all"],
@@ -40,11 +40,11 @@
 <% end %>
 
 <% if @places.empty? %>
-  <p class="text-sm text-slate-500 italic">No places match these filters.</p>
+  <p class="text-sm text-slate-400 italic">No places match these filters.</p>
 <% else %>
   <div class="rounded-xl border border-slate-800 overflow-hidden">
     <table class="w-full text-sm">
-      <thead class="bg-slate-900/60 text-[10px] uppercase tracking-widest text-slate-500">
+      <thead class="bg-slate-900/60 text-[10px] uppercase tracking-widest text-slate-400">
         <tr>
           <th class="text-left px-3 py-2">Place</th>
           <th class="text-left px-3 py-2">Kind</th>
@@ -61,11 +61,11 @@
             <td class="px-3 py-2">
               <%= link_to p.name, admin_place_path(p), class: "text-amber-300 hover:text-amber-200 font-medium" %>
               <% if p.canonical_name.present? && p.canonical_name != p.name %>
-                <div class="text-[11px] text-slate-500"><%= p.canonical_name %></div>
+                <div class="text-[11px] text-slate-400"><%= p.canonical_name %></div>
               <% end %>
             </td>
             <td class="px-3 py-2 text-slate-300"><%= p.kind || "—" %></td>
-            <td class="px-3 py-2 text-[11px] text-slate-500 tabular-nums">
+            <td class="px-3 py-2 text-[11px] text-slate-400 tabular-nums">
               <% if p.latitude && p.longitude %>
                 <%= p.latitude.to_f.round(4) %>, <%= p.longitude.to_f.round(4) %>
               <% else %>—<% end %>
@@ -75,7 +75,7 @@
               <% if p.image_url.present? %>
                 <img src="<%= p.image_url %>" alt="" class="w-10 h-10 rounded object-cover" referrerpolicy="no-referrer">
               <% else %>
-                <span class="text-[11px] text-slate-500 italic">none</span>
+                <span class="text-[11px] text-slate-400 italic">none</span>
               <% end %>
             </td>
             <td class="px-3 py-2">
@@ -95,5 +95,5 @@
       </tbody>
     </table>
   </div>
-  <p class="text-[11px] text-slate-500 mt-2">Showing up to 200 rows.</p>
+  <p class="text-[11px] text-slate-400 mt-2">Showing up to 200 rows.</p>
 <% end %>

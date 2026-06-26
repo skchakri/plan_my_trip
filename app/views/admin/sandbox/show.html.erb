@@ -28,13 +28,13 @@
     <%= form_with url: admin_sandbox_path, method: :get, local: true, class: "rounded-xl border border-slate-800 bg-slate-900/40 p-4 space-y-4" do %>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div>
-          <label class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">Origin</label>
+          <label class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">Origin</label>
           <%= text_field_tag :origin, (@plan_params[:origin] || @plan_defaults[:origin]),
                 class: "mt-1 w-full px-3 py-2 rounded-md bg-slate-950 border border-slate-800 text-sm focus:border-amber-500/50 focus:outline-none",
                 placeholder: "Salt Lake City, UT" %>
         </div>
         <div>
-          <label class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">Destination</label>
+          <label class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">Destination</label>
           <%= text_field_tag :destination, (@plan_params[:destination] || @plan_defaults[:destination]),
                 class: "mt-1 w-full px-3 py-2 rounded-md bg-slate-950 border border-slate-800 text-sm focus:border-amber-500/50 focus:outline-none",
                 placeholder: "Yellowstone National Park" %>
@@ -43,17 +43,17 @@
 
       <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div>
-          <label class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">Start date</label>
+          <label class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">Start date</label>
           <%= date_field_tag :start_date, (@plan_params[:start_date] || @plan_defaults[:start_date]),
                 class: "mt-1 w-full px-2 py-2 rounded-md bg-slate-950 border border-slate-800 text-sm focus:border-amber-500/50 focus:outline-none" %>
         </div>
         <div>
-          <label class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">End date</label>
+          <label class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">End date</label>
           <%= date_field_tag :end_date, (@plan_params[:end_date] || @plan_defaults[:end_date]),
                 class: "mt-1 w-full px-2 py-2 rounded-md bg-slate-950 border border-slate-800 text-sm focus:border-amber-500/50 focus:outline-none" %>
         </div>
         <div>
-          <label class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">Transport</label>
+          <label class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">Transport</label>
           <%= select_tag :transport_mode,
                 options_for_select([ %w[drive drive], %w[fly fly], %w[train train], %w[mixed mixed] ], (@plan_params[:transport_mode] || @plan_defaults[:transport_mode])),
                 class: "mt-1 w-full px-2 py-2 rounded-md bg-slate-950 border border-slate-800 text-sm" %>
@@ -64,7 +64,7 @@
       </div>
 
       <div>
-        <label class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">Travelers</label>
+        <label class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">Travelers</label>
         <% people_source = (@plan_params[:people].presence || @plan_defaults[:people]) %>
         <div class="mt-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
           <% people_source.first(3).each_with_index do |person, i| %>
@@ -124,7 +124,7 @@
         <%= render "loading", title: "Markdown itinerary", note: "Calling ItineraryBuilder…" %>
       <% end %>
     <% else %>
-      <div class="rounded-xl border border-dashed border-slate-800 bg-slate-900/30 p-6 text-center text-sm text-slate-500">
+      <div class="rounded-xl border border-dashed border-slate-800 bg-slate-900/30 p-6 text-center text-sm text-slate-400">
         Set origin + destination above and click <span class="text-amber-300 font-semibold">Run pipeline</span>. Each block fetches independently — they appear as their AI calls return.
       </div>
     <% end %>
@@ -136,18 +136,18 @@
       <%= hidden_field_tag :tab, "nearby" %>
       <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
         <div class="md:col-span-2">
-          <label class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">Label (optional)</label>
+          <label class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">Label (optional)</label>
           <%= text_field_tag :label, (@nearby_params[:label] || @nearby_defaults[:label]),
                 class: "mt-1 w-full px-3 py-2 rounded-md bg-slate-950 border border-slate-800 text-sm",
                 placeholder: "Salt Lake City" %>
         </div>
         <div>
-          <label class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">Lat</label>
+          <label class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">Lat</label>
           <%= number_field_tag :lat, (@nearby_params[:lat] || @nearby_defaults[:lat]), step: "0.0001",
                 class: "mt-1 w-full px-3 py-2 rounded-md bg-slate-950 border border-slate-800 text-sm font-mono" %>
         </div>
         <div>
-          <label class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">Lng</label>
+          <label class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">Lng</label>
           <%= number_field_tag :lng, (@nearby_params[:lng] || @nearby_defaults[:lng]), step: "0.0001",
                 class: "mt-1 w-full px-3 py-2 rounded-md bg-slate-950 border border-slate-800 text-sm font-mono" %>
         </div>
@@ -155,19 +155,19 @@
 
       <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div>
-          <label class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">Radius (km)</label>
+          <label class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">Radius (km)</label>
           <%= select_tag :radius_km,
                 options_for_select([ 10, 25, 50, 100, 200 ].map { |k| [ "#{k} km", k ] }, (@nearby_params[:radius_km] || @nearby_defaults[:radius_km])),
                 class: "mt-1 w-full px-2 py-2 rounded-md bg-slate-950 border border-slate-800 text-sm" %>
         </div>
         <div>
-          <label class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">Kind</label>
+          <label class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">Kind</label>
           <%= select_tag :kind,
                 options_for_select([ [ "any", "" ] ] + Place::KINDS.map { |k| [ k, k ] }, @nearby_params[:kind]),
                 class: "mt-1 w-full px-2 py-2 rounded-md bg-slate-950 border border-slate-800 text-sm" %>
         </div>
         <div>
-          <label class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">Tier</label>
+          <label class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">Tier</label>
           <%= select_tag :tier,
                 options_for_select([ [ "any", "" ] ] + Place::TIERS.map { |t| [ t, t ] }, @nearby_params[:tier]),
                 class: "mt-1 w-full px-2 py-2 rounded-md bg-slate-950 border border-slate-800 text-sm" %>
@@ -177,7 +177,7 @@
         </div>
       </div>
 
-      <div class="flex flex-wrap gap-2 text-xs text-slate-500">
+      <div class="flex flex-wrap gap-2 text-xs text-slate-400">
         <span class="font-semibold uppercase tracking-widest">Presets:</span>
         <a class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200" href="<%= admin_sandbox_path(lat: 40.7608, lng: -111.8910, label: "Salt Lake City", radius_km: 50, tab: "nearby") %>">SLC 50km</a>
         <a class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200" href="<%= admin_sandbox_path(lat: 44.4280, lng: -110.5885, label: "Yellowstone", radius_km: 50, tab: "nearby") %>">Yellowstone 50km</a>
@@ -205,7 +205,7 @@
        class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/70 backdrop-blur-sm transition-opacity duration-200 opacity-0 data-[open=true]:opacity-100">
     <div class="w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl">
       <%= turbo_frame_tag "sandbox-place-modal", data: { place_modal_target: "frame" } do %>
-        <div class="p-6 text-center text-sm text-slate-500">Loading…</div>
+        <div class="p-6 text-center text-sm text-slate-400">Loading…</div>
       <% end %>
     </div>
   </div>

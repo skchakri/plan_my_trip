@@ -25,7 +25,7 @@
     [ "Active", @prompt.active ? "on" : "off" ]
   ].each do |label, value| %>
     <div class="rounded-lg border border-slate-800 bg-slate-900/40 p-2.5">
-      <p class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold"><%= label %></p>
+      <p class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold"><%= label %></p>
       <p class="text-sm text-slate-100 mt-0.5"><%= value %></p>
     </div>
   <% end %>
@@ -46,7 +46,7 @@
   <p class="text-[11px] uppercase tracking-widest text-amber-300 font-semibold mb-2">Test run</p>
   <%= form_with url: test_run_admin_ai_prompt_path(@prompt), method: :post, class: "space-y-2" do |f| %>
     <%= text_area_tag :variables, "{}", rows: 4, class: "w-full rounded-lg bg-slate-900/60 border border-slate-800 px-3 py-2 text-xs font-mono text-slate-100 focus:border-amber-500 focus:outline-none", placeholder: '{"destination":"Sedona","name":"Cathedral Rock"}' %>
-    <p class="text-xs text-slate-500">Variables as JSON. Required keys depend on what the user template references.</p>
+    <p class="text-xs text-slate-400">Variables as JSON. Required keys depend on what the user template references.</p>
     <%= submit_tag "Run prompt now", class: "px-3 py-1.5 rounded-md bg-amber-500 text-slate-950 text-sm font-semibold hover:bg-amber-400 cursor-pointer" %>
   <% end %>
 </section>

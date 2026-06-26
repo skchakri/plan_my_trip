@@ -85,13 +85,13 @@
 <header class="mb-5">
   <div class="flex items-start justify-between gap-3 flex-wrap">
     <div>
-      <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500 font-medium mb-1.5 inline-flex items-center gap-2">
+      <p class="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-medium mb-1.5 inline-flex items-center gap-2">
         <%= icon :sparkles, class: "w-3.5 h-3.5 text-amber-400" %> Final plan
       </p>
       <h1 class="font-display text-3xl sm:text-4xl font-semibold tracking-tight"><%= @trip.title_for(current_user) %></h1>
       <% if @trip.start_date && @trip.end_date %>
         <p class="text-sm text-slate-400 mt-2 inline-flex items-center gap-1.5">
-          <%= icon :calendar, class: "w-4 h-4 text-slate-500" %><%= @trip.start_date.strftime("%a, %b %-d") %> – <%= @trip.end_date.strftime("%a, %b %-d, %Y") %>
+          <%= icon :calendar, class: "w-4 h-4 text-slate-400" %><%= @trip.start_date.strftime("%a, %b %-d") %> – <%= @trip.end_date.strftime("%a, %b %-d, %Y") %>
         </p>
       <% end %>
     </div>
@@ -311,7 +311,7 @@
         </div>
         <%# Action row %>
         <div class="px-4 py-2.5 flex items-center justify-between gap-3 border-t border-slate-800">
-          <p class="text-[11px] text-slate-500">Drive Co-Pilot · live narration</p>
+          <p class="text-[11px] text-slate-400">Drive Co-Pilot · live narration</p>
           <button type="button" data-action="drive-copilot#skipCurrent"
                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium cursor-pointer">
             Skip <%= icon :arrow_right, class: "w-3 h-3" %>
@@ -332,7 +332,7 @@
         <div class="min-w-0 flex items-center gap-2 flex-wrap">
           <%= icon :sparkles, class: "w-4 h-4 text-amber-400 shrink-0" %>
           <span class="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-semibold truncate">Plan My Trip · Podcast</span>
-          <span class="text-xs text-slate-500 tabular-nums shrink-0" data-reading-mode-target="progress">1 / 1</span>
+          <span class="text-xs text-slate-400 tabular-nums shrink-0" data-reading-mode-target="progress">1 / 1</span>
           <span data-reading-mode-target="speakerBadge"
                 class="ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-widest font-semibold border border-slate-700 bg-slate-900/60 text-slate-300 data-[voice=host]:border-amber-500/50 data-[voice=host]:text-amber-200 data-[voice=guide]:border-teal-500/50 data-[voice=guide]:text-teal-200"
                 data-voice="host">
@@ -425,7 +425,7 @@
 <% if @days.empty? %>
   <div class="rounded-2xl border border-dashed border-slate-700/70 bg-slate-900/30 p-8 text-center mb-6">
     <p class="text-slate-300 font-medium">No day-by-day plan yet</p>
-    <p class="text-sm text-slate-500 mt-1 max-w-md mx-auto">Add days and activities so the trip shows photos, addresses, deep-linked maps, and inline checklist items per day. For now you can still see the markdown notes below.</p>
+    <p class="text-sm text-slate-400 mt-1 max-w-md mx-auto">Add days and activities so the trip shows photos, addresses, deep-linked maps, and inline checklist items per day. For now you can still see the markdown notes below.</p>
   </div>
 <% else %>
   <%# Day picker (jump-anchor strip) %>
@@ -584,17 +584,17 @@
                       <% if hero_url.blank? && activity.location_name.present? %>
                         <% if activity.place %>
                           <%= link_to place_path(activity.place), class: "group inline-flex items-center gap-1 mt-1 text-sm text-slate-400 hover:text-amber-300 transition-colors" do %>
-                            <%= icon :map_pin, class: "w-3.5 h-3.5 text-slate-500 group-hover:text-amber-400" %><%= activity.location_name %>
+                            <%= icon :map_pin, class: "w-3.5 h-3.5 text-slate-400 group-hover:text-amber-400" %><%= activity.location_name %>
                             <%= icon :arrow_right, class: "w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" %>
                           <% end %>
                         <% else %>
                           <p class="text-sm text-slate-400 inline-flex items-center gap-1 mt-1">
-                            <%= icon :map_pin, class: "w-3.5 h-3.5 text-slate-500" %><%= activity.location_name %>
+                            <%= icon :map_pin, class: "w-3.5 h-3.5 text-slate-400" %><%= activity.location_name %>
                           </p>
                         <% end %>
                       <% end %>
                       <% if activity.address.present? %>
-                        <p class="text-xs text-slate-500 mt-0.5"><%= activity.address %></p>
+                        <p class="text-xs text-slate-400 mt-0.5"><%= activity.address %></p>
                       <% end %>
                       <% if activity.famous_for.present? %>
                         <p class="text-sm text-amber-200/90 mt-2.5 leading-relaxed inline-flex items-start gap-1.5">
@@ -657,7 +657,7 @@
                       </div>
                     <% elsif hero_url.blank? %>
                       <div class="flex flex-col gap-2 self-start w-full sm:w-[180px]">
-                        <div class="w-full aspect-square rounded-xl bg-gradient-to-br from-slate-800 to-slate-700 flex items-center justify-center text-slate-500" aria-hidden="true">
+                        <div class="w-full aspect-square rounded-xl bg-gradient-to-br from-slate-800 to-slate-700 flex items-center justify-center text-slate-400" aria-hidden="true">
                           <%= icon :map_pin, class: "w-8 h-8" %>
                         </div>
                         <% if (link = activity.maps_link) %>
@@ -680,9 +680,9 @@
                       <summary class="cursor-pointer px-3 py-2 text-xs flex items-center justify-between gap-2 text-slate-300">
                         <span class="inline-flex items-center gap-1.5">
                           <%= icon :external_link, class: "w-3.5 h-3.5 text-amber-400" %>
-                          Documents <% if docs.any? %><span class="text-slate-500 font-normal">· <%= docs.size %></span><% end %>
+                          Documents <% if docs.any? %><span class="text-slate-400 font-normal">· <%= docs.size %></span><% end %>
                         </span>
-                        <span class="text-[11px] text-slate-500">tickets · confirmations</span>
+                        <span class="text-[11px] text-slate-400">tickets · confirmations</span>
                       </summary>
                       <div class="px-3 pb-3 space-y-2">
                         <% if docs.any? %>
@@ -692,7 +692,7 @@
                                 <%= link_to rails_blob_path(doc, disposition: "inline"), target: "_blank", rel: "noopener", class: "min-w-0 flex items-center gap-2 text-sm text-slate-200 hover:text-amber-200 truncate" do %>
                                   <span class="shrink-0 text-slate-500"><%= icon :external_link, class: "w-3.5 h-3.5" %></span>
                                   <span class="truncate"><%= doc.filename %></span>
-                                  <span class="shrink-0 text-[11px] text-slate-500">· <%= number_to_human_size(doc.byte_size) %></span>
+                                  <span class="shrink-0 text-[11px] text-slate-400">· <%= number_to_human_size(doc.byte_size) %></span>
                                 <% end %>
                                 <%= button_to trip_activity_document_path(@trip, activity, doc), method: :delete, form: { data: { turbo_confirm: "Remove #{doc.filename}?" } }, class: "shrink-0 text-rose-400 hover:text-rose-300 p-1 rounded transition-colors cursor-pointer", aria: { label: "Remove" } do %>
                                   <%= icon :trash, class: "w-3.5 h-3.5" %>
@@ -701,14 +701,14 @@
                             <% end %>
                           </ul>
                         <% else %>
-                          <p class="text-xs text-slate-500 italic">No documents attached yet — upload tickets, confirmations, or anything else you'd want on your phone for this stop.</p>
+                          <p class="text-xs text-slate-400 italic">No documents attached yet — upload tickets, confirmations, or anything else you'd want on your phone for this stop.</p>
                         <% end %>
 
                         <%= form_with url: trip_activity_documents_path(@trip, activity), method: :post, multipart: true, html: { class: "flex items-center gap-2 mt-2", data: { turbo: false } } do |f| %>
                           <%= file_field_tag "activity[documents][]", multiple: true, accept: "image/*,application/pdf,.ics,.txt", class: "block w-full text-xs text-slate-300 file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:bg-amber-500/15 file:text-amber-200 hover:file:bg-amber-500/25 file:cursor-pointer cursor-pointer" %>
                           <%= submit_tag "Upload", class: "shrink-0 px-3 py-1.5 bg-amber-500 text-slate-950 rounded-md text-xs font-semibold hover:bg-amber-400 cursor-pointer" %>
                         <% end %>
-                        <p class="text-[11px] text-slate-500">PDF, image, .ics, or .txt — up to <%= number_to_human_size(Activity::MAX_DOCUMENT_BYTES) %> per file.</p>
+                        <p class="text-[11px] text-slate-400">PDF, image, .ics, or .txt — up to <%= number_to_human_size(Activity::MAX_DOCUMENT_BYTES) %> per file.</p>
                       </div>
                     </details>
 
@@ -721,7 +721,7 @@
                             <%= icon :check, class: "w-3.5 h-3.5 text-emerald-400" %>
                             Activity checklist
                           </span>
-                          <span class="text-[11px] tabular-nums text-slate-500"><%= activity.packed_count %>/<%= activity_items.size %></span>
+                          <span class="text-[11px] tabular-nums text-slate-400"><%= activity.packed_count %>/<%= activity_items.size %></span>
                         </summary>
                         <ul class="px-2 pb-2 divide-y divide-slate-700/50">
                           <% activity_items.each do |item| %>
@@ -738,7 +738,7 @@
             <% end %>
           </ol>
         <% else %>
-          <p class="px-5 py-4 text-sm text-slate-500 italic">No activities scheduled for this day yet.</p>
+          <p class="px-5 py-4 text-sm text-slate-400 italic">No activities scheduled for this day yet.</p>
         <% end %>
 
         <div class="px-5 py-3 border-t border-slate-800/60">
@@ -776,7 +776,7 @@
         <%= icon :list, class: "w-4 h-4 text-slate-400" %>
         Trip notes (markdown)
       </span>
-      <%= icon :chevron_down, class: "w-4 h-4 text-slate-500" %>
+      <%= icon :chevron_down, class: "w-4 h-4 text-slate-400" %>
     </summary>
     <article class="prose-invert px-5 sm:px-6 pb-6">
       <%= @rendered_body %>

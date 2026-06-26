@@ -15,7 +15,7 @@
 <%= turbo_frame_tag frame_id do %>
   <% if stats.nil? %>
     <section class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 sm:p-6 <%= detail ? 'mb-5' : 'mb-6' %>">
-      <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500 font-medium inline-flex items-center gap-2 mb-2">
+      <p class="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-medium inline-flex items-center gap-2 mb-2">
         <%= icon :car, class: "w-3.5 h-3.5" %> Road trip stats
       </p>
       <p class="text-sm text-slate-400">Add stops with locations to estimate your drive distance, time, and fuel cost.</p>
@@ -38,10 +38,10 @@
           <li class="rounded-xl border border-slate-700/50 bg-slate-800/30 px-3.5 py-3">
             <div class="flex items-start justify-between gap-3">
               <div class="min-w-0">
-                <p class="text-[11px] uppercase tracking-widest text-slate-500 font-semibold mb-0.5">Leg <%= i + 1 %></p>
+                <p class="text-[11px] uppercase tracking-widest text-slate-400 font-semibold mb-0.5">Leg <%= i + 1 %></p>
                 <p class="text-sm text-slate-200 leading-snug">
                   <span class="font-medium"><%= leg.from %></span>
-                  <span class="text-slate-500 px-1">→</span>
+                  <span class="text-slate-400 px-1">→</span>
                   <span class="font-medium"><%= leg.to %></span>
                 </p>
               </div>
@@ -58,13 +58,13 @@
         <span class="text-slate-400">Total</span>
         <span class="tabular-nums text-slate-100 font-semibold">
           <%= number_with_precision(stats.total_miles, precision: 0, delimiter: ",") %> mi
-          <span class="text-slate-500 font-normal">·</span>
+          <span class="text-slate-400 font-normal">·</span>
           <%= humanize_dur.call(stats.total_drive_seconds) %>
-          <span class="text-slate-500 font-normal">·</span>
+          <span class="text-slate-400 font-normal">·</span>
           <%= number_to_currency(stats.total_fuel_cost) %>
         </span>
       </div>
-      <p class="text-[11px] text-slate-500 mt-2 leading-relaxed">
+      <p class="text-[11px] text-slate-400 mt-2 leading-relaxed">
         Fuel estimated at <%= number_with_precision(stats.mpg, precision: 0) %> mpg<%= " (default)" if stats.mpg_estimated %>
         and <%= number_to_currency(stats.price_per_gallon) %>/gal<%= stats.price_source == "estimate" ? " (estimated)" : "" %>.
         Routing by OSRM — actual mileage varies with route + traffic.
@@ -85,19 +85,19 @@
 
       <div class="grid grid-cols-3 gap-2.5">
         <div class="rounded-xl bg-slate-800/40 border border-slate-700/50 p-3">
-          <div class="flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-slate-500 font-medium">
+          <div class="flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-slate-400 font-medium">
             <%= icon :navigation, class: "w-3.5 h-3.5" %> Distance
           </div>
           <div class="font-display text-2xl font-semibold text-slate-50 mt-1 tabular-nums"><%= number_with_precision(stats.total_miles, precision: 0, delimiter: ",") %><span class="text-base text-slate-400 font-normal"> mi</span></div>
         </div>
         <div class="rounded-xl bg-slate-800/40 border border-slate-700/50 p-3">
-          <div class="flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-slate-500 font-medium">
+          <div class="flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-slate-400 font-medium">
             <%= icon :clock, class: "w-3.5 h-3.5" %> Drive time
           </div>
           <div class="font-display text-2xl font-semibold text-slate-50 mt-1 tabular-nums"><%= humanize_dur.call(stats.total_drive_seconds) %></div>
         </div>
         <div class="rounded-xl bg-slate-800/40 border border-slate-700/50 p-3">
-          <div class="flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-slate-500 font-medium">
+          <div class="flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-slate-400 font-medium">
             <%= icon :coins, class: "w-3.5 h-3.5" %> Est. fuel
           </div>
           <div class="font-display text-2xl font-semibold text-slate-50 mt-1 tabular-nums"><%= number_to_currency(stats.total_fuel_cost, precision: 0) %></div>
