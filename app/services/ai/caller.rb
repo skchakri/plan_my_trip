@@ -66,6 +66,14 @@ module Ai
         input_tokens: usage[:input_tokens],
         output_tokens: usage[:output_tokens]
       }
+      # Persist Anthropic prompt-cache figures (present only on a cached call)
+      # into the meta jsonb so /admin/ai_calls surfaces the savings. Absent keys
+      # are dropped so meta stays empty for providers that don't cache.
+      cache_meta = {
+        "cache_read_input_tokens" => usage[:cache_read_input_tokens],
+        "cache_creation_input_tokens" => usage[:cache_creation_input_tokens]
+      }.compact
+      attrs[:meta] = audit.meta.merge(cache_meta) if cache_meta.any?
       if prompt.kind == "image"
         attrs[:image_url] = text_or_url
       else
