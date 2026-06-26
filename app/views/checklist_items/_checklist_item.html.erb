@@ -1,18 +1,30 @@
 <%# Each row is a Turbo-driven toggle. The hidden form posts a single field
     and Turbo replaces this <li> with the freshly-rendered partial.
-    The row also supports inline edit (pencil) and soft-delete (trash). %>
+    The row also supports inline edit (pencil) and soft-delete (trash).
+    Mutation controls render only for owners/editors — plain members get a
+    read-only row (the controller authorizes :update? regardless). %>
+<% editable = local_assigns.fetch(:editable) { checklist_item.trip.editable_by?(current_user) } %>
 <li id="<%= dom_id(checklist_item) %>"
     class="group flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-slate-800/40 transition-colors <%= 'opacity-60' if checklist_item.packed %>"
     data-controller="local-check inline-edit"
     data-action="keydown->inline-edit#keydown"
     data-local-check-id-value="<%= checklist_item.id %>">
-  <%= form_with model: checklist_item, url: trip_checklist_item_path(checklist_item.trip, checklist_item), method: :patch, class: "shrink-0", data: { turbo_frame: "_top", action: "turbo:submit-start->local-check#pending turbo:submit-end->local-check#done" } do |f| %>
-    <%= f.hidden_field :packed, value: !checklist_item.packed %>
-    <button type="submit" aria-label="Toggle packed" class="w-6 h-6 rounded border-2 <%= checklist_item.packed ? 'bg-emerald-500 border-emerald-500' : 'bg-slate-800 border-slate-600 hover:border-amber-400' %> flex items-center justify-center transition-colors cursor-pointer">
+  <% if editable %>
+    <%= form_with model: checklist_item, url: trip_checklist_item_path(checklist_item.trip, checklist_item), method: :patch, class: "shrink-0", data: { turbo_frame: "_top", action: "turbo:submit-start->local-check#pending turbo:submit-end->local-check#done" } do |f| %>
+      <%= f.hidden_field :packed, value: !checklist_item.packed %>
+      <button type="submit" aria-label="Toggle packed" class="w-6 h-6 rounded border-2 <%= checklist_item.packed ? 'bg-emerald-500 border-emerald-500' : 'bg-slate-800 border-slate-600 hover:border-amber-400' %> flex items-center justify-center transition-colors cursor-pointer">
+        <% if checklist_item.packed %>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#0a0e1a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+        <% end %>
+      </button>
+    <% end %>
+  <% else %>
+    <%# Read-only status indicator for members. %>
+    <span class="shrink-0 w-6 h-6 rounded border-2 <%= checklist_item.packed ? 'bg-emerald-500 border-emerald-500' : 'bg-slate-800 border-slate-600' %> flex items-center justify-center" role="img" aria-label="<%= checklist_item.packed ? 'Packed' : 'Not packed' %>">
       <% if checklist_item.packed %>
         <svg viewBox="0 0 24 24" fill="none" stroke="#0a0e1a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
       <% end %>
-    </button>
+    </span>
   <% end %>
 
   <%# Display view %>
@@ -24,17 +36,20 @@
         <p class="text-[11px] text-slate-400 mt-0.5"><%= subtitle %></p>
       <% end %>
     </div>
-    <button type="button" data-action="inline-edit#edit" aria-label="Edit item"
-            class="shrink-0 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100 text-slate-400 hover:text-amber-300 p-1.5 rounded transition-opacity cursor-pointer">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
-    </button>
-    <%= button_to trip_checklist_item_path(checklist_item.trip, checklist_item), method: :delete, form: { data: { turbo_confirm: "Remove this item?" } }, class: "shrink-0 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100 text-rose-400 hover:text-rose-300 p-1.5 rounded transition-opacity cursor-pointer", aria: { label: "Remove" } do %>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+    <% if editable %>
+      <button type="button" data-action="inline-edit#edit" aria-label="Edit item"
+              class="shrink-0 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100 text-slate-400 hover:text-amber-300 p-1.5 rounded transition-opacity cursor-pointer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+      </button>
+      <%= button_to trip_checklist_item_path(checklist_item.trip, checklist_item), method: :delete, form: { data: { turbo_confirm: "Remove this item?" } }, class: "shrink-0 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100 text-rose-400 hover:text-rose-300 p-1.5 rounded transition-opacity cursor-pointer", aria: { label: "Remove" } do %>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+      <% end %>
     <% end %>
   </div>
 
-  <%# Inline edit form (hidden until the pencil is clicked) %>
-  <%= form_with model: checklist_item, url: trip_checklist_item_path(checklist_item.trip, checklist_item), method: :patch, class: "min-w-0 flex-1 flex flex-wrap items-center gap-1.5", data: { turbo_frame: "_top", inline_edit_target: "form" }, html: { hidden: true } do |f| %>
+  <%# Inline edit form (hidden until the pencil is clicked) — editors/owners only %>
+  <% if editable %>
+    <%= form_with model: checklist_item, url: trip_checklist_item_path(checklist_item.trip, checklist_item), method: :patch, class: "min-w-0 flex-1 flex flex-wrap items-center gap-1.5", data: { turbo_frame: "_top", inline_edit_target: "form" }, html: { hidden: true } do |f| %>
     <%= f.text_field :title, required: true, data: { inline_edit_target: "field" },
           class: "min-w-0 flex-1 rounded-md bg-slate-800 border border-slate-700 px-2 py-1.5 text-sm focus:border-amber-500 focus:outline-none" %>
     <%= f.text_field :person, placeholder: "Person", value: checklist_item.person,
@@ -45,5 +60,6 @@
     <% end %>
     <button type="submit" class="shrink-0 px-2.5 py-1.5 bg-amber-500 text-slate-950 rounded-md text-xs font-semibold hover:bg-amber-400 cursor-pointer">Save</button>
     <button type="button" data-action="inline-edit#cancel" class="shrink-0 px-2 py-1.5 text-xs text-slate-400 hover:text-slate-200 cursor-pointer">Cancel</button>
+  <% end %>
   <% end %>
 </li>
