@@ -65,7 +65,7 @@
           <label class="cursor-pointer">
             <input type="checkbox" name="vibes[]" value="<%= vibe %>" <%= "checked" if checked %>
                    data-action="vibe-filter#refresh" class="peer sr-only">
-            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs border border-slate-700 bg-slate-800/60 text-slate-300 peer-checked:bg-amber-500/20 peer-checked:border-amber-500/50 peer-checked:text-amber-200 hover:border-amber-500/40 transition-colors">
+            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs border border-slate-600 bg-slate-700 text-slate-100 peer-checked:bg-amber-500/20 peer-checked:border-amber-500/50 peer-checked:text-amber-200 hover:border-amber-500/40 transition-colors">
               <%= vibe %>
             </span>
           </label>
@@ -234,7 +234,7 @@
                          when "iconic" then "bg-amber-500/15 border-amber-500/30 text-amber-200"
                          when "underrated" then "bg-emerald-500/15 border-emerald-500/30 text-emerald-200"
                          when "needs_4wd", "long_hike", "scrambly", "permit_required", "must_book_ahead" then "bg-rose-500/15 border-rose-500/30 text-rose-200"
-                         else "bg-slate-800/60 border-slate-700 text-slate-300"
+                         else "bg-slate-700 border-slate-600 text-slate-100"
                          end %>
                       <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border <%= accent %>"><%= tag.tr("_", " ") %></span>
                     <% end %>

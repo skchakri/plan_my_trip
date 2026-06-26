@@ -9,7 +9,7 @@
         <p class="text-xs text-slate-500 mt-0.5 font-mono"><%= "%.4f, %.4f" % [ @origin_lat, @origin_lng ] %><% if @kind || @tier %> · <%= [ @kind, @tier ].compact.join(" · ") %><% end %></p>
       </div>
       <div class="flex items-center gap-2 text-[10px] uppercase tracking-widest font-semibold">
-        <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 tabular-nums"><%= @places.size %> rows</span>
+        <span class="chip tabular-nums"><%= @places.size %> rows</span>
       </div>
     </div>
 
@@ -78,12 +78,12 @@
                         <span class="text-[9px] px-1 py-0.5 rounded bg-emerald-500/15 text-emerald-300 uppercase tracking-widest">verified</span>
                       <% end %>
                       <% if p.usage_count.to_i > 0 %>
-                        <span class="text-[9px] px-1 py-0.5 rounded bg-slate-800 text-slate-400 uppercase tracking-widest"><%= p.usage_count %> trips</span>
+                        <span class="text-[9px] px-1 py-0.5 rounded bg-slate-700 text-slate-100 uppercase tracking-widest"><%= p.usage_count %> trips</span>
                       <% end %>
                     </div>
                   </td>
                   <td class="px-2 py-1.5 align-top">
-                    <span class="text-[10px] px-1 py-0.5 rounded bg-slate-800 text-slate-300 uppercase tracking-widest"><%= p.kind || "—" %></span>
+                    <span class="text-[10px] px-1 py-0.5 rounded bg-slate-700 text-slate-100 uppercase tracking-widest"><%= p.kind || "—" %></span>
                   </td>
                   <td class="px-2 py-1.5 align-top text-right tabular-nums text-xs text-slate-300"><%= (d / 1000.0).round(1) %></td>
                 </tr>
