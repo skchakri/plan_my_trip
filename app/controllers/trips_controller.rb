@@ -262,6 +262,7 @@ class TripsController < ApplicationController
     authorize @trip, :show?
     @days = @trip.trip_days.ordered.includes(:activities)
     @bookings = @trip.booking_claims.includes(documents_attachments: :blob)
+    @reservations = @trip.reservations.parsed
     render layout: "wallet"
   end
 
