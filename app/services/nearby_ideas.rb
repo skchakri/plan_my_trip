@@ -65,7 +65,11 @@ class NearbyIdeas
   # geocode (90d) caches all still hit, so it's a re-rank plus at most a
   # couple of stock re-fetches.
   CACHE_TTL = 22.hours
+  # Working-set size for catalog/LLM merge + dedup...
   MAX_RESULTS = 24
+  # ...but only this many survive to the picker. Showing a curated set beats
+  # padding to MAX_RESULTS with low-scored filler (the long duplicate tail).
+  DISPLAY_LIMIT = 12
   PROMPT_SLUG = "nearby_ideas.v1".freeze
   # LLMs invent coordinates. We only spend a geocode lookup when a pick's
   # model coords are missing or land implausibly far outside the radius
@@ -146,7 +150,7 @@ class NearbyIdeas
     # each cluster; then cap, fill images for survivors only, and re-rank so
     # rank/tier numbering is correct on the final, deduped set.
     ranked = PlaceRanker.rank!(merged, interests: @interests, anchor_lat: @lat, anchor_lng: @lng)
-    unique = dedupe_same_place(ranked).first(MAX_RESULTS)
+    unique = dedupe_same_place(ranked).first(DISPLAY_LIMIT)
     fill_missing_images(unique)
     PlaceRanker.rank!(unique, interests: @interests, anchor_lat: @lat, anchor_lng: @lng)
   rescue StandardError => e

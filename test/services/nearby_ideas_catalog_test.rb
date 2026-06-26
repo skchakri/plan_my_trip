@@ -96,4 +96,15 @@ class NearbyIdeasCatalogTest < ActiveSupport::TestCase
     assert_equal 1, names.count { |n| n.include?("Great Salt Lake") },
       "the two Great Salt Lake catalog rows should collapse to a single idea"
   end
+
+  # --- Fix 5: trim padding with a display cap ----------------------------
+
+  test "fetch_ideas caps the result at the display limit instead of padding" do
+    # 16 distinct, in-radius, >2 km-spaced catalog rows — none dedup away.
+    16.times { |i| place(format("Catalog Spot %02d", i), 40.50 + i * 0.03, -111.89105) }
+
+    result = catalog_only_service.send(:fetch_ideas)
+    assert_equal NearbyIdeas::DISPLAY_LIMIT, result.length,
+      "should return a curated set capped at DISPLAY_LIMIT, not all 16"
+  end
 end
