@@ -10,10 +10,21 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
+
 ActiveRecord::Schema[8.1].define(version: 2026_06_24_120000) do
+
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
+
+  create_table "action_mailbox_inbound_emails", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "message_checksum", null: false
+    t.string "message_id", null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["message_id", "message_checksum"], name: "index_action_mailbox_inbound_emails_uniqueness", unique: true
+  end
 
   create_table "active_storage_attachments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "blob_id", null: false
@@ -342,6 +353,32 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_24_120000) do
     t.index ["category"], name: "index_quiz_questions_on_category"
   end
 
+  create_table "reservations", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "address"
+    t.string "confirmation_number"
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.datetime "end_at"
+    t.string "kind", default: "other", null: false
+    t.string "location"
+    t.text "notes"
+    t.jsonb "parsed", default: {}, null: false
+    t.text "raw_email"
+    t.string "source_from"
+    t.datetime "start_at"
+    t.string "status", default: "parsing", null: false
+    t.string "title"
+    t.uuid "trip_day_id"
+    t.uuid "trip_id", null: false
+    t.datetime "updated_at", null: false
+    t.string "vendor"
+    t.index ["discarded_at"], name: "index_reservations_on_discarded_at"
+    t.index ["trip_day_id"], name: "index_reservations_on_trip_day_id"
+    t.index ["trip_id", "confirmation_number"], name: "index_reservations_on_trip_and_confirmation", unique: true, where: "((confirmation_number IS NOT NULL) AND (discarded_at IS NULL))"
+    t.index ["trip_id", "kind"], name: "index_reservations_on_trip_id_and_kind"
+    t.index ["trip_id"], name: "index_reservations_on_trip_id"
+  end
+
   create_table "route_landmarks", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "discarded_at"
@@ -462,6 +499,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_24_120000) do
     t.datetime "discarded_at"
     t.date "end_date"
     t.text "excitement_pitch"
+    t.string "inbox_token"
     t.jsonb "interests", default: [], null: false
     t.integer "max_radius_km"
     t.string "origin"
@@ -483,6 +521,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_24_120000) do
     t.index ["build_status"], name: "index_trips_on_build_status"
     t.index ["day_trip"], name: "index_trips_on_day_trip"
     t.index ["discarded_at"], name: "index_trips_on_discarded_at"
+    t.index ["inbox_token"], name: "index_trips_on_inbox_token", unique: true, where: "(inbox_token IS NOT NULL)"
     t.index ["owner_id"], name: "index_trips_on_owner_id"
     t.index ["share_token"], name: "index_trips_on_share_token", unique: true, where: "(share_token IS NOT NULL)"
   end
@@ -573,6 +612,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_24_120000) do
   add_foreign_key "place_reviews", "users", column: "author_id"
   add_foreign_key "places", "users", column: "contributed_by_id"
   add_foreign_key "quiz_attempts", "users"
+  add_foreign_key "reservations", "trip_days"
+  add_foreign_key "reservations", "trips"
   add_foreign_key "route_landmarks", "trips"
   add_foreign_key "suggestion_votes", "suggestions"
   add_foreign_key "suggestion_votes", "users"

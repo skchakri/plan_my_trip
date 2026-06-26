@@ -36,6 +36,10 @@ class AppSetting < ApplicationRecord
     # executable, so making it web-editable would be an RCE vector. It stays an
     # ENV/deploy-only setting (see Ai::ClaudeCliProvider).
 
+    # ── Email import ──
+    Definition.new(key: "INBOUND_EMAIL_DOMAIN", label: "Inbound email domain", category: "Email import", secret: false,
+      description: "Domain for per-trip forwarding addresses (trip-<token>@<domain>). Travelers forward hotel/flight/car confirmations here and Action Mailbox parses them into reservations. Point your inbound provider's MX (Mailgun/SendGrid/Postmark) at this domain.", placeholder: nil, default: "inbound.planmytrip.app"),
+
     # ── Place data ──
     Definition.new(key: "GOOGLE_PLACES_API_KEY", label: "Google Places API key", category: "Place data", secret: true,
       description: "When set, Places::Geocoder uses Google Places Text Search for coordinate lookups (better POI matching, no 1-req/sec cap). Blank → free OpenStreetMap Nominatim. console.cloud.google.com → enable Places API.", placeholder: "AIza…"),

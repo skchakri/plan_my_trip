@@ -81,6 +81,8 @@ Rails.application.routes.draw do
         delete "documents/:doc_id", to: "booking_claims#destroy_document", as: :document
       end
     end
+    # Parsed booking-confirmation emails (forwarded to the per-trip address).
+    resources :reservations, only: [ :destroy ]
     member do
       patch :rename
       patch :archive

@@ -350,11 +350,16 @@ puts "Quiz questions: #{QuizQuestion.rebuild!}"
 
 # Drive Co-Pilot trivia pool — without this a fresh install leaves TriviaQuestion
 # empty and TriviaPool falls back to its hardcoded 2-question GENERIC list.
+# seed loads the standalone questions; seed_chains loads the multi-step
+# word-problem chains that TriviaPool.pick_for biases toward — without them
+# the co-pilot still falls back to the GENERIC pool. Both tasks are idempotent.
 puts "\nSeeding Drive Co-Pilot trivia pool…"
 require "rake"
 Rails.application.load_tasks unless Rake::Task.task_defined?("trivia:seed")
 Rake::Task["trivia:seed"].invoke
-puts "Trivia questions: #{TriviaQuestion.where(trip_id: nil).count}"
+Rake::Task["trivia:seed_chains"].invoke
+puts "Trivia questions: #{TriviaQuestion.where(trip_id: nil).count} " \
+     "(#{TriviaQuestion.where(trip_id: nil).where.not(chain_intro: nil).count} chains)"
 
 puts "\nSeeding AI prompts…"
 load Rails.root.join("db/seed_ai_prompts.rb").to_s

@@ -1,0 +1,53 @@
+---
+slug: reservation_parse.v1
+name: Reservation email parser
+description: Extracts structured reservation fields (kind, vendor, confirmation number, dates, location) from a forwarded hotel/flight/car/activity confirmation email. Powers the booking-confirmation email import — a traveler forwards a confirmation to their per-trip address and it lands as a structured Reservation on the plan.
+# Pure extraction from supplied text — no web search needed — so the fast
+# Anthropic API is correct here. claude_cli's minutes-long latency would be
+# unjustified for a single email parse. Low temperature for faithful extraction.
+provider: anthropic
+model: claude-sonnet-4-6
+kind: text
+max_tokens: 1024
+temperature: 0.1
+system_template: |
+  You extract structured reservation data from a single forwarded travel
+  confirmation email (hotel, flight, car rental, tour/activity, or rail).
+
+  Reply with ONLY a JSON object — no prose, no markdown, no code fences.
+
+  Shape (use null for anything you can't find — NEVER invent a value, and never
+  fabricate a confirmation number):
+  {
+    "kind": one of "stay" | "flight" | "car" | "activity" | "rail" | "other",
+    "vendor": the brand/company (e.g. "Marriott", "Delta Air Lines", "Hertz", "Viator"),
+    "confirmation_number": the booking/confirmation/record-locator code as printed, or null,
+    "title": a short human label (e.g. "Courtyard Las Vegas Downtown", "DL 1422 ATL→LAS"),
+    "location": the city / airport / property the reservation is at,
+    "address": full street address if present, else null,
+    "start_at": ISO 8601 with timezone offset if known (check-in / departure / pickup), else null,
+    "end_at": ISO 8601 (check-out / arrival / drop-off), else null,
+    "notes": one short sentence of anything else useful (room type, seat, fare class), else null
+  }
+
+  Rules:
+  - Pick the single most specific kind. A hotel is "stay"; a flight itinerary is
+    "flight"; a rental car is "car"; a tour/tickets/excursion is "activity"; a
+    train is "rail". If it is clearly a reservation but none fit, use "other".
+  - Parse dates faithfully. Prefer the email's stated timezone; if a time is
+    given without a zone, emit the date-time as written (no offset) rather than
+    guessing a zone. Date-only values may omit the time.
+  - confirmation_number is the code a human would quote at the desk — strip
+    labels like "Confirmation #:". If none is printed, return null.
+  - If the email is NOT a travel confirmation (newsletter, receipt for something
+    unrelated, spam), set kind to "other" and leave the booking fields null.
+user_template: |
+  <%- if defined?(subject) && subject.to_s.strip.present? -%>
+  Subject: <%= subject.to_s.strip %>
+  <%- end -%>
+  Forwarded email body:
+  """
+  <%= email_body %>
+  """
+
+  Return the JSON object now.

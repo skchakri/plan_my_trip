@@ -67,6 +67,35 @@ class SuggestionsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "member cannot create a suggestion on a discarded trip" do
+    sign_in_as(@bob)
+    @trip.discard
+    assert_no_difference -> { Suggestion.count } do
+      post trip_trip_day_suggestions_path(@trip, @day),
+           params: { suggestion: { title: "On an archived trip" } }
+    end
+    assert_response :not_found
+  end
+
+  test "member cannot vote on a suggestion of a discarded trip" do
+    s = @day.suggestions.create!(author: @owner, title: "Test")
+    sign_in_as(@bob)
+    @trip.discard
+    assert_no_difference -> { SuggestionVote.count } do
+      post vote_trip_trip_day_suggestion_path(@trip, @day, s)
+    end
+    assert_response :not_found
+  end
+
+  test "author cannot destroy their suggestion on a discarded trip" do
+    s = @day.suggestions.create!(author: @bob, title: "Mine")
+    sign_in_as(@bob)
+    @trip.discard
+    delete trip_trip_day_suggestion_path(@trip, @day, s)
+    assert_response :not_found
+    assert s.reload.kept?, "suggestion should remain when its trip is discarded"
+  end
+
   private
 
   def sign_in_as(user)

@@ -65,7 +65,7 @@
           <label class="cursor-pointer">
             <input type="checkbox" name="vibes[]" value="<%= vibe %>" <%= "checked" if checked %>
                    data-action="vibe-filter#refresh" class="peer sr-only">
-            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs border border-slate-700 bg-slate-800/60 text-slate-300 peer-checked:bg-amber-500/20 peer-checked:border-amber-500/50 peer-checked:text-amber-200 hover:border-amber-500/40 transition-colors">
+            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs border border-slate-600 bg-slate-700 text-slate-100 peer-checked:bg-amber-500/20 peer-checked:border-amber-500/50 peer-checked:text-amber-200 hover:border-amber-500/40 transition-colors">
               <%= vibe %>
             </span>
           </label>
@@ -234,7 +234,7 @@
                          when "iconic" then "bg-amber-500/15 border-amber-500/30 text-amber-200"
                          when "underrated" then "bg-emerald-500/15 border-emerald-500/30 text-emerald-200"
                          when "needs_4wd", "long_hike", "scrambly", "permit_required", "must_book_ahead" then "bg-rose-500/15 border-rose-500/30 text-rose-200"
-                         else "bg-slate-800/60 border-slate-700 text-slate-300"
+                         else "bg-slate-700 border-slate-600 text-slate-100"
                          end %>
                       <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border <%= accent %>"><%= tag.tr("_", " ") %></span>
                     <% end %>
@@ -255,6 +255,9 @@
     <%# ---- Detail modal ---- %>
     <div data-highlight-detail-target="modal"
          data-action="click->highlight-detail#closeOnBackdrop"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="highlight-detail-modal-name"
          hidden
          class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/80 backdrop-blur-sm opacity-0 transition-opacity duration-200 data-[is-open]:opacity-100">
       <div class="relative w-full sm:max-w-3xl max-h-[92vh] sm:max-h-[88vh] overflow-y-auto bg-slate-900 sm:rounded-3xl border border-slate-800 shadow-2xl shadow-black/60 translate-y-4 sm:translate-y-2 opacity-0 transition-all duration-200 ease-out">
@@ -264,6 +267,7 @@
           <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/30 to-transparent"></div>
           <button type="button"
                   data-action="click->highlight-detail#close"
+                  data-highlight-detail-target="closeButton"
                   aria-label="Close"
                   class="absolute top-4 right-4 inline-flex items-center justify-center w-9 h-9 rounded-full bg-slate-950/70 backdrop-blur-sm border border-slate-700/60 text-slate-200 hover:bg-slate-950 hover:text-white cursor-pointer transition-colors">
             <%= icon :x, class: "w-5 h-5" %>
@@ -272,6 +276,7 @@
             <span data-highlight-detail-target="modalCategory"
                   class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] uppercase tracking-widest font-semibold bg-amber-500/20 border border-amber-500/50 text-amber-200 mb-2"></span>
             <h2 data-highlight-detail-target="modalName"
+                id="highlight-detail-modal-name"
                 class="font-display text-2xl sm:text-4xl font-semibold tracking-tight text-white leading-tight drop-shadow"></h2>
             <p data-highlight-detail-target="modalTagline"
                hidden
