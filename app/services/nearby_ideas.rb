@@ -150,11 +150,18 @@ class NearbyIdeas
   end
 
   def catalog_ideas
+    # `Place.near` is bounding-box only, so its square reaches ~1.41× the
+    # radius at the corners. Re-filter by true great-circle distance so a
+    # "within 50 mi" request never surfaces a 63-mi pick. Pull a generous
+    # candidate window first (still popularity-ordered) before the Ruby
+    # distance cut + final cap.
     Place.near(@lat, @lng, radius_m: @radius_km * 1000)
          .where(kind: CATALOG_HIGHLIGHT_KINDS)
          .with_image
          .order(usage_count: :desc, verified: :desc)
-         .limit(MAX_RESULTS)
+         .limit(MAX_RESULTS * 4)
+         .select { |p| haversine_km(@lat, @lng, p.latitude.to_f, p.longitude.to_f) <= @radius_km }
+         .first(MAX_RESULTS)
          .map { |p| place_to_idea(p) }
   rescue StandardError => e
     Rails.logger.warn("[NearbyIdeas] catalog #{@anchor_label}: #{e.class}: #{e.message}")
