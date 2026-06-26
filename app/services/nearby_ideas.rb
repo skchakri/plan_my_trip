@@ -66,6 +66,12 @@ class NearbyIdeas
   # per call so a cold cache can't hammer Nominatim's 1-req/sec policy.
   GEOCODE_BUDGET = 8
   GEOCODE_OUT_OF_RANGE_FACTOR = 1.3
+  # Two ideas within this many km are treated as the same place (one sight's
+  # trailhead / viewpoint / parking all collapse to a single card).
+  CLUSTER_RADIUS_KM = 2.0
+  # Generic tokens ignored when comparing names for the subsumption check,
+  # so "Spiral Jetty" still matches "Spiral Jetty Viewing Area".
+  DEDUP_STOPWORDS = %w[the a an of at on in and to].freeze
   CATALOG_HIGHLIGHT_KINDS = %w[
     trail viewpoint landmark natural geological historic
     museum park beach overlook
@@ -124,29 +130,73 @@ class NearbyIdeas
   end
 
   def fetch_ideas
+    merged = merge_catalog_and_llm
+    # Rank first so proximity/name dedup can keep the *best-scored* member of
+    # each cluster; then cap, fill images for survivors only, and re-rank so
+    # rank/tier numbering is correct on the final, deduped set.
+    ranked = PlaceRanker.rank!(merged, interests: @interests, anchor_lat: @lat, anchor_lng: @lng)
+    unique = dedupe_same_place(ranked).first(MAX_RESULTS)
+    fill_missing_images(unique)
+    PlaceRanker.rank!(unique, interests: @interests, anchor_lat: @lat, anchor_lng: @lng)
+  rescue StandardError => e
+    Rails.logger.warn("[NearbyIdeas] #{@anchor_label}: #{e.class}: #{e.message}")
+    []
+  end
+
+  # Catalog hits + LLM research, with the cheap exact-name dedup that keeps an
+  # LLM idea from shadowing a catalog row of the same name. Proximity/name
+  # clustering (dedupe_same_place) runs later, after ranking.
+  def merge_catalog_and_llm
     catalog = catalog_ideas
     seen = catalog.map { |i| i.name.to_s.downcase }.to_set
-
-    llm = claude_research_ideas
     merged = catalog.dup
-    llm.each do |i|
+    claude_research_ideas.each do |i|
       key = i.name.to_s.downcase
       next if seen.include?(key)
       seen << key
       merged << i
     end
+    merged
+  end
 
-    fill_missing_images(merged)
+  # Collapse ideas that point at the same real place. Input is assumed
+  # best-first (ranked), so the first member of each cluster — the highest
+  # scored — is the one kept. Two ideas cluster when they sit within
+  # CLUSTER_RADIUS_KM of each other (different access points of one sight)
+  # OR one name's significant-word set subsumes the other's ("Great Salt
+  # Lake" vs "Great Salt Lake State Park"; "Spiral Jetty" vs "Pink Lake at
+  # Spiral Jetty") — the duplication the exact-name pass can't catch.
+  def dedupe_same_place(ideas)
+    kept = []
+    ideas.each do |cand|
+      kept << cand unless kept.any? { |k| same_place?(cand, k) }
+    end
+    kept
+  end
 
-    PlaceRanker.rank!(
-      merged.first(MAX_RESULTS),
-      interests: @interests,
-      anchor_lat: @lat,
-      anchor_lng: @lng
-    )
-  rescue StandardError => e
-    Rails.logger.warn("[NearbyIdeas] #{@anchor_label}: #{e.class}: #{e.message}")
-    []
+  def same_place?(a, b)
+    return true if name_subsumes?(a.name, b.name)
+    return false unless a.latitude && a.longitude && b.latitude && b.longitude
+
+    haversine_km(a.latitude.to_f, a.longitude.to_f, b.latitude.to_f, b.longitude.to_f) <= CLUSTER_RADIUS_KM
+  end
+
+  # True when the shorter name's significant words are all contained in the
+  # longer's. Requires ≥2 shared significant words so a single generic token
+  # ("Lake", "Falls") can't vacuum up unrelated places.
+  def name_subsumes?(x, y)
+    wx = dedup_tokens(x)
+    wy = dedup_tokens(y)
+    smaller, larger = wx.size <= wy.size ? [ wx, wy ] : [ wy, wx ]
+    return false if smaller.size < 2
+
+    smaller.subset?(larger)
+  end
+
+  def dedup_tokens(name)
+    name.to_s.downcase.scan(/[a-z0-9]+/)
+        .reject { |t| t.length < 2 || DEDUP_STOPWORDS.include?(t) }
+        .to_set
   end
 
   def catalog_ideas
