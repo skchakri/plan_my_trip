@@ -36,9 +36,17 @@ class AppSetting < ApplicationRecord
     # executable, so making it web-editable would be an RCE vector. It stays an
     # ENV/deploy-only setting (see Ai::ClaudeCliProvider).
 
+    # ── Email import ──
+    Definition.new(key: "INBOUND_EMAIL_DOMAIN", label: "Inbound email domain", category: "Email import", secret: false,
+      description: "Domain for per-trip forwarding addresses (trip-<token>@<domain>). Travelers forward hotel/flight/car confirmations here and Action Mailbox parses them into reservations. Point your inbound provider's MX (Mailgun/SendGrid/Postmark) at this domain.", placeholder: nil, default: "inbound.planmytrip.app"),
+
     # ── Place data ──
     Definition.new(key: "GOOGLE_PLACES_API_KEY", label: "Google Places API key", category: "Place data", secret: true,
       description: "When set, Places::Geocoder uses Google Places Text Search for coordinate lookups (better POI matching, no 1-req/sec cap). Blank → free OpenStreetMap Nominatim. console.cloud.google.com → enable Places API.", placeholder: "AIza…"),
+
+    # ── Travel data ──
+    Definition.new(key: "EIA_API_KEY", label: "EIA gas-price API key", category: "Travel data", secret: true,
+      description: "Free U.S. Energy Information Administration API (api.eia.gov/register) — current gas price for RoadTripEstimator's fuel estimate. Blank → a hardcoded national-average price is used.", placeholder: nil),
 
     # ── Image search ──
     Definition.new(key: "PEXELS_API_KEY", label: "Pexels API key", category: "Image search", secret: true,

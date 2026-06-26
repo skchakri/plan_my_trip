@@ -24,6 +24,26 @@ class PublicTripsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "noindex"
   end
 
+  test "GET /s/:token shows a 'still being put together' notice while building" do
+    @trip.update!(build_status: "building")
+    @trip.enable_share_link!
+    get public_trip_path(@trip.share_token)
+    assert_response :success
+    assert_includes response.body, "still being put together"
+  end
+
+  test "GET /s/:token shows a friendly notice (no error leak) when the build failed" do
+    @trip.update!(build_status: "failed", build_error: "Geocoder::TIMEOUT calling Nominatim")
+    @trip.enable_share_link!
+    get public_trip_path(@trip.share_token)
+    assert_response :success
+    assert_includes response.body, "This plan isn't ready yet"
+    assert_includes response.body, "ran into a snag"
+    # The raw technical error must never reach a public recipient.
+    refute_includes response.body, "Geocoder::TIMEOUT calling Nominatim"
+    refute_includes response.body, "Nominatim"
+  end
+
   test "GET /s/:token returns 410 Gone after revocation" do
     @trip.enable_share_link!
     token = @trip.share_token

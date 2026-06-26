@@ -29,7 +29,9 @@
   </div>
 <% end %>
 
-<%# Add-item form: scope, day/activity label (when relevant), title %>
+<%# Add-item form: scope, day/activity label (when relevant), title.
+    Editors/owners only — plain members get a read-only checklist. %>
+<% if @trip.editable_by?(current_user) %>
 <section class="mt-5 rounded-2xl border border-slate-800 bg-slate-900/40 p-4 space-y-3">
   <%= form_with url: trip_checklist_items_path(@trip), method: :post, class: "space-y-2", data: { turbo_frame: "_top" } do |f| %>
     <div class="flex flex-wrap gap-2 text-xs">
@@ -56,6 +58,12 @@
     <p class="text-xs text-slate-400">Day and activity labels are only used when the corresponding scope is picked. Existing labels autocomplete.</p>
   <% end %>
 </section>
+<% else %>
+<section class="mt-5 rounded-2xl border border-slate-800 bg-slate-900/40 p-4 flex items-start gap-3">
+  <span class="shrink-0 mt-0.5 text-slate-400"><%= icon :list, class: "w-4 h-4" %></span>
+  <p class="text-sm text-slate-400">You have view access to this trip. The checklist is read-only — ask an editor or the owner to add or change items.</p>
+</section>
+<% end %>
 
 <%# Sectioned checklists %>
 <% ChecklistItem::SCOPES.each do |scope_key|

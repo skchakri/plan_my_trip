@@ -1,7 +1,7 @@
 class TripsController < ApplicationController
   include MarkdownHelper
 
-  before_action :set_trip, only: %i[show edit update destroy rename archive plan checklist copilot copilot_question copilot_response concierge duplicate calendar wallet printable rebuild skip_build edit_plan brief]
+  before_action :set_trip, only: %i[show edit update destroy rename archive plan checklist copilot copilot_question copilot_response concierge duplicate calendar wallet printable rebuild skip_build edit_plan brief road_trip_stats]
   before_action :set_owned_trip, only: %i[restore destroy_permanently]
 
   def index
@@ -156,6 +156,30 @@ class TripsController < ApplicationController
     render partial: "trips/brief", locals: { brief: DestinationBrief::EMPTY }, layout: false
   end
 
+  # GET /trips/:id/road_trip_stats — lazy turbo-frame target: per-leg mileage,
+  # drive time, and estimated fuel cost for own-car trips (RoadTripEstimator,
+  # cached). Loaded off the trip page so OSRM/EIA latency never blocks it; the
+  # frame-timeout controller guards a slow call. Renders an empty state (the
+  # partial with stats: nil) when there's nothing to estimate. ?detail=1 asks
+  # for the per-leg breakdown used on the Drive Co-Pilot.
+  def road_trip_stats
+    authorize @trip, :show?
+    # RoadTripEstimator self-rescues network/parse faults, but a cache-layer
+    # blip could still escape — never let the lazy frame return a 500, which
+    # the frame-timeout controller can't recover from. Guarding only the
+    # estimator call (not #authorize) keeps Pundit denials a real redirect.
+    @stats =
+      begin
+        RoadTripEstimator.call(@trip, viewer: current_user)
+      rescue StandardError => e
+        Rails.logger.warn("[TripsController#road_trip_stats] trip=#{@trip.id}: #{e.class}: #{e.message}")
+        nil
+      end
+    render partial: "trips/road_trip_stats",
+           locals: { stats: @stats, detail: params[:detail].present? },
+           layout: false
+  end
+
   # GET /trips/:id/checklist — sectioned checklist (Before trip / By day / By activity)
   def checklist
     authorize @trip, :show?
@@ -262,6 +286,7 @@ class TripsController < ApplicationController
     authorize @trip, :show?
     @days = @trip.trip_days.ordered.includes(:activities)
     @bookings = @trip.booking_claims.includes(documents_attachments: :blob)
+    @reservations = @trip.reservations.parsed
     render layout: "wallet"
   end
 
@@ -310,7 +335,7 @@ class TripsController < ApplicationController
   def trip_params
     params.require(:trip).permit(
       :title, :destination, :origin, :start_date, :end_date, :traveler_count, :body,
-      :pace, :budget, :preferences, :transport_mode,
+      :pace, :budget, :preferences, :transport_mode, :vehicle_mpg,
       :pwa_plan_url, :pwa_packing_url,
       trails_attributes: [ :id, :name, :alltrails_url, :notes, :position, :_destroy ],
       people_attributes: [ :id, :name, :age, :_destroy, { interests: [] } ]

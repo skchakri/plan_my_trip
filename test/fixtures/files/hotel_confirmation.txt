@@ -1,0 +1,16 @@
+---------- Forwarded message ----------
+From: Marriott <reservations@marriott.com>
+Subject: Your reservation is confirmed - Courtyard Las Vegas Downtown
+
+Dear Guest,
+
+Thank you for choosing Marriott. Your reservation is confirmed.
+
+Confirmation Number: MAR-88231947
+Hotel: Courtyard Las Vegas Downtown
+Address: 567 S Las Vegas Blvd, Las Vegas, NV 89101
+Check-in: Friday, August 1, 2026 (3:00 PM)
+Check-out: Sunday, August 3, 2026 (11:00 AM)
+Room: 1 King Bed, Non-Smoking
+
+We look forward to welcoming you.

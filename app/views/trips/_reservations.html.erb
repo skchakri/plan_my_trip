@@ -1,0 +1,106 @@
+<%# Booking-confirmation email import. Travelers forward a hotel/flight/car/
+    activity confirmation to the per-trip address; ReservationsMailbox + the
+    reservation_parse.v1 prompt turn it into the structured rows below. Subscribes
+    to the trip's Turbo refresh stream so a "Reading…" row morphs into its parsed
+    state without a manual reload while the page is open.
+    Locals: trip, can_edit. %>
+<%= turbo_stream_from trip %>
+<% reservations = trip.reservations.to_a %>
+<section class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 sm:p-7 mt-6">
+  <h2 class="font-display text-xl font-semibold flex items-center gap-2 mb-1.5">
+    <%= icon :inbox, class: "w-5 h-5 text-emerald-400/80" %> Forwarded reservations
+    <span class="text-xs text-slate-400 font-sans font-normal">auto-parsed from email</span>
+  </h2>
+  <p class="text-sm text-slate-400 mb-4">
+    Forward any hotel, flight, car or tour confirmation to this trip and it’s read into a reservation automatically.
+  </p>
+
+  <%# Per-trip forwarding address with copy-to-clipboard (reuses share-link JS). %>
+  <div data-controller="share-link" class="mb-5">
+    <label class="block text-[11px] uppercase tracking-wider text-slate-400 mb-1.5">This trip’s forwarding address</label>
+    <div class="flex items-stretch gap-2 bg-slate-950/60 border border-slate-700 rounded-lg p-1 pl-3">
+      <span class="shrink-0 self-center text-slate-500"><%= icon :mail, class: "w-4 h-4" %></span>
+      <input type="text" readonly value="<%= trip.forwarding_address %>"
+             data-share-link-target="url"
+             aria-label="Forwarding email address for this trip"
+             class="flex-1 bg-transparent text-sm text-slate-200 outline-none truncate" />
+      <button type="button"
+              data-action="share-link#copy"
+              data-share-link-target="copyBtn"
+              class="shrink-0 px-3 py-1.5 rounded-md bg-emerald-500 text-slate-950 text-sm font-semibold hover:bg-emerald-400 transition-colors">
+        Copy
+      </button>
+    </div>
+    <p class="text-[11px] text-slate-400 mt-1.5">Tip: in Gmail or Outlook, just hit “Forward” on the confirmation and send it here.</p>
+  </div>
+
+  <% if reservations.any? %>
+    <ul class="space-y-2">
+      <% reservations.each do |r| %>
+        <li class="rounded-lg border border-slate-700/50 bg-slate-800/30 px-3.5 py-3" id="reservation-<%= r.id %>">
+          <% if r.parsing? %>
+            <div class="flex items-center gap-2.5 text-sm text-slate-300">
+              <span class="inline-block w-3.5 h-3.5 rounded-full border-2 border-slate-500 border-t-emerald-400 animate-spin" aria-hidden="true"></span>
+              Reading a forwarded confirmation…
+            </div>
+          <% elsif r.failed? %>
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0 flex items-start gap-2.5">
+                <span class="shrink-0 mt-0.5 text-amber-400/80"><%= icon :alert_triangle, class: "w-4 h-4" %></span>
+                <div class="min-w-0">
+                  <p class="text-sm text-slate-200">We couldn’t read this forwarded email.</p>
+                  <p class="text-xs text-slate-400 mt-0.5">It’s saved here in case you want to add the details by hand<% if r.source_from.present? %> · from <%= r.source_from %><% end %>.</p>
+                </div>
+              </div>
+              <% if can_edit %>
+                <%= button_to trip_reservation_path(trip, r), method: :delete,
+                      form: { data: { turbo_confirm: "Remove this reservation?" } },
+                      class: "shrink-0 text-rose-400 hover:text-rose-300 p-1 rounded transition-colors cursor-pointer", aria: { label: "Remove" } do %>
+                  <%= icon :trash, class: "w-3.5 h-3.5" %>
+                <% end %>
+              <% end %>
+            </div>
+          <% else %>
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0 flex items-start gap-2.5">
+                <span class="shrink-0 mt-0.5 text-emerald-300/80"><%= icon r.kind_icon, class: "w-4 h-4" %></span>
+                <div class="min-w-0">
+                  <p class="text-sm font-semibold text-slate-100 truncate"><%= r.headline %></p>
+                  <div class="mt-1 flex flex-wrap items-center gap-1.5 text-[11px]">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-200 border border-emerald-500/20"><%= r.kind_label %></span>
+                    <% if r.confirmation_number.present? %>
+                      <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-700/40 text-slate-300 border border-slate-600/40 font-mono">#<%= r.confirmation_number %></span>
+                    <% end %>
+                    <% if r.start_at.present? %>
+                      <span class="inline-flex items-center gap-1 text-slate-400">
+                        <%= icon :calendar, class: "w-3 h-3" %>
+                        <%= r.start_at.strftime("%b %-d") %><% if r.end_at.present? && r.end_at.to_date != r.start_at.to_date %> – <%= r.end_at.strftime("%b %-d") %><% end %>
+                      </span>
+                    <% end %>
+                  </div>
+                  <% if r.vendor.present? || r.location.present? %>
+                    <p class="text-xs text-slate-400 mt-1 truncate">
+                      <%= [ r.vendor, r.location ].reject(&:blank?).uniq.join(" · ") %>
+                    </p>
+                  <% end %>
+                  <% if r.notes.present? %>
+                    <p class="text-xs text-slate-400 mt-0.5"><%= r.notes %></p>
+                  <% end %>
+                </div>
+              </div>
+              <% if can_edit %>
+                <%= button_to trip_reservation_path(trip, r), method: :delete,
+                      form: { data: { turbo_confirm: "Remove #{r.headline}?" } },
+                      class: "shrink-0 text-rose-400 hover:text-rose-300 p-1 rounded transition-colors cursor-pointer", aria: { label: "Remove" } do %>
+                  <%= icon :trash, class: "w-3.5 h-3.5" %>
+                <% end %>
+              <% end %>
+            </div>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <p class="text-xs text-slate-400">No reservations yet — forward a confirmation to the address above to get started.</p>
+  <% end %>
+</section>

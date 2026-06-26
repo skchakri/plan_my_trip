@@ -50,6 +50,13 @@ class NearbyIdeas
     def has_real_rating?
       community_rating_count.to_i.positive?
     end
+
+    # A full-day outing rather than a combinable stop: drive time (or, when
+    # the model didn't return one, distance in km) crosses LONG_HAUL_MINUTES.
+    def long_haul?
+      mins = drive_minutes.presence || distance_km
+      mins.present? && mins.to_f >= LONG_HAUL_MINUTES
+    end
   end
 
   # 22h, not 7 days: Pixabay's API terms want image URLs re-requested after
@@ -58,7 +65,11 @@ class NearbyIdeas
   # geocode (90d) caches all still hit, so it's a re-rank plus at most a
   # couple of stock re-fetches.
   CACHE_TTL = 22.hours
+  # Working-set size for catalog/LLM merge + dedup...
   MAX_RESULTS = 24
+  # ...but only this many survive to the picker. Showing a curated set beats
+  # padding to MAX_RESULTS with low-scored filler (the long duplicate tail).
+  DISPLAY_LIMIT = 12
   PROMPT_SLUG = "nearby_ideas.v1".freeze
   # LLMs invent coordinates. We only spend a geocode lookup when a pick's
   # model coords are missing or land implausibly far outside the radius
@@ -66,6 +77,16 @@ class NearbyIdeas
   # per call so a cold cache can't hammer Nominatim's 1-req/sec policy.
   GEOCODE_BUDGET = 8
   GEOCODE_OUT_OF_RANGE_FACTOR = 1.3
+  # Two ideas within this many km are treated as the same place (one sight's
+  # trailhead / viewpoint / parking all collapse to a single card).
+  CLUSTER_RADIUS_KM = 2.0
+  # Generic tokens ignored when comparing names for the subsumption check,
+  # so "Spiral Jetty" still matches "Spiral Jetty Viewing Area".
+  DEDUP_STOPWORDS = %w[the a an of at on in and to].freeze
+  # One-way minutes (or km, as a fallback) at/above which a pick is a
+  # "full day" outing, not a combinable day-trip stop. Surfaced as a card
+  # badge so users don't pair a 3-hour drive with a local hike.
+  LONG_HAUL_MINUTES = 90
   CATALOG_HIGHLIGHT_KINDS = %w[
     trail viewpoint landmark natural geological historic
     museum park beach overlook
@@ -118,43 +139,96 @@ class NearbyIdeas
     # illustrate; v6: dedupe casualties also fall back to stock. v7: drop
     # non-free media (logos/cover art) + opensearch relevance guard in the
     # image lookup, so collisions like the Kenny Rogers cover for "Donut
-    # Falls" re-resolve. Bumps re-enrich cheaply — the inner AI + image
-    # caches still hit.
-    "nearby_ideas/v7/#{digest}"
+    # Falls" re-resolve. v8: true-distance radius filter, same-place dedup
+    # (proximity + name), long-haul down-rank, and the curated display cap —
+    # roll out immediately instead of waiting out the 22h TTL. Bumps re-enrich
+    # cheaply — the inner AI + image caches still hit.
+    "nearby_ideas/v8/#{digest}"
   end
 
   def fetch_ideas
-    catalog = catalog_ideas
-    seen = catalog.map { |i| i.name.to_s.downcase }.to_set
-
-    llm = claude_research_ideas
-    merged = catalog.dup
-    llm.each do |i|
-      key = i.name.to_s.downcase
-      next if seen.include?(key)
-      seen << key
-      merged << i
-    end
-
-    fill_missing_images(merged)
-
-    PlaceRanker.rank!(
-      merged.first(MAX_RESULTS),
-      interests: @interests,
-      anchor_lat: @lat,
-      anchor_lng: @lng
-    )
+    merged = merge_catalog_and_llm
+    # Rank first so proximity/name dedup can keep the *best-scored* member of
+    # each cluster; then cap, fill images for survivors only, and re-rank so
+    # rank/tier numbering is correct on the final, deduped set.
+    ranked = PlaceRanker.rank!(merged, interests: @interests, anchor_lat: @lat, anchor_lng: @lng)
+    unique = dedupe_same_place(ranked).first(DISPLAY_LIMIT)
+    fill_missing_images(unique)
+    PlaceRanker.rank!(unique, interests: @interests, anchor_lat: @lat, anchor_lng: @lng)
   rescue StandardError => e
     Rails.logger.warn("[NearbyIdeas] #{@anchor_label}: #{e.class}: #{e.message}")
     []
   end
 
+  # Catalog hits + LLM research, with the cheap exact-name dedup that keeps an
+  # LLM idea from shadowing a catalog row of the same name. Proximity/name
+  # clustering (dedupe_same_place) runs later, after ranking.
+  def merge_catalog_and_llm
+    catalog = catalog_ideas
+    seen = catalog.map { |i| i.name.to_s.downcase }.to_set
+    merged = catalog.dup
+    claude_research_ideas.each do |i|
+      key = i.name.to_s.downcase
+      next if seen.include?(key)
+      seen << key
+      merged << i
+    end
+    merged
+  end
+
+  # Collapse ideas that point at the same real place. Input is assumed
+  # best-first (ranked), so the first member of each cluster — the highest
+  # scored — is the one kept. Two ideas cluster when they sit within
+  # CLUSTER_RADIUS_KM of each other (different access points of one sight)
+  # OR one name's significant-word set subsumes the other's ("Great Salt
+  # Lake" vs "Great Salt Lake State Park"; "Spiral Jetty" vs "Pink Lake at
+  # Spiral Jetty") — the duplication the exact-name pass can't catch.
+  def dedupe_same_place(ideas)
+    kept = []
+    ideas.each do |cand|
+      kept << cand unless kept.any? { |k| same_place?(cand, k) }
+    end
+    kept
+  end
+
+  def same_place?(a, b)
+    return true if name_subsumes?(a.name, b.name)
+    return false unless a.latitude && a.longitude && b.latitude && b.longitude
+
+    haversine_km(a.latitude.to_f, a.longitude.to_f, b.latitude.to_f, b.longitude.to_f) <= CLUSTER_RADIUS_KM
+  end
+
+  # True when the shorter name's significant words are all contained in the
+  # longer's. Requires ≥2 shared significant words so a single generic token
+  # ("Lake", "Falls") can't vacuum up unrelated places.
+  def name_subsumes?(x, y)
+    wx = dedup_tokens(x)
+    wy = dedup_tokens(y)
+    smaller, larger = wx.size <= wy.size ? [ wx, wy ] : [ wy, wx ]
+    return false if smaller.size < 2
+
+    smaller.subset?(larger)
+  end
+
+  def dedup_tokens(name)
+    name.to_s.downcase.scan(/[a-z0-9]+/)
+        .reject { |t| t.length < 2 || DEDUP_STOPWORDS.include?(t) }
+        .to_set
+  end
+
   def catalog_ideas
+    # `Place.near` is bounding-box only, so its square reaches ~1.41× the
+    # radius at the corners. Re-filter by true great-circle distance so a
+    # "within 50 mi" request never surfaces a 63-mi pick. Pull a generous
+    # candidate window first (still popularity-ordered) before the Ruby
+    # distance cut + final cap.
     Place.near(@lat, @lng, radius_m: @radius_km * 1000)
          .where(kind: CATALOG_HIGHLIGHT_KINDS)
          .with_image
          .order(usage_count: :desc, verified: :desc)
-         .limit(MAX_RESULTS)
+         .limit(MAX_RESULTS * 4)
+         .select { |p| haversine_km(@lat, @lng, p.latitude.to_f, p.longitude.to_f) <= @radius_km }
+         .first(MAX_RESULTS)
          .map { |p| place_to_idea(p) }
   rescue StandardError => e
     Rails.logger.warn("[NearbyIdeas] catalog #{@anchor_label}: #{e.class}: #{e.message}")

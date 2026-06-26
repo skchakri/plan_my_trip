@@ -58,6 +58,35 @@
   </section>
 <% end %>
 
+<%# Forwarded reservations — confirmations parsed from emails. Distinct from the
+    booking_claims above (which carry uploaded docs); these carry structured
+    vendor/confirmation/date fields, the most useful thing to have on paper. %>
+<% if @reservations.present? && @reservations.any? %>
+  <section class="mb-6 wallet-card">
+    <h2 class="text-xs uppercase tracking-widest text-slate-400 mb-2">Forwarded reservations</h2>
+    <ul class="space-y-2">
+      <% @reservations.each do |r| %>
+        <li class="border border-slate-300 rounded-md p-3">
+          <p class="text-sm font-semibold"><%= r.headline %>
+            <span class="text-slate-400 font-normal text-xs">· <%= r.kind_label %></span>
+          </p>
+          <% if r.confirmation_number.present? %>
+            <p class="text-xs text-slate-700 mt-1">Confirmation <span class="font-mono">#<%= r.confirmation_number %></span></p>
+          <% end %>
+          <% if r.start_at.present? %>
+            <p class="text-xs text-slate-700 mt-0.5">
+              <%= r.start_at.strftime("%a, %b %-d") %><% if r.end_at.present? && r.end_at.to_date != r.start_at.to_date %> – <%= r.end_at.strftime("%a, %b %-d") %><% end %>
+            </p>
+          <% end %>
+          <% if r.vendor.present? || r.location.present? || r.address.present? %>
+            <p class="text-xs text-slate-700 mt-0.5"><%= [ r.vendor, r.location, r.address ].reject(&:blank?).uniq.join(" · ") %></p>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  </section>
+<% end %>
+
 <%# Day-by-day addresses + lat/lng — the survival sheet for the road. %>
 <% if @days.any? %>
   <section class="mb-6 wallet-card">

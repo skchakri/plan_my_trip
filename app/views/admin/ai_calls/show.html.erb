@@ -15,13 +15,21 @@
   </div>
 </div>
 
-<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-  <% [
+<%
+  cards = [
     [ "Status", @call.status ],
     [ "Provider · Model", "#{@call.provider} · #{@call.model}" ],
     [ "Latency", "#{@call.latency_ms || '—'} ms" ],
     [ "Tokens (in/out)", "#{@call.input_tokens || '—'} / #{@call.output_tokens || '—'}" ]
-  ].each do |label, value| %>
+  ]
+  cache_read = @call.meta&.dig("cache_read_input_tokens")
+  cache_created = @call.meta&.dig("cache_creation_input_tokens")
+  if cache_read || cache_created
+    cards << [ "Cache (read/created)", "#{cache_read || 0} / #{cache_created || 0}" ]
+  end
+%>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+  <% cards.each do |label, value| %>
     <div class="rounded-lg border border-slate-800 bg-slate-900/40 p-2.5">
       <p class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold"><%= label %></p>
       <p class="text-sm text-slate-100 mt-0.5"><%= value %></p>

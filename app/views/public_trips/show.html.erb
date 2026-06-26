@@ -39,6 +39,20 @@
       <p class="text-amber-100 font-medium">This plan is still being put together.</p>
       <p class="text-sm text-amber-200/80 mt-1">Your host is generating the day-by-day itinerary — check back in a few minutes.</p>
     </div>
+  <% elsif @trip.build_failed? %>
+    <%# Public recipient can't rebuild/edit — informational only. No build_error
+        leak and no owner-only actions (they'd 403/404). %>
+    <div class="mb-10 rounded-xl border border-rose-500/30 bg-rose-500/5 p-5">
+      <div class="flex items-start gap-3">
+        <div class="shrink-0 mt-0.5 w-9 h-9 rounded-full bg-rose-500/15 border border-rose-500/30 flex items-center justify-center">
+          <%= icon :alert_triangle, class: "w-5 h-5 text-rose-300" %>
+        </div>
+        <div class="min-w-0">
+          <p class="text-rose-100 font-medium">This plan isn't ready yet.</p>
+          <p class="text-sm text-rose-200/80 mt-1">Your host ran into a snag while generating this itinerary. Check back soon — or save a copy to build your own.</p>
+        </div>
+      </div>
+    </div>
   <% end %>
 
   <% if @trip.body.present? %>

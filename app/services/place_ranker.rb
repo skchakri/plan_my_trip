@@ -103,9 +103,15 @@ class PlaceRanker
   def distance_score(item)
     return 12.0 unless @has_distance && item.respond_to?(:distance_km) && item.distance_km.present?
     km = item.distance_km.to_f
-    # Linear falloff: 0 km → 20, 25 km → 15, 50 km → 10, 100+ km → 5
-    score = 20.0 - (km / 100.0) * 15.0
-    [ [ score, 5.0 ].max, 20.0 ].min.round(1)
+    # Two-segment falloff: gentle to 50 km, then steep so long-haul
+    # (full-day) picks sink instead of sitting alongside close stops.
+    #   0 → 20, 25 → 15.5, 50 → 11, 75 → 6.5, 100 → 2, 150+ → floor 1
+    score = if km <= 50.0
+      20.0 - (km / 50.0) * 9.0
+    else
+      11.0 - ((km - 50.0) / 50.0) * 9.0
+    end
+    [ [ score, 1.0 ].max, 20.0 ].min.round(1)
   end
 
   def community_score(item)
