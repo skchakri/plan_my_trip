@@ -3,6 +3,13 @@
 <% can_edit = @trip.editable_by?(current_user) %>
 <% day_trip = @trip.day_trip? %>
 
+<%# Live collaborative edits: subscribe to this trip's signed stream so a
+    member's rename / itinerary / activity change broadcasts a Turbo 8 morph
+    refresh that updates this page in place. Only members are served this
+    subscription (TripPolicy#show? requires membership), and the public share
+    view renders a different template that never subscribes. %>
+<%= turbo_stream_from @trip %>
+
 <div class="mb-5">
   <%= link_to trips_path, class: "inline-flex items-center gap-1 text-sm text-slate-400 hover:text-amber-300 transition-colors" do %>
     <%= icon :arrow_left, class: "w-4 h-4" %> All trips
@@ -185,7 +192,11 @@
     trip. Updated via Action Cable; only renders for trips with multiple
     members (no point on solo trips). %>
 <% if @trip.member_count > 1 %>
-  <div data-controller="trip-presence" data-trip-presence-trip-id-value="<%= @trip.id %>"
+  <%# data-turbo-permanent: the pill list is injected client-side by the cable
+      controller, so a morph would wipe it until the next 25s ping. Keeping the
+      widget permanent preserves the live roster across refreshes. %>
+  <div id="trip-presence-<%= @trip.id %>" data-turbo-permanent
+       data-controller="trip-presence" data-trip-presence-trip-id-value="<%= @trip.id %>"
        class="mb-6 flex items-center gap-2 text-xs text-slate-500 flex-wrap">
     <span class="inline-flex items-center gap-1.5">
       <span class="relative flex w-2 h-2">
@@ -207,7 +218,10 @@
   <div class="px-4 pb-4">
     <%= form_with url: rename_trip_path(@trip), method: :patch, class: "flex gap-2" do |f| %>
       <label for="custom-title" class="sr-only">Your custom title for this trip</label>
-      <%= f.text_field "trip_membership[custom_title]", id: "custom-title", value: @membership&.custom_title, placeholder: @trip.title, class: "flex-1 rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none" %>
+      <%# data-turbo-permanent so a member mid-rename isn't reset by an incoming
+          refresh. custom_title is per-membership, so nothing collaborative
+          changes it out from under the typist. %>
+      <%= f.text_field "trip_membership[custom_title]", id: "custom-title", value: @membership&.custom_title, placeholder: @trip.title, data: { turbo_permanent: true }, class: "flex-1 rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none" %>
       <%= f.submit "Save", class: "px-4 py-2 bg-amber-500 text-slate-950 rounded-lg font-semibold text-sm hover:bg-amber-400 cursor-pointer" %>
     <% end %>
     <p class="text-xs text-slate-400 mt-2">Your custom title only changes how this trip looks in your list. Leave it blank to use the original.</p>
@@ -300,7 +314,10 @@
       <summary class="cursor-pointer px-4 py-3 text-sm font-medium text-slate-300">
         <span class="inline-flex items-center gap-2"><%= icon :plus, class: "w-4 h-4" %> Add a traveler</span>
       </summary>
-      <%= form_with url: trip_people_path(@trip), method: :post, html: { class: "px-4 pb-4 space-y-3" } do |f| %>
+      <%# data-turbo-permanent: keep a half-filled traveler (name/age + interest
+          chips built client-side) and its Stimulus controller intact across a
+          collaborator's refresh. %>
+      <%= form_with url: trip_people_path(@trip), method: :post, html: { id: "add-traveler-form-#{@trip.id}", class: "px-4 pb-4 space-y-3", data: { turbo_permanent: true } } do |f| %>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2"
              data-controller="interests-input"
              data-interests-input-name-value="person[interests][]"
@@ -399,7 +416,9 @@
       <% end %>
     </ul>
   <% end %>
-  <%= form_with url: trip_documents_path(@trip), method: :post, multipart: true, html: { class: "flex items-center gap-2", data: { turbo: false } } do %>
+  <%# data-turbo-permanent so a chosen-but-not-yet-uploaded file isn't cleared by
+      a morph (file inputs can't be re-populated programmatically). %>
+  <%= form_with url: trip_documents_path(@trip), method: :post, multipart: true, html: { id: "trip-documents-form-#{@trip.id}", class: "flex items-center gap-2", data: { turbo: false, turbo_permanent: true } } do %>
     <%= file_field_tag "trip[documents][]", multiple: true, accept: "image/*,application/pdf,.ics,.txt", class: "block w-full text-xs text-slate-300 file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:bg-amber-500/15 file:text-amber-200 hover:file:bg-amber-500/25 file:cursor-pointer cursor-pointer" %>
     <%= submit_tag "Upload", class: "shrink-0 px-3 py-1.5 bg-amber-500 text-slate-950 rounded-md text-xs font-semibold hover:bg-amber-400 cursor-pointer" %>
   <% end %>
@@ -427,6 +446,7 @@
       <% public_url = public_trip_url(@trip.share_token) %>
       <div class="flex items-stretch gap-2 bg-slate-950/60 border border-slate-700 rounded-lg p-1 pl-3">
         <input type="text" readonly value="<%= public_url %>"
+               id="share-link-url-<%= @trip.id %>" data-turbo-permanent
                data-share-link-target="url"
                class="flex-1 bg-transparent text-sm text-slate-200 outline-none truncate" />
         <button type="button"

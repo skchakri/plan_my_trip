@@ -73,6 +73,16 @@ class Trip < ApplicationRecord
 
   has_many_attached :documents
 
+  # Live collaborative editing: any trip create/update/destroy broadcasts a
+  # Turbo 8 *refresh* to this trip's own stream (the one `turbo_stream_from
+  # @trip` subscribes to on trips/show). Subscribers morph the page in place —
+  # no manual reload. Default is async (broadcast_refresh_later → Solid Queue),
+  # and Turbo debounces/coalesces bursts. Build-step bumps use update_columns
+  # (no callbacks) so the spinner stays driven by the targeted progress
+  # broadcast; the failure path likewise stays on BuildTripJob's explicit
+  # broadcast_refresh_to (update_columns skips this callback).
+  broadcasts_refreshes
+
   # Content types accepted for trip-level document uploads. Anything else
   # (notably text/html and image/svg+xml, which can carry scripts) is rejected
   # before attach by AttachmentFiltering.

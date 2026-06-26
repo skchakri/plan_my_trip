@@ -16,6 +16,11 @@ class Activity < ApplicationRecord
   has_one :trip, through: :trip_day
   has_many :comments, -> { kept.ordered }, dependent: :destroy
 
+  # Editing an activity (add/edit/reorder/delete a stop on edit_plan) refreshes
+  # the parent trip's stream, so other members on trips/show see the itinerary
+  # change morph in place. Resolves through trip_day → trip.
+  broadcasts_refreshes_to :trip
+
   # User-uploaded photos of this stop. First attachment wins as the hero
   # so a trip member can override the Wikipedia/place image with a real
   # photo they took.
