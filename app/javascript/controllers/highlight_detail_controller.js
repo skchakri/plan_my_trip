@@ -14,7 +14,7 @@ export default class extends Controller {
     "modal", "modalImage", "modalCategory", "modalName", "modalTagline",
     "modalOverview", "modalLove", "modalBestTime", "modalTips", "modalPerfectFor",
     "modalWikipedia", "modalMaps", "modalToggle", "modalToggleLabel",
-    "modalSkeleton", "modalBody",
+    "modalSkeleton", "modalBody", "closeButton",
     "selectedContainer", "card", "selectedCount",
     "ratingStar", "ratingLabel", "ratingBody", "ratingStatus",
     "modalRatingCaption", "modalAllReviews"
@@ -39,6 +39,8 @@ export default class extends Controller {
   open(event) {
     const card = event.currentTarget
     const data = card.dataset
+    // Remember what had focus so we can restore it when the dialog closes.
+    this._lastFocused = document.activeElement
     this._currentSlug = data.slug
     this._currentCard = data
     this._myRating = 0
@@ -82,6 +84,9 @@ export default class extends Controller {
     this.modalTarget.hidden = false
     requestAnimationFrame(() => {
       this.modalTarget.classList.add("is-open")
+      // Move focus into the dialog so keyboard/SR users aren't stranded
+      // on the page behind it.
+      this.closeButtonTarget?.focus()
     })
     document.body.style.overflow = "hidden"
 
@@ -95,6 +100,10 @@ export default class extends Controller {
     document.body.style.overflow = ""
     setTimeout(() => { this.modalTarget.hidden = true }, 180)
     this._currentSlug = null
+    // Restore focus to whatever opened the dialog. focus() on a detached
+    // node is a harmless no-op, so no guard is needed.
+    this._lastFocused?.focus()
+    this._lastFocused = null
   }
 
   closeOnBackdrop(event) {
