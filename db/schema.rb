@@ -10,7 +10,9 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_24_014100) do
+
+ActiveRecord::Schema[8.1].define(version: 2026_06_24_120000) do
+
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -515,6 +517,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_24_014100) do
     t.string "transport_mode"
     t.integer "traveler_count", default: 2, null: false
     t.datetime "updated_at", null: false
+    t.decimal "vehicle_mpg", precision: 5, scale: 1
     t.index ["build_status"], name: "index_trips_on_build_status"
     t.index ["day_trip"], name: "index_trips_on_day_trip"
     t.index ["discarded_at"], name: "index_trips_on_discarded_at"

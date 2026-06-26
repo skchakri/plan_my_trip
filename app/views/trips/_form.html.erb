@@ -70,6 +70,12 @@
         <%= f.label :transport_mode, "Getting around", class: label_classes %>
         <%= f.select :transport_mode, [ [ "Own car", "own_car" ], [ "Rental car", "rental" ], [ "Flying", "flying" ], [ "Mixed", "mixed" ] ], { include_blank: "No preference" }, class: input_classes %>
       </div>
+      <div>
+        <%= f.label :vehicle_mpg, "Vehicle MPG", class: label_classes %>
+        <%= f.number_field :vehicle_mpg, min: 1, max: 200, step: 0.1, placeholder: "e.g. 28", class: input_classes + input_error_classes(@trip, :vehicle_mpg) %>
+        <p class="text-[11px] text-slate-500 mt-1">Used to estimate road-trip fuel cost (own-car trips).</p>
+        <%= field_errors(@trip, :vehicle_mpg) %>
+      </div>
     </div>
     <div>
       <%= f.label :preferences, "Anything we should know?", class: label_classes %>

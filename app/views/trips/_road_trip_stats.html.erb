@@ -1,0 +1,120 @@
+<%# Road-trip stats — per-leg mileage, drive time, and estimated fuel cost for
+    own-car trips (RoadTripEstimator, cached). Loaded lazily so OSRM/EIA latency
+    never blocks the page. `detail` switches between the compact summary card
+    (trips/show, frame "road-trip-stats") and the per-leg breakdown shown next
+    to the Drive Co-Pilot (trips/plan, frame "road-trip-legs"). %>
+<% frame_id = detail ? "road-trip-legs" : "road-trip-stats" %>
+<%
+  humanize_dur = ->(secs) {
+    secs = secs.to_i
+    h = secs / 3600
+    m = (secs % 3600) / 60
+    h.positive? ? "#{h}h #{m}m" : "#{m} min"
+  }
+%>
+<%= turbo_frame_tag frame_id do %>
+  <% if stats.nil? %>
+    <section class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 sm:p-6 <%= detail ? 'mb-5' : 'mb-6' %>">
+      <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500 font-medium inline-flex items-center gap-2 mb-2">
+        <%= icon :car, class: "w-3.5 h-3.5" %> Road trip stats
+      </p>
+      <p class="text-sm text-slate-400">Add stops with locations to estimate your drive distance, time, and fuel cost.</p>
+    </section>
+
+  <% elsif detail %>
+    <%# ── Per-leg breakdown (Drive Co-Pilot) ── %>
+    <section class="rounded-2xl border border-amber-500/20 bg-slate-900/40 p-4 sm:p-5 mb-5">
+      <div class="flex items-center justify-between gap-3 flex-wrap mb-3">
+        <p class="text-[11px] uppercase tracking-[0.18em] text-amber-300/90 font-semibold inline-flex items-center gap-2">
+          <%= icon :navigation, class: "w-3.5 h-3.5" %> Drive legs
+        </p>
+        <% if stats.partial %>
+          <span class="text-[10px] uppercase tracking-widest px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">approx · sampled stops</span>
+        <% end %>
+      </div>
+
+      <ol class="space-y-2">
+        <% stats.legs.each_with_index do |leg, i| %>
+          <li class="rounded-xl border border-slate-700/50 bg-slate-800/30 px-3.5 py-3">
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0">
+                <p class="text-[11px] uppercase tracking-widest text-slate-500 font-semibold mb-0.5">Leg <%= i + 1 %></p>
+                <p class="text-sm text-slate-200 leading-snug">
+                  <span class="font-medium"><%= leg.from %></span>
+                  <span class="text-slate-500 px-1">→</span>
+                  <span class="font-medium"><%= leg.to %></span>
+                </p>
+              </div>
+              <div class="shrink-0 text-right tabular-nums">
+                <p class="text-sm font-semibold text-slate-100"><%= number_with_precision(leg.miles, precision: 0, delimiter: ",") %> mi</p>
+                <p class="text-xs text-slate-400 mt-0.5"><%= humanize_dur.call(leg.drive_seconds) %> · <%= number_to_currency(leg.fuel_cost) %></p>
+              </div>
+            </div>
+          </li>
+        <% end %>
+      </ol>
+
+      <div class="mt-3 pt-3 border-t border-slate-700/50 flex items-center justify-between gap-3 text-sm">
+        <span class="text-slate-400">Total</span>
+        <span class="tabular-nums text-slate-100 font-semibold">
+          <%= number_with_precision(stats.total_miles, precision: 0, delimiter: ",") %> mi
+          <span class="text-slate-500 font-normal">·</span>
+          <%= humanize_dur.call(stats.total_drive_seconds) %>
+          <span class="text-slate-500 font-normal">·</span>
+          <%= number_to_currency(stats.total_fuel_cost) %>
+        </span>
+      </div>
+      <p class="text-[11px] text-slate-500 mt-2 leading-relaxed">
+        Fuel estimated at <%= number_with_precision(stats.mpg, precision: 0) %> mpg<%= " (default)" if stats.mpg_estimated %>
+        and <%= number_to_currency(stats.price_per_gallon) %>/gal<%= stats.price_source == "estimate" ? " (estimated)" : "" %>.
+        Routing by OSRM — actual mileage varies with route + traffic.
+      </p>
+    </section>
+
+  <% else %>
+    <%# ── Compact summary card (trips/show) ── %>
+    <section class="rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 to-slate-900/40 p-5 sm:p-6 mb-6">
+      <div class="flex items-center justify-between gap-3 flex-wrap mb-3.5">
+        <p class="text-[11px] uppercase tracking-[0.18em] text-amber-400 font-medium inline-flex items-center gap-2">
+          <%= icon :car, class: "w-3.5 h-3.5" %> Road trip stats
+        </p>
+        <% if stats.partial %>
+          <span class="text-[10px] uppercase tracking-widest px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">approx · sampled stops</span>
+        <% end %>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2.5">
+        <div class="rounded-xl bg-slate-800/40 border border-slate-700/50 p-3">
+          <div class="flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-slate-500 font-medium">
+            <%= icon :navigation, class: "w-3.5 h-3.5" %> Distance
+          </div>
+          <div class="font-display text-2xl font-semibold text-slate-50 mt-1 tabular-nums"><%= number_with_precision(stats.total_miles, precision: 0, delimiter: ",") %><span class="text-base text-slate-400 font-normal"> mi</span></div>
+        </div>
+        <div class="rounded-xl bg-slate-800/40 border border-slate-700/50 p-3">
+          <div class="flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-slate-500 font-medium">
+            <%= icon :clock, class: "w-3.5 h-3.5" %> Drive time
+          </div>
+          <div class="font-display text-2xl font-semibold text-slate-50 mt-1 tabular-nums"><%= humanize_dur.call(stats.total_drive_seconds) %></div>
+        </div>
+        <div class="rounded-xl bg-slate-800/40 border border-slate-700/50 p-3">
+          <div class="flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-slate-500 font-medium">
+            <%= icon :coins, class: "w-3.5 h-3.5" %> Est. fuel
+          </div>
+          <div class="font-display text-2xl font-semibold text-slate-50 mt-1 tabular-nums"><%= number_to_currency(stats.total_fuel_cost, precision: 0) %></div>
+        </div>
+      </div>
+
+      <p class="text-xs text-slate-400 mt-3.5 leading-relaxed">
+        Based on <strong class="text-slate-300"><%= number_with_precision(stats.mpg, precision: 0) %> mpg<%= " (default)" if stats.mpg_estimated %></strong>
+        and <strong class="text-slate-300"><%= number_to_currency(stats.price_per_gallon) %>/gal</strong><%= stats.price_source == "estimate" ? " (estimated)" : "" %>.
+        Per-leg detail rides with the <%= link_to "Drive Co-Pilot", plan_trip_path(@trip), class: "text-amber-300 hover:text-amber-200 underline-offset-2 hover:underline" %>.
+      </p>
+
+      <% if stats.mpg_estimated %>
+        <%= link_to edit_trip_path(@trip), class: "mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 text-slate-200 text-xs hover:border-amber-500/50 hover:bg-slate-800/50 transition-colors" do %>
+          <%= icon :pencil, class: "w-3.5 h-3.5" %> Set your vehicle's MPG for a sharper estimate
+        <% end %>
+      <% end %>
+    </section>
+  <% end %>
+<% end %>
