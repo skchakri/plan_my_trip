@@ -19,7 +19,7 @@
         New · Podcast-mode narration for the drive
       </span>
       <h1 class="mt-5 font-display text-4xl sm:text-6xl lg:text-7xl font-semibold tracking-tight leading-[1.05]">
-        Trips your <span class="bg-gradient-to-br from-amber-200 via-amber-300 to-amber-500 bg-clip-text text-transparent">whole crew</span> will remember.
+        Trips your <span class="italic pr-1 bg-gradient-to-br from-amber-200 via-amber-300 to-amber-500 bg-clip-text text-transparent">whole crew</span> will remember.
       </h1>
       <p class="mt-5 text-lg sm:text-xl text-slate-300 leading-relaxed max-w-2xl">
         Day-by-day itineraries with photos and maps. Drive-time games for the back seat. A two-voice podcast for the highway. And it all works offline on the road.
@@ -64,10 +64,10 @@
     <%# Hero collage — photos that hint at the app's content %>
     <div class="mt-16 lg:mt-20 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
       <% [
-        { src: "https://images.unsplash.com/photo-1605833556294-ea5c7a74f57d?w=600&q=80",   caption: "Day plans" },
-        { src: "https://images.unsplash.com/photo-1602940659805-770d1b3b9911?w=600&q=80",   caption: "Maps offline" },
-        { src: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=600&q=80",   caption: "For the crew" },
-        { src: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=600&q=80",   caption: "Stories aloud" }
+        { src: "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=600&q=80",   caption: "Day plans" },      # map + field-notes flatlay
+        { src: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=600&q=80",   caption: "Maps offline" },   # SUV on a remote desert road
+        { src: "https://images.unsplash.com/photo-1541410965313-d53b3c16ef17?w=600&q=80",   caption: "For the crew" },   # winding scenic drive
+        { src: "https://images.unsplash.com/photo-1517760444937-f6397edcbbcd?w=600&q=80",   caption: "Stories aloud" }   # figure at a waterfall
       ].each_with_index do |t, i| %>
         <div class="relative aspect-[4/5] rounded-2xl overflow-hidden border border-white/10 bg-slate-900 shadow-2xl <%= i.even? ? '' : 'sm:translate-y-6' %>">
           <img src="<%= t[:src] %>" alt="" loading="lazy" class="absolute inset-0 w-full h-full object-cover">
@@ -105,7 +105,7 @@
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
     <div class="max-w-2xl">
       <p class="text-[11px] uppercase tracking-[0.18em] text-amber-300 font-semibold">What it does</p>
-      <h2 class="font-display text-3xl sm:text-5xl font-semibold tracking-tight mt-2">A trip planner that lives on the road, not in a tab.</h2>
+      <h2 class="font-display text-3xl sm:text-5xl font-semibold tracking-tight mt-2">A trip planner that lives <em class="italic text-amber-300">on the road</em>, not in a tab.</h2>
       <p class="text-slate-400 mt-4 text-lg">Most planners stop being useful the moment you leave the wifi. Plan My Trip is built for the drive — maps cached, plans narrated, kids entertained.</p>
     </div>
 
@@ -141,7 +141,7 @@
           body: "Drop hotel PDFs, e-tickets, and .ics files onto a trip or a specific activity. Encrypted at rest. There when you need them at the front desk.",
           color: "blue" }
       ].each do |f|
-        cc = color_classes[f[:color]] %>
+        cc = color_classes["amber"] # single-accent discipline: all feature tiles amber %>
         <article class="group relative rounded-2xl border border-slate-800 bg-slate-900/40 p-6 hover:border-slate-700 transition-colors overflow-hidden">
           <div class="absolute -top-12 -right-12 w-48 h-48 rounded-full <%= cc[:glow] %> blur-2xl"></div>
           <div class="relative">
@@ -162,7 +162,7 @@
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
     <div class="max-w-2xl mx-auto text-center">
       <p class="text-[11px] uppercase tracking-[0.18em] text-amber-300 font-semibold">How it works</p>
-      <h2 class="font-display text-3xl sm:text-5xl font-semibold tracking-tight mt-2">Three steps to a trip you'll actually use.</h2>
+      <h2 class="font-display text-3xl sm:text-5xl font-semibold tracking-tight mt-2">Three steps to a trip you'll <em class="italic text-amber-300">actually use.</em></h2>
     </div>
 
     <ol class="mt-14 grid gap-8 md:grid-cols-3 relative">
@@ -185,19 +185,19 @@
   </div>
 </section>
 
-<%# ── Quote / testimonial ───────────────────────────────────────── %>
-<section class="relative overflow-hidden">
+<%# ── Quote / testimonial — full-bleed inverted amber band ──────── %>
+<section class="relative overflow-hidden bg-gradient-to-br from-amber-300 via-amber-400 to-amber-500 text-slate-950">
   <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
     <figure class="text-center">
-      <span class="font-display text-7xl text-amber-400/30 leading-none">"</span>
-      <blockquote class="-mt-6 font-display text-2xl sm:text-3xl font-medium text-slate-100 leading-snug tracking-tight max-w-3xl mx-auto">
-        We've done a dozen family road trips with spreadsheets and bookmarks. The first time our 8-year-old asked, <em class="text-amber-300 not-italic">"what's the next thing famous for?"</em> — we knew this one was different.
+      <span class="font-display text-7xl text-slate-950/20 leading-none">"</span>
+      <blockquote class="-mt-6 font-display text-2xl sm:text-3xl font-semibold leading-snug tracking-tight max-w-3xl mx-auto text-slate-950">
+        We've done a dozen family road trips with spreadsheets and bookmarks. The first time our 8-year-old asked, <em class="italic">"what's the next thing famous for?"</em> — we knew this one was different.
       </blockquote>
-      <figcaption class="mt-6 inline-flex items-center gap-3">
-        <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&q=80" alt="" class="w-10 h-10 rounded-full object-cover border-2 border-amber-500/30">
+      <figcaption class="mt-7 inline-flex items-center gap-3">
+        <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&q=80" alt="" class="w-10 h-10 rounded-full object-cover border-2 border-slate-950/25">
         <div class="text-left">
-          <div class="text-sm font-semibold text-slate-100">The Setti family</div>
-          <div class="text-xs text-slate-400">Salt Lake City → Vegas → Grand Canyon</div>
+          <div class="text-sm font-bold text-slate-950">The Setti family</div>
+          <div class="text-xs font-medium text-slate-800">Salt Lake City → Vegas → Grand Canyon</div>
         </div>
       </figcaption>
     </figure>
@@ -210,7 +210,7 @@
     <div class="relative rounded-3xl overflow-hidden border border-amber-500/30 bg-gradient-to-br from-amber-500/15 via-slate-900 to-teal-500/10 p-8 sm:p-14">
       <div class="aurora opacity-50"></div>
       <div class="relative max-w-2xl">
-        <h2 class="font-display text-3xl sm:text-5xl font-semibold tracking-tight leading-tight">Your next trip wants to be a story.</h2>
+        <h2 class="font-display text-3xl sm:text-5xl font-semibold tracking-tight leading-tight">Your next trip wants to be a <em class="italic text-amber-300">story.</em></h2>
         <p class="mt-4 text-slate-300 text-lg">Sign up free in thirty seconds. Build your first day with photos and addresses, share with whoever's coming, and let the podcast do the rest on the drive.</p>
         <div class="mt-7 flex flex-wrap gap-3">
           <% if user_signed_in? %>
