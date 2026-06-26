@@ -51,7 +51,7 @@ class NearbyIdeasCatalogTest < ActiveSupport::TestCase
       idea("Great Salt Lake State Park", 40.99, -112.21), # word-set superset of #1, far apart
       idea("Spiral Jetty",               41.44, -112.66),
       idea("Spiral Jetty Viewing Area",  41.4405, -112.6605), # subset name AND co-located
-      idea("Lake Mary Trail",            40.60, -111.64),  # distinct
+      idea("Lake Mary Trail",            40.60, -111.64)  # distinct
     ]
     kept = catalog_only_service.send(:dedupe_same_place, ideas).map(&:name)
     assert_equal [ "Great Salt Lake", "Spiral Jetty", "Lake Mary Trail" ], kept
@@ -60,7 +60,7 @@ class NearbyIdeasCatalogTest < ActiveSupport::TestCase
   test "dedupe_same_place merges co-located ideas even with unrelated names" do
     ideas = [
       idea("Spiral Jetty", 41.44, -112.66),
-      idea("Rozel Point",  41.4402, -112.6603), # ~30 m away, different name
+      idea("Rozel Point",  41.4402, -112.6603) # ~30 m away, different name
     ]
     assert_equal [ "Spiral Jetty" ], catalog_only_service.send(:dedupe_same_place, ideas).map(&:name)
   end
@@ -69,7 +69,7 @@ class NearbyIdeasCatalogTest < ActiveSupport::TestCase
     ideas = [
       idea("Bell's Canyon Lower Falls", 40.56, -111.80),
       idea("Bell's Canyon Upper Falls", 40.60, -111.80), # ~4.4 km from #1, 'upper' vs 'lower'
-      idea("Cecret Lake",               40.57, -111.62),
+      idea("Cecret Lake",               40.57, -111.62)
     ]
     assert_equal 3, catalog_only_service.send(:dedupe_same_place, ideas).length
   end

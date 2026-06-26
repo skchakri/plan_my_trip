@@ -139,9 +139,11 @@ class NearbyIdeas
     # illustrate; v6: dedupe casualties also fall back to stock. v7: drop
     # non-free media (logos/cover art) + opensearch relevance guard in the
     # image lookup, so collisions like the Kenny Rogers cover for "Donut
-    # Falls" re-resolve. Bumps re-enrich cheaply — the inner AI + image
-    # caches still hit.
-    "nearby_ideas/v7/#{digest}"
+    # Falls" re-resolve. v8: true-distance radius filter, same-place dedup
+    # (proximity + name), long-haul down-rank, and the curated display cap —
+    # roll out immediately instead of waiting out the 22h TTL. Bumps re-enrich
+    # cheaply — the inner AI + image caches still hit.
+    "nearby_ideas/v8/#{digest}"
   end
 
   def fetch_ideas
