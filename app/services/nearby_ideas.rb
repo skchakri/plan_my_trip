@@ -50,6 +50,13 @@ class NearbyIdeas
     def has_real_rating?
       community_rating_count.to_i.positive?
     end
+
+    # A full-day outing rather than a combinable stop: drive time (or, when
+    # the model didn't return one, distance in km) crosses LONG_HAUL_MINUTES.
+    def long_haul?
+      mins = drive_minutes.presence || distance_km
+      mins.present? && mins.to_f >= LONG_HAUL_MINUTES
+    end
   end
 
   # 22h, not 7 days: Pixabay's API terms want image URLs re-requested after
@@ -72,6 +79,10 @@ class NearbyIdeas
   # Generic tokens ignored when comparing names for the subsumption check,
   # so "Spiral Jetty" still matches "Spiral Jetty Viewing Area".
   DEDUP_STOPWORDS = %w[the a an of at on in and to].freeze
+  # One-way minutes (or km, as a fallback) at/above which a pick is a
+  # "full day" outing, not a combinable day-trip stop. Surfaced as a card
+  # badge so users don't pair a 3-hour drive with a local hike.
+  LONG_HAUL_MINUTES = 90
   CATALOG_HIGHLIGHT_KINDS = %w[
     trail viewpoint landmark natural geological historic
     museum park beach overlook

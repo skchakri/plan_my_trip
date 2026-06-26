@@ -74,6 +74,18 @@ class NearbyIdeasCatalogTest < ActiveSupport::TestCase
     assert_equal 3, catalog_only_service.send(:dedupe_same_place, ideas).length
   end
 
+  # --- Fix 4: long-haul flagging ----------------------------------------
+
+  test "Idea#long_haul? flags drives at or over the threshold" do
+    assert NearbyIdeas::Idea.new(name: "x", slug: "x", drive_minutes: 100).long_haul?
+    assert_not NearbyIdeas::Idea.new(name: "x", slug: "x", drive_minutes: 35).long_haul?
+  end
+
+  test "Idea#long_haul? falls back to distance_km when drive time is blank" do
+    assert NearbyIdeas::Idea.new(name: "x", slug: "x", distance_km: 95).long_haul?
+    assert_not NearbyIdeas::Idea.new(name: "x", slug: "x", distance_km: 20).long_haul?
+  end
+
   test "fetch_ideas collapses duplicate catalog rows for the same place" do
     place("Great Salt Lake",            41.10, -112.20, kind: "natural")
     place("Great Salt Lake State Park", 40.99, -112.21, kind: "park")
