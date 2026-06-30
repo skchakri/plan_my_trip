@@ -47,7 +47,7 @@ export default class extends Controller {
           if (type === "PRECACHE_PROGRESS") {
             this._setStatus(`Caching ${cached}/${t}…`)
           } else if (type === "PRECACHE_DONE") {
-            this._setStatus(`✓ ${cached}/${t} maps saved offline`)
+            this._setStatus(`✓ ${cached}/${t} previews saved offline`)
             resolve()
           } else if (type === "PRECACHE_ERROR") {
             this._setStatus(`Error: ${error || "unknown"}`)

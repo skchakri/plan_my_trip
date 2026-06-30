@@ -35,4 +35,36 @@ module ApplicationHelper
     url << "&waypoints=#{points[0...-1].map { |p| CGI.escape(p) }.join('|')}" if points.size > 1
     url
   end
+
+  # Google Maps web/app deep link centred on the trip's area at a zoom that
+  # frames all the stops. Used for the "Download in Google Maps" hand-off:
+  # a website can't trigger Google's offline-map download, but it can open
+  # Maps on the right region so the user taps "Download offline map" there.
+  # `pins` is an array of hashes carrying :lat/:lng (or "lat"/"lng").
+  def google_maps_area_url(pins)
+    pts = Array(pins).filter_map do |p|
+      lat = p[:lat] || p["lat"]
+      lng = p[:lng] || p["lng"]
+      [ lat.to_f, lng.to_f ] if lat && lng
+    end
+    return if pts.empty?
+
+    lats = pts.map(&:first)
+    lngs = pts.map(&:last)
+    center_lat = (lats.min + lats.max) / 2.0
+    center_lng = (lngs.min + lngs.max) / 2.0
+    span = [ lats.max - lats.min, lngs.max - lngs.min ].max
+    zoom =
+      case span
+      when 0...0.05  then 12
+      when 0.05...0.2 then 11
+      when 0.2...0.5 then 10
+      when 0.5...1   then 9
+      when 1...2     then 8
+      when 2...5     then 7
+      when 5...10    then 6
+      else 5
+      end
+    "https://www.google.com/maps/@#{center_lat.round(4)},#{center_lng.round(4)},#{zoom}z"
+  end
 end

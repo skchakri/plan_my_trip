@@ -198,10 +198,20 @@
               data-controller="offline-maps"
               data-action="offline-maps#cache"
               data-offline-maps-urls-value="<%= map_tile_urls.to_json %>"
+              title="Caches this trip's in-app map thumbnails so they show with no signal. This does NOT download Google Maps — use 'Download in Google Maps' for offline turn-by-turn."
               class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-teal-500/15 text-teal-200 border border-teal-500/30 hover:bg-teal-500/25 disabled:opacity-60 disabled:cursor-not-allowed">
         <%= icon :download, class: "w-4 h-4" %>
-        <span data-offline-maps-target="status">Save maps offline (<%= map_tile_urls.size %>)</span>
+        <span data-offline-maps-target="status">Save map previews offline (<%= map_tile_urls.size %>)</span>
       </button>
+    <% end %>
+    <% if (gmaps_area = google_maps_area_url(trip_map_pins)) %>
+      <%= link_to gmaps_area, target: "_blank", rel: "noopener",
+            title: "Opens this trip's area in Google Maps. There, tap your profile → Offline maps → Select your own map to save it for offline turn-by-turn.",
+            class: "inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-slate-800 border border-slate-700 hover:border-amber-500/50 text-slate-100" do %>
+        <%= icon :globe, class: "w-4 h-4 text-amber-400" %>
+        <span>Download in Google Maps</span>
+        <%= icon :external_link, class: "w-3.5 h-3.5 opacity-60" %>
+      <% end %>
     <% end %>
     <% if trip_map_pins.any? %>
       <button type="button"
