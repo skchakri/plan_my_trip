@@ -2,8 +2,8 @@
 slug: destination_highlights_research.v1
 name: Destination highlights research
 description: Researches a destination and returns 12-18 popular AND underrated spots tuned to optional vibes. Each item carries practical quick_tags (needs_4wd, drone_ok, dawn_only, etc.) so the UI can surface gotchas without opening detail.
-provider: claude_cli
-model: claude-sonnet-4-6
+provider: perplexity
+model: sonar
 kind: text
 max_tokens: 3072
 temperature:
