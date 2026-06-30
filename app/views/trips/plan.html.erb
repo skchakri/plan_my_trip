@@ -446,7 +446,7 @@
          day_items = day.checklist_items.to_a %>
       <article id="day-<%= day.id %>" data-accent="<%= day.accent %>" class="rounded-2xl border accent-border bg-slate-900/40 overflow-hidden">
         <header class="px-5 sm:px-6 pt-5 pb-4 accent-bg">
-          <div class="flex items-start justify-between gap-3">
+          <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
             <div class="min-w-0">
               <p class="text-[11px] uppercase tracking-[0.18em] accent-text font-semibold mb-1 accent-dot">
                 Day <%= idx + 1 %><% if day.theme.present? %> · <%= day.theme %><% end %>
@@ -459,7 +459,7 @@
               <% end %>
             </div>
             <% read_text = "Day #{idx + 1}, #{day.title}.#{day.summary.present? ? " #{day.summary}" : ""} #{day.activities.map { |a| [a.time_label, a.title, a.famous_for.presence || a.notes.to_s.split('.').first].compact.join('. ') }.join(' Then, ')}" %>
-            <div class="shrink-0 flex items-center gap-2">
+            <div class="shrink-0 flex items-center flex-wrap gap-2">
               <% if (dir_url = day_directions_url(day)) %>
                 <%= link_to dir_url, target: "_blank", rel: "noopener",
                       class: "inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md border border-slate-700 bg-slate-900/60 text-slate-200 text-xs hover:border-amber-500/50" do %>
@@ -502,13 +502,33 @@
                 <div class="rounded-2xl border border-slate-800/80 bg-slate-900/50 overflow-hidden">
                   <% map = activity.map_tiles %>
 
-                  <%# Image hero on top — full-width banner with group label
-                      overlaid bottom-left and gradient fade to the body.
-                      Falls through to the shared Place's canonical image
-                      when this activity has no per-trip photo of its own. %>
                   <% hero_url = activity.hero_image_url %>
-                  <% if hero_url.present? %>
-                    <div class="relative aspect-[16/9] sm:aspect-[21/9] bg-slate-800 overflow-hidden">
+                  <%
+                    if map
+                      day_pins = day.activities.filter_map { |a|
+                        next unless a.latitude.present? && a.longitude.present?
+                        {
+                          lat: a.latitude.to_f,
+                          lng: a.longitude.to_f,
+                          name: a.location_name.presence || a.title,
+                          kind: "itinerary",
+                          mapsHref: a.maps_link
+                        }
+                      }
+                      focus_pin = { lat: activity.latitude.to_f, lng: activity.longitude.to_f }
+                      modal_title = "Day #{idx + 1} · #{activity.location_name.presence || activity.title}"
+                    end
+                  %>
+
+                  <%# Upper region — media-object layout. On laptop the description
+                      sits on the LEFT and a compact media rail (photo + map, ~300px)
+                      on the RIGHT; everything stacks on mobile with the photo first. %>
+                  <div class="lg:grid lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-5 lg:items-start lg:p-5">
+                    <%# Media rail — first in DOM so the photo leads on mobile;
+                        order-2 moves it to the right column on laptop. %>
+                    <div class="order-1 lg:order-2 flex flex-col gap-3">
+                      <% if hero_url.present? %>
+                        <div class="relative aspect-[16/9] lg:aspect-[4/3] bg-slate-800 overflow-hidden lg:rounded-xl">
                       <img loading="lazy" src="<%= hero_url %>" alt="<%= activity.location_name.presence || activity.title %>" class="w-full h-full object-cover" referrerpolicy="no-referrer">
                       <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/10 to-transparent"></div>
                       <% if activity.group_label.present? %>
@@ -534,22 +554,55 @@
                         <% end %>
                       <% end %>
                     </div>
-                  <% else %>
-                    <%# No hero image — show a small "Add photo" link in the corner instead %>
-                    <div class="flex justify-end px-4 sm:px-5 pt-3">
-                      <%= form_with url: trip_activity_photos_path(@trip, activity), multipart: true, html: { data: { turbo: false } } do %>
-                        <label class="cursor-pointer inline-flex items-center gap-1 px-2 py-1 rounded-md border border-slate-700/60 bg-slate-900/60 text-amber-200/90 text-[10px] uppercase tracking-widest hover:border-amber-500/50 hover:text-amber-200 transition-colors">
-                          <%= icon :camera, class: "w-3.5 h-3.5" %>
-                          <span>Add photo</span>
-                          <%= file_field_tag "activity[photos][]", multiple: true, accept: "image/*", class: "sr-only", onchange: "this.form.requestSubmit()" %>
-                        </label>
+                      <% else %>
+                        <%# No photo yet — a dashed upload card keeps the rail balanced. %>
+                        <%= form_with url: trip_activity_photos_path(@trip, activity), multipart: true, html: { data: { turbo: false } } do %>
+                          <label class="cursor-pointer flex flex-col items-center justify-center gap-1.5 aspect-[16/9] lg:aspect-[4/3] lg:rounded-xl border border-dashed border-slate-700/60 bg-slate-900/40 text-slate-400 hover:border-amber-500/50 hover:text-amber-200 transition-colors">
+                            <%= icon :camera, class: "w-6 h-6" %>
+                            <span class="text-[10px] uppercase tracking-widest">Add photo</span>
+                            <%= file_field_tag "activity[photos][]", multiple: true, accept: "image/*", class: "sr-only", onchange: "this.form.requestSubmit()" %>
+                          </label>
+                        <% end %>
                       <% end %>
-                    </div>
-                  <% end %>
 
-                  <%# Body: text on left, map on right (desktop) / stacked (mobile) %>
-                  <div class="grid grid-cols-1 sm:grid-cols-[1fr_180px] gap-4 sm:gap-5 px-4 sm:px-5 pt-4 sm:pt-5">
-                    <div class="min-w-0">
+                      <%# Map thumbnail — tap to open the interactive Leaflet map. %>
+                      <% if map %>
+                        <div class="flex flex-col gap-2 px-4 sm:px-5 lg:px-0">
+                          <button type="button"
+                                  data-action="interactive-map#open"
+                                  data-interactive-map-pins-param="<%= day_pins.to_json %>"
+                                  data-interactive-map-focus-param="<%= focus_pin.to_json %>"
+                                  data-interactive-map-title-param="<%= modal_title %>"
+                                  class="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-slate-800 border border-slate-700/60 cursor-pointer group hover:border-amber-500/50 transition-colors"
+                                  aria-label="Open interactive map for <%= activity.location_name.presence || activity.title %>">
+                            <div class="absolute inset-0 grid grid-cols-2 grid-rows-2">
+                              <% map[:tiles].each do |tile_url| %>
+                                <img loading="lazy" src="<%= tile_url %>" alt="" class="w-full h-full object-cover" referrerpolicy="no-referrer">
+                              <% end %>
+                            </div>
+                            <span class="absolute -translate-x-1/2 -translate-y-full text-rose-500 drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] pointer-events-none"
+                                  style="left: <%= map[:pin_x_pct].round(2) %>%; top: <%= map[:pin_y_pct].round(2) %>%;">
+                              <%= icon :map_pin, class: "w-7 h-7", stroke_width: 2 %>
+                            </span>
+                            <span class="absolute bottom-0 right-0 px-1 py-0.5 text-[9px] bg-black/60 text-white/80 rounded-tl pointer-events-none">© OpenStreetMap</span>
+                            <span class="absolute top-1.5 right-1.5 inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] rounded bg-slate-900/80 backdrop-blur-sm text-slate-200 border border-slate-700/60 group-hover:border-amber-500/50 group-hover:text-amber-200 pointer-events-none">
+                              <%= icon :map_pin, class: "w-3 h-3" %> Open
+                            </span>
+                          </button>
+                          <% if (link = activity.maps_link) %>
+                            <%= link_to link, target: "_blank", rel: "noopener",
+                                  class: "inline-flex items-center justify-center gap-1.5 w-full text-xs px-3 py-1.5 rounded-md bg-slate-800 text-slate-200 border border-slate-700 hover:border-amber-500/50 hover:text-amber-200 transition-colors" do %>
+                              <%= icon :navigation, class: "w-3.5 h-3.5 text-amber-300" %>
+                              <span>Go</span>
+                              <%= icon :external_link, class: "w-3 h-3 opacity-60" %>
+                            <% end %>
+                          <% end %>
+                        </div>
+                      <% end %>
+                    </div><%# /media rail %>
+
+                  <%# Description — left column on laptop, below the photo on mobile. %>
+                  <div class="order-2 lg:order-1 min-w-0 px-4 sm:px-5 pt-4 sm:pt-5 lg:p-0">
                       <%# Eyebrow row — only when there's no photo (else
                           group_label / location appear over the photo) %>
                       <% if hero_url.blank? && (activity.group_label.present? || activity.time_label.present?) %>
@@ -607,70 +660,7 @@
                       <% end %>
                     </div>
 
-                    <%# Map column — to the right of text on desktop, below on mobile.
-                        Tap the thumbnail to open the interactive Leaflet map. %>
-                    <% if map %>
-                      <%
-                        day_pins = day.activities.filter_map { |a|
-                          next unless a.latitude.present? && a.longitude.present?
-                          {
-                            lat: a.latitude.to_f,
-                            lng: a.longitude.to_f,
-                            name: a.location_name.presence || a.title,
-                            kind: "itinerary",
-                            mapsHref: a.maps_link
-                          }
-                        }
-                        focus_pin = { lat: activity.latitude.to_f, lng: activity.longitude.to_f }
-                        modal_title = "Day #{idx + 1} · #{activity.location_name.presence || activity.title}"
-                      %>
-                      <div class="flex flex-col gap-2 self-start w-full sm:w-[180px]">
-                        <button type="button"
-                                data-action="interactive-map#open"
-                                data-interactive-map-pins-param="<%= day_pins.to_json %>"
-                                data-interactive-map-focus-param="<%= focus_pin.to_json %>"
-                                data-interactive-map-title-param="<%= modal_title %>"
-                                class="relative w-full aspect-square rounded-xl overflow-hidden bg-slate-800 border border-slate-700/60 cursor-pointer group hover:border-amber-500/50 transition-colors"
-                                aria-label="Open interactive map for <%= activity.location_name.presence || activity.title %>">
-                          <div class="absolute inset-0 grid grid-cols-2 grid-rows-2">
-                            <% map[:tiles].each do |tile_url| %>
-                              <img loading="lazy" src="<%= tile_url %>" alt="" class="w-full h-full object-cover" referrerpolicy="no-referrer">
-                            <% end %>
-                          </div>
-                          <span class="absolute -translate-x-1/2 -translate-y-full text-rose-500 drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] pointer-events-none"
-                                style="left: <%= map[:pin_x_pct].round(2) %>%; top: <%= map[:pin_y_pct].round(2) %>%;">
-                            <%= icon :map_pin, class: "w-7 h-7", stroke_width: 2 %>
-                          </span>
-                          <span class="absolute bottom-0 right-0 px-1 py-0.5 text-[9px] bg-black/60 text-white/80 rounded-tl pointer-events-none">© OpenStreetMap</span>
-                          <span class="absolute top-1.5 right-1.5 inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] rounded bg-slate-900/80 backdrop-blur-sm text-slate-200 border border-slate-700/60 group-hover:border-amber-500/50 group-hover:text-amber-200 pointer-events-none">
-                            <%= icon :map_pin, class: "w-3 h-3" %> Open
-                          </span>
-                        </button>
-                        <% if (link = activity.maps_link) %>
-                          <%= link_to link, target: "_blank", rel: "noopener",
-                                class: "inline-flex items-center justify-center gap-1.5 w-full text-xs px-3 py-1.5 rounded-md bg-slate-800 text-slate-200 border border-slate-700 hover:border-amber-500/50 hover:text-amber-200 transition-colors" do %>
-                            <%= icon :navigation, class: "w-3.5 h-3.5 text-amber-300" %>
-                            <span>Go</span>
-                            <%= icon :external_link, class: "w-3 h-3 opacity-60" %>
-                          <% end %>
-                        <% end %>
-                      </div>
-                    <% elsif hero_url.blank? %>
-                      <div class="flex flex-col gap-2 self-start w-full sm:w-[180px]">
-                        <div class="w-full aspect-square rounded-xl bg-gradient-to-br from-slate-800 to-slate-700 flex items-center justify-center text-slate-400" aria-hidden="true">
-                          <%= icon :map_pin, class: "w-8 h-8" %>
-                        </div>
-                        <% if (link = activity.maps_link) %>
-                          <%= link_to link, target: "_blank", rel: "noopener",
-                                class: "inline-flex items-center justify-center gap-1.5 w-full text-xs px-3 py-1.5 rounded-md bg-slate-800 text-slate-200 border border-slate-700 hover:border-amber-500/50 hover:text-amber-200 transition-colors" do %>
-                            <%= icon :navigation, class: "w-3.5 h-3.5 text-amber-300" %>
-                            <span>Go</span>
-                            <%= icon :external_link, class: "w-3 h-3 opacity-60" %>
-                          <% end %>
-                        <% end %>
-                      </div>
-                    <% end %>
-                  </div>
+                  </div><%# /upper region grid %>
 
                   <%# Full-width footer: Documents + Activity checklist %>
                   <div class="px-4 sm:px-5 pb-4 sm:pb-5 pt-4 space-y-3">
