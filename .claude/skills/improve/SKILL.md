@@ -1,7 +1,7 @@
 ---
 name: improve
 description: >-
-  Run the Plan My Trip self-improvement sweep ("Trip Coach"): fan out the
+  Run the Wanderply self-improvement sweep ("Trip Coach"): fan out the
   gap / competitor / UX / trend lens agents, score them into one ranked backlog,
   write a dated markdown report under docs/improvements/, and push the top items
   to myjira. Use when the user says "/improve", "run a self-improvement sweep",
@@ -9,7 +9,7 @@ description: >-
   autonomous Trip-Coach run. Everything runs on the Claude subscription.
 ---
 
-# /improve — Plan My Trip self-improvement sweep
+# /improve — Wanderply self-improvement sweep
 
 You are running the **Trip Coach** loop. It analyzes the app through four lenses,
 ranks the findings, persists a backlog, and files the top items in myjira. By
@@ -77,7 +77,7 @@ Keep the previous reports — the diff over time IS the improvement signal. Glob
 ## 3. File the top items in myjira (unless `--no-myjira`)
 
 For the **top 8** findings, invoke the **`myjira-report-gap`** skill once per
-finding (project: the Plan My Trip project; type: enhancement for new-feature/
+finding (project: the Wanderply project; type: enhancement for new-feature/
 trend, gap for gap/ux, bug if it's a defect). Title = the finding title; body =
 problem + recommendation + area + score + refs. Best-effort dedupe: before
 filing, note titles already filed by a recent run (mention if you skip dupes).

@@ -1,6 +1,6 @@
 export const meta = {
   name: 'improve',
-  description: 'Self-improvement sweep for Plan My Trip: fan out gap/competitor/UX/trend lenses, dedupe + score into a ranked backlog, optionally apply safe fixes on a branch.',
+  description: 'Self-improvement sweep for Wanderply: fan out gap/competitor/UX/trend lenses, dedupe + score into a ranked backlog, optionally apply safe fixes on a branch.',
   whenToUse: 'Run via /improve, or the daily autonomous "trip-coach" cron. Produces a ranked improvement backlog; with applyFixes it lands low-risk items on a branch (never main).',
   phases: [
     { title: 'Analyze', detail: 'gap / competitor / UX / trend lenses in parallel (Claude subscription; web research via WebSearch)' },
@@ -60,17 +60,17 @@ const LENSES = {
   gap: {
     agentType: 'gap-analyst',
     label: 'lens:gap',
-    prompt: `Audit Plan My Trip for GAPS — dead-end/unreachable flows, half-built features, missing empty/error/loading/offline states, broken contracts (routes without actions, Turbo targets not in the DOM, policies that lock out offered UI), debt markers, and partial seed data. Read the real code and prove each gap with file:line. Return your full findings list.${FOCUS}`,
+    prompt: `Audit Wanderply for GAPS — dead-end/unreachable flows, half-built features, missing empty/error/loading/offline states, broken contracts (routes without actions, Turbo targets not in the DOM, policies that lock out offered UI), debt markers, and partial seed data. Read the real code and prove each gap with file:line. Return your full findings list.${FOCUS}`,
   },
   competitor: {
     agentType: 'competitor-scout',
     label: 'lens:competitor',
-    prompt: `Research Plan My Trip's competitors on the live web (Wanderlog, TripIt, Roadtrippers, Layla, Mindtrip, Wanderboat, Google Travel, Kayak Trips, Tripadvisor, AllTrails). First inventory what WE already ship (read CLAUDE.md + routes) so you never re-propose it. Build a feature matrix, then propose the top buildable gaps mapped onto our Rails 8/Hotwire stack and Claude-subscription AI. Every competitor claim needs a URL. Return your full findings list.${FOCUS}`,
+    prompt: `Research Wanderply's competitors on the live web (Wanderlog, TripIt, Roadtrippers, Layla, Mindtrip, Wanderboat, Google Travel, Kayak Trips, Tripadvisor, AllTrails). First inventory what WE already ship (read CLAUDE.md + routes) so you never re-propose it. Build a feature matrix, then propose the top buildable gaps mapped onto our Rails 8/Hotwire stack and Claude-subscription AI. Every competitor claim needs a URL. Return your full findings list.${FOCUS}`,
   },
   ux: {
     agentType: 'ux-auditor',
     label: 'lens:ux',
-    prompt: `Audit Plan My Trip's UI/UX against docs/DESIGN_SYSTEM.md and WCAG AA: design-system drift (ad-hoc utility strings vs .btn/.chip), contrast failures (slate-500 text, the ~3.5:1 chip), missing labels/alt/focus, touch targets, responsive behavior, and missing interaction/loading states on async turbo-frames. Static pass over views + Stimulus; screenshot live pages only if a dev server is already up. Return your full findings list.${FOCUS}`,
+    prompt: `Audit Wanderply's UI/UX against docs/DESIGN_SYSTEM.md and WCAG AA: design-system drift (ad-hoc utility strings vs .btn/.chip), contrast failures (slate-500 text, the ~3.5:1 chip), missing labels/alt/focus, touch targets, responsive behavior, and missing interaction/loading states on async turbo-frames. Static pass over views + Stimulus; screenshot live pages only if a dev server is already up. Return your full findings list.${FOCUS}`,
   },
   trend: {
     agentType: 'trend-scout',
