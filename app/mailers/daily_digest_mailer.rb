@@ -1,5 +1,5 @@
 class DailyDigestMailer < ApplicationMailer
-  default from: "Plan My Trip <noreply@planmytrip.app>"
+  default from: "Wanderply <noreply@wanderply.com>"
 
   # Renders only if the user has 1+ unread notifications in the last 24h
   # AND hasn't opted out. The job that calls this is responsible for

@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="en" class="h-full">
   <head>
-    <title><%= content_for(:title) || "A trip on Plan My Trip" %></title>
+    <title><%= content_for(:title) || "A trip on Wanderply" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
     <meta name="theme-color" content="#0a0e1a">
     <%# Public share links are *shareable*, not *discoverable*. Block crawlers
         so search engines don't index personal trip URLs. %>
     <meta name="robots" content="noindex, nofollow">
     <meta name="referrer" content="strict-origin-when-cross-origin">
-    <meta name="description" content="<%= content_for(:description) || 'A trip on Plan My Trip' %>">
+    <meta name="description" content="<%= content_for(:description) || 'A trip on Wanderply' %>">
 
     <%= content_for(:og) %>
 
@@ -52,7 +52,7 @@
         <div class="flex items-center gap-2.5">
           <%= image_tag "/icon.svg", alt: "", width: 22, height: 22, class: "rounded" %>
           <span class="text-slate-300">You're viewing a shared trip on
-            <span class="font-semibold text-amber-300">Plan My Trip</span>.</span>
+            <span class="font-semibold text-amber-300">Wanderply</span>.</span>
         </div>
         <%= link_to "Plan your own →", new_user_registration_path,
               class: "shrink-0 inline-flex items-center px-3 py-1.5 rounded-md bg-amber-500 text-slate-950 font-semibold hover:bg-amber-400 transition-colors" %>
@@ -64,7 +64,7 @@
     <footer class="mt-16 border-t border-slate-800 bg-slate-950">
       <div class="max-w-5xl mx-auto px-4 sm:px-6 py-8 text-sm text-slate-400 flex flex-wrap items-center justify-between gap-3">
         <span>Trips your crew will remember.</span>
-        <%= link_to "Plan My Trip →", root_url, class: "text-amber-300 hover:text-amber-200" %>
+        <%= link_to "Wanderply →", root_url, class: "text-amber-300 hover:text-amber-200" %>
       </div>
     </footer>
   </body>

@@ -1,5 +1,5 @@
 class TripSharesMailer < ApplicationMailer
-  default from: "Plan My Trip <noreply@planmytrip.local>"
+  default from: "Wanderply <noreply@wanderply.com>"
 
   # Sent when a trip is shared with an *existing* account — they get instant
   # in-app access, so this is the email that tells them it happened (new-account

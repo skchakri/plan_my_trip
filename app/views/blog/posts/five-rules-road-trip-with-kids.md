@@ -34,7 +34,7 @@ This is the one. Before you arrive at a stop, tell them — out loud, all of the
 
 You can see the kids switch on. They look out the window. They have questions. They remember it ten years later.
 
-This is exactly what built the [podcast mode in Plan My Trip](/) — we couldn't keep doing the live narration in the car (other people in the car wanted to talk too!), so we let the app do it. Two voices, hand-written scripts, the right facts at the right time.
+This is exactly what built the [podcast mode in Wanderply](/) — we couldn't keep doing the live narration in the car (other people in the car wanted to talk too!), so we let the app do it. Two voices, hand-written scripts, the right facts at the right time.
 
 ## What didn't make the list
 
@@ -42,4 +42,4 @@ This is exactly what built the [podcast mode in Plan My Trip](/) — we couldn't
 - *Bring activity packs from the dollar store.* They love them for ten minutes. Then they're stepping on them for the rest of the trip.
 - *Limit caffeine in the car.* Counterproductive. We need it more than they do.
 
-If you've got a road trip coming up, the easiest thing in the world is to start one in Plan My Trip, drop in your stops, and let the trip plan itself a little. The hardest thing is having the right conversation with the kids when you arrive. The rules above are about giving yourself the energy for that hardest part.
+If you've got a road trip coming up, the easiest thing in the world is to start one in Wanderply, drop in your stops, and let the trip plan itself a little. The hardest thing is having the right conversation with the kids when you arrive. The rules above are about giving yourself the energy for that hardest part.

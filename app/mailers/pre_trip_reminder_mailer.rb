@@ -1,5 +1,5 @@
 class PreTripReminderMailer < ApplicationMailer
-  default from: "Plan My Trip <noreply@planmytrip.local>"
+  default from: "Wanderply <noreply@wanderply.com>"
 
   def reminder(trip, user, days_out)
     @trip = trip

@@ -19,6 +19,11 @@ const MAX_FINDINGS = a.maxFindings || 40
 const APPLY = a.applyFixes === true
 const MAX_FIXES = a.maxFixes || 3
 const FOCUS = a.focus ? `\n\nExtra focus for this run: ${a.focus}` : ''
+// Model tiering: the four research/audit lenses run on Sonnet — they read code
+// and do web research, which Sonnet handles well and which is the bulk of the
+// fan-out cost. The Apply fixers (code-writing) keep the default (Opus). Override
+// the cheap tier via args.cheapModel.
+const CHEAP = (a.cheapModel || 'sonnet').toString()
 
 // ---- structured-output contract every lens returns -----------------------
 const FINDINGS_SCHEMA = {
@@ -87,6 +92,7 @@ const lensResults = await parallel(
       label: L.label,
       phase: 'Analyze',
       schema: FINDINGS_SCHEMA,
+      model: CHEAP,
     })
   })
 )

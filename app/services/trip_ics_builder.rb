@@ -1,5 +1,5 @@
 class TripIcsBuilder
-  PRODID  = "-//Plan My Trip//EN".freeze
+  PRODID  = "-//Wanderply//EN".freeze
   CRLF    = "\r\n".freeze
   TZID    = "Etc/UTC".freeze
   WRAP_AT = 73 # RFC 5545 §3.1: lines SHOULD be wrapped at 75 octets.
@@ -32,7 +32,7 @@ class TripIcsBuilder
   def overview_event
     [
       "BEGIN:VEVENT",
-      "UID:trip-#{@trip.id}@planmytrip",
+      "UID:trip-#{@trip.id}@wanderply",
       "DTSTAMP:#{ics_stamp(@trip.updated_at)}",
       "DTSTART;VALUE=DATE:#{ics_date(@trip.start_date)}",
       # All-day VEVENTs are exclusive on DTEND, so add one day.
@@ -49,7 +49,7 @@ class TripIcsBuilder
     end_at   = start_at + 60.minutes # default 1-hour block
     lines = [
       "BEGIN:VEVENT",
-      "UID:activity-#{activity.id}@planmytrip",
+      "UID:activity-#{activity.id}@wanderply",
       "DTSTAMP:#{ics_stamp(activity.updated_at)}",
       "DTSTART:#{ics_datetime(start_at)}",
       "DTEND:#{ics_datetime(end_at)}",

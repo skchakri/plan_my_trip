@@ -22,7 +22,7 @@ class TripIcsBuilderTest < ActiveSupport::TestCase
     ics = TripIcsBuilder.new(@trip).to_ics
     assert ics.start_with?("BEGIN:VCALENDAR\r\n"), "must start with VCALENDAR"
     assert ics.include?("VERSION:2.0\r\n")
-    assert ics.include?("PRODID:-//Plan My Trip//EN\r\n")
+    assert ics.include?("PRODID:-//Wanderply//EN\r\n")
     assert ics.end_with?("END:VCALENDAR\r\n")
   end
 

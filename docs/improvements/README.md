@@ -1,6 +1,6 @@
 # Trip Coach — self-improvement system
 
-An autonomous-capable loop that keeps making **Plan My Trip** better: it reads the
+An autonomous-capable loop that keeps making **Wanderply** better: it reads the
 app, watches competitors and emerging tech, audits the UI, ranks what to do next,
 and (optionally) lands the safe fixes on a branch for review. Everything runs on
 the **Claude subscription** — no metered API keys are touched.

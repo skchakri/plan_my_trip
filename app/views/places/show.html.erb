@@ -120,12 +120,12 @@
           <% end %>
         </ul>
         <% if @other_trip_count > 0 %>
-          <p class="text-xs text-slate-400 mt-3 italic">Also visited by <%= pluralize(@other_trip_count, "other trip") %> across Plan My Trip travelers.</p>
+          <p class="text-xs text-slate-400 mt-3 italic">Also visited by <%= pluralize(@other_trip_count, "other trip") %> across Wanderply travelers.</p>
         <% end %>
       </section>
     <% elsif @total_visits > 0 %>
       <section class="pt-3 border-t border-slate-800">
-        <p class="text-sm text-slate-400 italic">Visited by <%= pluralize(@total_visits, "trip") %> on Plan My Trip — none of yours yet.</p>
+        <p class="text-sm text-slate-400 italic">Visited by <%= pluralize(@total_visits, "trip") %> on Wanderply — none of yours yet.</p>
       </section>
     <% end %>
 

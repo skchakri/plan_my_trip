@@ -194,7 +194,7 @@ class Trip < ApplicationRecord
   end
 
   def self.inbound_email_domain
-    AppSetting.get("INBOUND_EMAIL_DOMAIN").presence || "inbound.planmytrip.app"
+    AppSetting.get("INBOUND_EMAIL_DOMAIN").presence || "inbound.wanderply.com"
   end
 
   def title_for(user)

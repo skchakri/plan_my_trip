@@ -2,7 +2,7 @@
 # app/views/blog/posts/<slug>.md with a YAML-ish front matter block:
 #
 #   ---
-#   title: Why we built Plan My Trip
+#   title: Why we built Wanderply
 #   excerpt: A short summary used on the index page.
 #   author: Kalyan Setti
 #   published_on: 2026-05-01

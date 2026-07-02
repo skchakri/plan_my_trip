@@ -10,7 +10,7 @@ require "net/http"
 require "uri"
 require "json"
 
-USER_AGENT = "PlanMyTrip/1.0 (https://planmytrip.app; mailto:hello@planmytrip.app)".freeze
+USER_AGENT = "Wanderply/1.0 (https://wanderply.com; mailto:hello@wanderply.com)".freeze
 HERO_IMAGE_WIDTH = 1280
 
 # name -> [ wikipedia title candidates to try, in order ]

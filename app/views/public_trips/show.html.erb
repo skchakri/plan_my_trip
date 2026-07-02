@@ -1,4 +1,4 @@
-<% content_for :title, "#{@trip.title} · Plan My Trip" %>
+<% content_for :title, "#{@trip.title} · Wanderply" %>
 <% content_for :description, @trip.destination.presence || @trip.title %>
 
 <%# OG/Twitter unfurl card for iMessage / Slack / WhatsApp. Falls back gracefully
@@ -7,7 +7,7 @@
 <% content_for :og do %>
   <meta property="og:type"        content="article">
   <meta property="og:title"       content="<%= @trip.title %>">
-  <meta property="og:description" content="<%= @trip.destination.presence || 'A trip on Plan My Trip' %>">
+  <meta property="og:description" content="<%= @trip.destination.presence || 'A trip on Wanderply' %>">
   <meta property="og:url"         content="<%= public_trip_url(@trip.share_token) %>">
   <% if hero_image %>
     <meta property="og:image" content="<%= hero_image.start_with?('http') ? hero_image : request.base_url + hero_image %>">

@@ -476,7 +476,7 @@ class NearbyIdeas
     encoded = URI.encode_www_form_component(title.tr(" ", "_"))
     uri = URI("https://en.wikipedia.org/api/rest_v1/page/summary/#{encoded}")
     res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true, open_timeout: 3, read_timeout: 4) do |http|
-      http.get(uri.request_uri, "User-Agent" => "PlanMyTrip/1.0 (hello@planmytrip.app)")
+      http.get(uri.request_uri, "User-Agent" => "Wanderply/1.0 (hello@wanderply.com)")
     end
     return nil unless res.is_a?(Net::HTTPSuccess)
     json = JSON.parse(res.body)

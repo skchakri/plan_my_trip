@@ -16,7 +16,7 @@ require "json"
 #   LandmarkImageFinder.call("Zion National Park", state: "Utah")
 #   => { url: "https://images.pexels.com/...", source: "pexels", attribution: "Photo by ..." }
 class LandmarkImageFinder
-  USER_AGENT = "PlanMyTrip/1.0 (https://planmytrip.app)".freeze
+  USER_AGENT = "Wanderply/1.0 (https://wanderply.com)".freeze
   TIMEOUT = 8
 
   PROVIDERS = %i[pexels unsplash pixabay].freeze

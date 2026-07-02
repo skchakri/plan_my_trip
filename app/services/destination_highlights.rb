@@ -46,7 +46,7 @@ class DestinationHighlights
   # LLM research prompt — and (cosmetically) to label entries the LLM returns.
   VIBES = %w[relaxing adventure shopping nature family cultural food nightlife scenic photography history].freeze
 
-  USER_AGENT = "PlanMyTrip/1.0 (https://planmytrip.app; mailto:hello@planmytrip.app)".freeze
+  USER_AGENT = "Wanderply/1.0 (https://wanderply.com; mailto:hello@wanderply.com)".freeze
   CACHE_TTL = 30.days
   MAX_RESULTS = 18
   MIN_BEFORE_FALLBACK = 5

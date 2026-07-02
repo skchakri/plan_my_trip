@@ -4,10 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Plan My Trip — a trip-planning app: users sign up, create trips, share with
-other users by email, rename a trip just for themselves, and link AllTrails
-trails into the plan. Built as a Rails 8 + Hotwire web app with optional
-Hotwire Native iOS and Android shells (web is the source of truth).
+Wanderply (wanderply.com) — a trip-planning app: users sign up, create trips,
+share with other users by email, rename a trip just for themselves, and link
+AllTrails trails into the plan. Built as a Rails 8 + Hotwire web app with optional
+Hotwire Native iOS and Android shells (web is the source of truth). The Rails
+application module is still named `PlanMyTrip` (internal identifier — renaming it
+is a risky, no-user-value refactor, so it's intentionally left as-is).
 
 ## Stack
 

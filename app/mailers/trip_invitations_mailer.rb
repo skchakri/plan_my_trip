@@ -1,5 +1,5 @@
 class TripInvitationsMailer < ApplicationMailer
-  default from: "Plan My Trip <noreply@planmytrip.local>"
+  default from: "Wanderply <noreply@wanderply.com>"
 
   def invite(invitation)
     @invitation = invitation
@@ -9,7 +9,7 @@ class TripInvitationsMailer < ApplicationMailer
 
     mail(
       to: @invitation.email,
-      subject: "#{@inviter.display_name} shared a trip with you on Plan My Trip"
+      subject: "#{@inviter.display_name} shared a trip with you on Wanderply"
     )
   end
 end

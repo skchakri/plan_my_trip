@@ -1,6 +1,6 @@
 # Design system
 
-Lightweight, dark-first design tokens for Plan My Trip. The app is Tailwind v4;
+Lightweight, dark-first design tokens for Wanderply. The app is Tailwind v4;
 these are the conventions to keep new UI consistent. Reusable component classes
 live in `app/assets/tailwind/application.css`.
 

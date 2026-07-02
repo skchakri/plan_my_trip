@@ -21,7 +21,7 @@ module Places
     ENDPOINT = "https://nominatim.openstreetmap.org/search".freeze
     GOOGLE_ENDPOINT = "https://maps.googleapis.com/maps/api/place/textsearch/json".freeze
     GOOGLE_SETTING = "GOOGLE_PLACES_API_KEY".freeze
-    USER_AGENT = "PlanMyTrip/1.0 (hello@planmytrip.app)".freeze
+    USER_AGENT = "Wanderply/1.0 (hello@wanderply.com)".freeze
     CACHE_TTL = 90.days
     CACHE_PREFIX = "places/geocoder/v1".freeze
     MIN_QUERY_LENGTH = 3

@@ -16,7 +16,7 @@ require "net/http"
 require "uri"
 require "json"
 
-USER_AGENT = "PlanMyTrip/1.0 (https://planmytrip.app; mailto:hello@planmytrip.app)".freeze
+USER_AGENT = "Wanderply/1.0 (https://wanderply.com; mailto:hello@wanderply.com)".freeze
 REFRESH = ENV["REFRESH"] == "1"
 
 LANDMARKS = [

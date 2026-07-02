@@ -1,5 +1,5 @@
 ---
-title: Why we built Plan My Trip
+title: Why we built Wanderply
 excerpt: A planner that survives the drive — built out of frustration with spreadsheets, Google Maps lists, and the question every parent dreads from the back seat.
 author: Kalyan Setti
 published_on: 2026-05-01
@@ -10,7 +10,7 @@ tag: Behind the scenes
 
 We were three hours outside Salt Lake City when our 8-year-old asked, for the fourth time, *"how much longer?"* The spreadsheet was somewhere on a phone in the front seat. The hotel confirmation was buried in someone's email. The cool fact about the next stop — the *why* — was nowhere to be found.
 
-So we built Plan My Trip.
+So we built Wanderply.
 
 ## The frustration
 
@@ -34,7 +34,7 @@ A planner that:
 
 ## What we ended up with
 
-Plan My Trip is open and free. You can sign up in thirty seconds, build a four-day trip in an afternoon, and share it with whoever's coming. There's a Final-plan view with photos and maps, a podcast mode with hand-written tour-guide scripts for the major stops, a drive co-pilot game for kids, and a service worker that pre-caches everything you'll need on the road.
+Wanderply is open and free. You can sign up in thirty seconds, build a four-day trip in an afternoon, and share it with whoever's coming. There's a Final-plan view with photos and maps, a podcast mode with hand-written tour-guide scripts for the major stops, a drive co-pilot game for kids, and a service worker that pre-caches everything you'll need on the road.
 
 It's not the best at any one of those things on its own — there are better mapping apps, better booking sites, better trivia games. But all of them, in one trip, on one URL, that works offline? That's the thing we wanted, and now it exists.
 

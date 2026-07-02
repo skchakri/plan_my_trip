@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="h-full" lang="en">
   <head>
-    <title><%= content_for(:title) || "Admin · Plan My Trip" %></title>
+    <title><%= content_for(:title) || "Admin · Wanderply" %></title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <%= csrf_meta_tags %>
@@ -42,8 +42,8 @@
       <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
         <div class="flex items-center gap-4">
           <%= link_to admin_root_path, class: "flex items-center gap-2 text-sm font-semibold" do %>
-            <%= image_tag "/icon.svg", alt: "Plan My Trip", width: 28, height: 28, class: "rounded-md" %>
-            <span class="hidden sm:inline bg-gradient-to-r from-amber-200 to-amber-400 bg-clip-text text-transparent">Admin · Plan My Trip</span>
+            <%= image_tag "/icon.svg", alt: "Wanderply", width: 28, height: 28, class: "rounded-md" %>
+            <span class="hidden sm:inline bg-gradient-to-r from-amber-200 to-amber-400 bg-clip-text text-transparent">Admin · Wanderply</span>
           <% end %>
           <nav class="flex items-center gap-1 text-sm">
             <%= link_to "Dashboard", admin_root_path,       class: "px-2.5 py-1.5 rounded-md text-slate-300 hover:bg-white/5 #{'bg-white/5 text-white' if controller_name == 'dashboard'}" %>

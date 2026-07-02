@@ -22,7 +22,7 @@ require "json"
 #
 # Cached 30 days per normalized (name, lat, lng) tuple. Returns nil on miss.
 class PlaceImageLookup
-  USER_AGENT = "PlanMyTrip/1.0 (https://planmytrip.app; mailto:hello@planmytrip.app)".freeze
+  USER_AGENT = "Wanderply/1.0 (https://wanderply.com; mailto:hello@wanderply.com)".freeze
   CACHE_TTL = 30.days
   # Tight radius so we only return photos of the *actual* place, not "the
   # nearest Wikipedia-documented landmark in town". A motel at coords X and

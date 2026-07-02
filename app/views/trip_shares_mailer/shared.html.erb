@@ -20,12 +20,12 @@
 <body>
   <div class="container">
     <div class="head">
-      <div class="eyebrow">Plan My Trip</div>
+      <div class="eyebrow">Wanderply</div>
       <div class="title"><%= @inviter.display_name %> shared a trip with you</div>
     </div>
     <div class="body">
       <p>Hi <%= @user.display_name %>,</p>
-      <p><strong><%= @inviter.display_name %></strong> (<%= @inviter.email %>) gave you access to a trip. It's already in your trips on Plan My Trip.</p>
+      <p><strong><%= @inviter.display_name %></strong> (<%= @inviter.email %>) gave you access to a trip. It's already in your trips on Wanderply.</p>
 
       <div class="card">
         <div class="name"><%= @trip.title %></div>

@@ -52,7 +52,7 @@ class PodcastScriptBuilder
 
     lines = []
     lines << host(greeting, rate: 1.1, pitch: 1.05, pause: 200)
-    lines << host("This is your Plan My Trip podcast — your personal tour guide for the next few days.", rate: 1.08, pause: 250)
+    lines << host("This is your Wanderply podcast — your personal tour guide for the next few days.", rate: 1.08, pause: 250)
 
     if @trip.excitement_pitch.present?
       lines << host("Now listen — here's why this trip is special.", rate: 1.08, pitch: 1.05, pause: 180)
@@ -206,7 +206,7 @@ class PodcastScriptBuilder
         host(closing, rate: 1.1, pitch: 1.05, pause: 220),
         host("Eat the food. Take the pictures. Soak it in. This one's going to stick with you.", rate: 1.08, pause: 320),
         host("Drive safe. Hug the people you're with. And have the time of your life.", rate: 1.05, pause: 320),
-        host("This has been Plan My Trip. See you on the road.", rate: 0.98, pitch: 0.98, pause: 200)
+        host("This has been Wanderply. See you on the road.", rate: 0.98, pitch: 0.98, pause: 200)
       ]
     }
   end
