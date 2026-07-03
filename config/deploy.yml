@@ -21,6 +21,10 @@ servers:
 proxy:
   ssl: true
   host: wanderply.com,www.wanderply.com
+  # The lazy highlights/day-trip research frames run Perplexity + Anthropic +
+  # geocoding inline and can take ~60-90s; the proxy's default 30s request
+  # timeout would 502 them ("Content missing"). Raise it well past the research.
+  response_timeout: 120
   healthcheck:
     path: /up
     interval: 3
