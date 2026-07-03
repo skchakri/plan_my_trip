@@ -74,4 +74,14 @@ class TripTest < ActiveSupport::TestCase
     refute @user.owned_trips.build(title: "T", transport_mode: "rental").own_car?
     refute @user.owned_trips.build(title: "T", transport_mode: nil).own_car?
   end
+
+  test "forwarding_address mints a token even when legacy columns fail validation" do
+    trip = @user.owned_trips.create!(title: "T", start_date: Date.current, end_date: Date.current + 1)
+    trip.update_columns(pwa_plan_url: "/vegas-trip-4days.html") # pre-validation legacy data
+
+    address = trip.forwarding_address
+    assert_match(/\Atrip-[\w-]+@/, address)
+    assert trip.reload.inbox_token.present?
+    assert_equal address, trip.forwarding_address, "token should be stable across reads"
+  end
 end

@@ -189,7 +189,10 @@ class Trip < ApplicationRecord
 
   def ensure_inbox_token!
     return inbox_token if inbox_token.present?
-    update!(inbox_token: SecureRandom.urlsafe_base64(INBOX_TOKEN_BYTES))
+    # update_column, not update!: this runs lazily inside GET renders, and a
+    # validation failure on unrelated legacy columns must not 500 the page.
+    self.inbox_token = SecureRandom.urlsafe_base64(INBOX_TOKEN_BYTES)
+    update_column(:inbox_token, inbox_token) if persisted?
     inbox_token
   end
 
