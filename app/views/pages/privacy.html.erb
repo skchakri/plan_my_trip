@@ -1,0 +1,68 @@
+<% content_for :title, "Privacy Policy · Wanderply" %>
+
+<section class="relative overflow-hidden">
+  <div class="absolute inset-0">
+    <div class="aurora"></div>
+  </div>
+  <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-12 sm:pt-40">
+    <p class="text-[11px] uppercase tracking-[0.18em] text-amber-300 font-semibold">Privacy</p>
+    <h1 class="mt-3 font-display text-4xl sm:text-6xl font-semibold tracking-tight leading-[1.05]">
+      Privacy Policy
+    </h1>
+    <p class="mt-6 text-lg text-slate-300 leading-relaxed max-w-2xl">
+      Wanderply is a trip planner, not a data business. We collect what the app
+      needs to plan your trips, and nothing else. Last updated July 3, 2026.
+    </p>
+  </div>
+</section>
+
+<section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+  <article class="prose-invert max-w-none text-base sm:text-lg leading-relaxed space-y-6">
+
+    <h2>What we collect</h2>
+    <ul class="list-disc pl-6 space-y-2">
+      <li><strong class="text-amber-200">Account data</strong> — your name, email address, and password (stored as a bcrypt hash; we never see the plain text).</li>
+      <li><strong class="text-amber-200">Trip content</strong> — destinations, dates, travelers, itineraries, checklists, notes, and any preferences you type in (for example dietary or accessibility notes). This is the product; it's stored so your trips exist.</li>
+      <li><strong class="text-amber-200">Sharing data</strong> — the email addresses you invite to a trip, so we can deliver the invitation.</li>
+      <li><strong class="text-amber-200">Documents you upload</strong> — hotel confirmations, tickets, and similar files you attach to a trip, stored privately in our cloud storage.</li>
+      <li><strong class="text-amber-200">Quiz scores</strong> — your Travel Trivia results, kept for your personal bests.</li>
+    </ul>
+    <p>We do not collect precise device location, contacts, advertising identifiers, or analytics profiles. The mobile apps are thin wrappers around this website and collect nothing extra.</p>
+
+    <h2>How trip planning uses AI</h2>
+    <p>When you ask Wanderply to build an itinerary or suggest day trips, the trip details you entered (destination, dates, pace, preferences) are sent to our AI providers — currently Anthropic and Perplexity — to generate the plan. These inputs are trip-planning text, not your account credentials. We don't send your email address or password to AI providers.</p>
+
+    <h2>Cookies</h2>
+    <p>We use a session cookie to keep you signed in and a CSRF token to protect forms. No advertising or cross-site tracking cookies — there are no ads.</p>
+
+    <h2>Third-party services</h2>
+    <ul class="list-disc pl-6 space-y-2">
+      <li><strong class="text-amber-200">Hosting &amp; storage</strong> — Amazon Web Services (servers, database, file storage) in the United States.</li>
+      <li><strong class="text-amber-200">Email</strong> — Amazon SES sends invitations and account emails.</li>
+      <li><strong class="text-amber-200">Images</strong> — trip and quiz images load from public CDNs (Pexels, Unsplash, Pixabay, Wikimedia, flagcdn, Simple Icons). Those requests carry your IP address like any image load.</li>
+      <li><strong class="text-amber-200">Geocoding</strong> — place names on your itinerary (not your location) are looked up via Google Places or OpenStreetMap Nominatim to pin them on maps.</li>
+    </ul>
+
+    <h2>What we never do</h2>
+    <ul class="list-disc pl-6 space-y-2">
+      <li>No selling or renting your data. Ever.</li>
+      <li>No ads and no ad tracking.</li>
+      <li>No reading your trips for anything other than showing them to you and the people you shared them with.</li>
+    </ul>
+
+    <h2>Sharing and visibility</h2>
+    <p>Your trips are private to you and the people you explicitly share them with. If you create a public share link, anyone with that link can view that trip until you revoke the link.</p>
+
+    <h2>Data retention and deletion</h2>
+    <p>Deleted trips are soft-deleted first (so you can recover from mistakes) and then removed. To delete your account and all of its data, use the account settings or email us — we'll remove it.</p>
+
+    <h2>Children</h2>
+    <p>Wanderply is a general-audience trip planner intended for adults planning family travel. We don't knowingly collect personal information from children under 13; accounts are meant to be created by adults.</p>
+
+    <h2>Contact</h2>
+    <p>Questions or deletion requests: <a href="mailto:skchakri@gmail.com" class="text-amber-300 hover:text-amber-200">skchakri@gmail.com</a>.</p>
+
+    <h2>Changes</h2>
+    <p>If this policy changes materially, we'll update this page and the date at the top.</p>
+  </article>
+</section>

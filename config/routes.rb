@@ -192,6 +192,7 @@ Rails.application.routes.draw do
 
   # Marketing site
   get  "about", to: "pages#about", as: :about
+  get  "privacy", to: "pages#privacy", as: :privacy
   get  "blog",  to: "blog#index", as: :blog_index
   get  "blog/:slug", to: "blog#show", as: :blog, constraints: { slug: %r{[^/]+} }
 

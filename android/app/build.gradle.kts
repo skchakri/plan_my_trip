@@ -1,7 +1,16 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("androidx.navigation.safeargs.kotlin")
+}
+
+// Play upload key — lives outside the repo; release builds are signed when the
+// properties file exists, and stay unsigned-but-compilable on machines without it.
+val keystoreProps = Properties().apply {
+    val f = File(System.getProperty("user.home"), ".claude/secrets/wanderply/keystore.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
 }
 
 android {
@@ -9,11 +18,22 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.skchakri.planmytrip"
+        applicationId = "com.wanderply.app"
         minSdk = 28
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
+    }
+
+    signingConfigs {
+        if (keystoreProps.isNotEmpty()) {
+            create("upload") {
+                storeFile = File(keystoreProps.getProperty("storeFile"))
+                storePassword = keystoreProps.getProperty("storePassword")
+                keyAlias = keystoreProps.getProperty("keyAlias")
+                keyPassword = keystoreProps.getProperty("keyPassword")
+            }
+        }
     }
 
     buildTypes {
@@ -23,6 +43,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.findByName("upload")
         }
         debug {
             // Allow cleartext HTTP to localhost / dev IP in debug only
