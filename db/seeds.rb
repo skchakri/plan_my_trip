@@ -11,8 +11,8 @@ vegas_trip = Trip.find_or_create_by!(owner: demo, title: "Vegas trip — May 7-1
   t.start_date = Date.new(2026, 5, 7)
   t.end_date = Date.new(2026, 5, 10)
   t.body = vegas_body
-  t.pwa_plan_url = "/vegas-trip-4days.html"
-  t.pwa_packing_url = "/vegas-packing.html"
+  # PWA links are relative paths, which the http(s)-only XSS validation rejects
+  # on create — they're set just below via update_columns (skips validation).
   t.excitement_pitch = "Four days, six people, three icons of the American West: a 16K-pixel dome that wraps you in The Wizard of Oz, a glass bridge cantilevered over the Grand Canyon, and the most over-the-top Strip in America. Heat, lights, fountains, and a 900-mile minivan adventure tying it all together."
 end
 
