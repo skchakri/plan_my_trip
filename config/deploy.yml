@@ -10,10 +10,10 @@ image: wanderply
 # The wanderply-web EC2 box runs both the web (Puma) and job (Solid Queue) roles.
 servers:
   web:
-    - REPLACE_WITH_WANDERPLY_WEB_EIP
+    - 52.1.32.23
   job:
     hosts:
-      - REPLACE_WITH_WANDERPLY_WEB_EIP
+      - 52.1.32.23
     cmd: bin/jobs
 
 # kamal-proxy terminates TLS (Let's Encrypt) for wanderply.com.
@@ -40,7 +40,7 @@ env:
   clear:
     # Jobs run in a dedicated `job` role (above), not inside Puma.
     SOLID_QUEUE_IN_PUMA: false
-    DB_HOST: REPLACE_WITH_WANDERPLY_DB_ENDPOINT
+    DB_HOST: wanderply-db.coniswuom7xx.us-east-1.rds.amazonaws.com
 
 aliases:
   console: app exec --interactive --reuse "bin/rails console"

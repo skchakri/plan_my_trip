@@ -3,7 +3,15 @@
 # already call Rails.error.report get persisted automatically.
 
 Rails.application.config.after_initialize do
-  next unless ActiveRecord::Base.connection.data_source_exists?("app_errors")
+  # Guard on the table existing, but tolerate the DB being unreachable at boot
+  # (e.g. `assets:precompile` during the Docker image build has no database).
+  table_ready =
+    begin
+      ActiveRecord::Base.connection.data_source_exists?("app_errors")
+    rescue StandardError
+      false
+    end
+  next unless table_ready
 
   Rails.error.subscribe(Class.new do
     def report(exception, handled:, severity:, context:, source: nil)
