@@ -49,7 +49,7 @@ gem "devise"
 gem "pundit"
 
 # Soft-delete
-gem "discard", "~> 1.4"
+gem "discard", "~> 2.0"
 
 # Markdown rendering for trip body
 gem "redcarpet", "~> 3.6"
