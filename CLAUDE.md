@@ -49,9 +49,31 @@ bin/rails db:create db:migrate db:seed
 bin/rails console
 bin/rubocop                       # Lint
 bin/brakeman --no-pager           # Security scan
+bin/ci                            # Full CI pipeline (see below)
 ```
 
 Demo login (after `db:seed`): `demo@example.com / password123`.
+
+## Tests
+
+Minitest (Rails default — no RSpec), under `test/`, mirroring `app/`
+(`test/services`, `test/jobs`, `test/models`, ...). Fixtures in `test/fixtures`.
+
+```bash
+bin/rails test                              # Full suite (parallelized by CPU)
+bin/rails test test/services/foo_test.rb    # One file
+bin/rails test test/services/foo_test.rb:42 # One test by line number
+```
+
+**No-network AI seam:** tests never hit a live provider. `ActiveSupport::TestCase#with_fake_ai(body)`
+(defined in `test/test_helper.rb`) swaps `Ai::Caller.call` for a fake returning a
+canned `Ai::Result`, then restores it. Wrap any code that calls an AI provider in
+it — pass a String or a Hash (auto-`to_json`'d). Don't reach for `minitest/mock`'s
+`#stub` (dropped); use this seam.
+
+**`bin/ci` does NOT run the test suite** — it runs `bin/setup`, RuboCop, the
+Slate-contrast guard (`bin/check-slate-contrast`), bundler-audit, importmap audit,
+and Brakeman (see `config/ci.rb`). Run `bin/rails test` separately.
 
 ## Database
 
@@ -229,6 +251,14 @@ AI calls go through `Ai::Caller` → a per-prompt provider (`AiPrompt.provider`)
 `anthropic`, `openai`, `claude_cli`, or **`perplexity`**. The provider is a DB
 field, so an admin can swap it per-prompt (`/admin/ai_prompts`) with no
 redeploy.
+
+**Prompts are code-first, DB-served.** The source of truth is one YAML per slug
+in `db/ai_prompts/*.yml` (system/user templates are ERB rendered by
+`AiPrompt#render`). `db/seed_ai_prompts.rb` (run by `db:seed`) upserts each YAML
+into the `ai_prompts` table by slug, idempotently. So: **edit the YAML, then
+reseed** to change a prompt in code; the `/admin/ai_prompts` UI is for live,
+no-redeploy tweaks (which a reseed on the same slug will overwrite). `Ai::Caller`
+logs every call to the `AiCall` model (viewable at `/admin/ai_calls`).
 
 - `claude_cli` (current default for `nearby_ideas.v1`) — uses the operator's
   Claude subscription via the local CLI with agentic web search. Best
