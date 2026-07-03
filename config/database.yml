@@ -21,6 +21,11 @@ production:
     database: plan_my_trip_production
     username: plan_my_trip
     password: <%= ENV["PLAN_MY_TRIP_DATABASE_PASSWORD"] %>
+    host: <%= ENV["DB_HOST"] %>
+    port: 5432
+    sslmode: require
+    variables:
+      statement_timeout: '30s'
   cache:
     <<: *primary_production
     database: plan_my_trip_production_cache

@@ -6,6 +6,13 @@ local:
   service: Disk
   root: <%= Rails.root.join("storage") %>
 
+# Production uploads. Auth via the EC2 instance role (wanderply-ec2-role) — no
+# access keys in the repo. Bucket lives in us-east-1.
+amazon:
+  service: S3
+  region: us-east-1
+  bucket: wanderply-storage
+
 # Use bin/rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
 # amazon:
 #   service: S3

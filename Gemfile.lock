@@ -452,6 +452,7 @@ PLATFORMS
 DEPENDENCIES
   aws-actionmailbox-ses (~> 0.2)
   aws-actionmailer-ses (~> 1)
+  aws-sdk-s3
   aws-sdk-sns (~> 1)
   bootsnap
   brakeman

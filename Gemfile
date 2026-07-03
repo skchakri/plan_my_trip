@@ -57,6 +57,9 @@ gem "redcarpet", "~> 3.6"
 # Throttling + IP-level abuse blocking for unauthenticated routes
 gem "rack-attack"
 
+# Active Storage on Amazon S3 (production file uploads: trip/activity/claim photos).
+gem "aws-sdk-s3", require: false
+
 # Amazon SES — outbound transactional mail (:ses_v2 ActionMailer delivery
 # method) via the EC2 instance-role IAM. No static credentials in the repo.
 gem "aws-actionmailer-ses", "~> 1"
