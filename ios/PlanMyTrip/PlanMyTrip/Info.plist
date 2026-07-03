@@ -19,10 +19,15 @@
     <key>CFBundleShortVersionString</key>
     <string>1.0</string>
     <key>CFBundleVersion</key>
-    <string>1</string>
+    <string>2</string>
 
     <key>BASE_URL</key>
     <string>$(BASE_URL)</string>
+
+    <!-- Uses only standard HTTPS; declares no non-exempt encryption so App Store
+         Connect skips the export-compliance prompt on each upload. -->
+    <key>ITSAppUsesNonExemptEncryption</key>
+    <false/>
 
     <key>NSAppTransportSecurity</key>
     <dict>
@@ -71,6 +76,14 @@
     <key>UISupportedInterfaceOrientations</key>
     <array>
         <string>UIInterfaceOrientationPortrait</string>
+        <string>UIInterfaceOrientationLandscapeLeft</string>
+        <string>UIInterfaceOrientationLandscapeRight</string>
+    </array>
+    <!-- iPad multitasking requires all four orientations (App Store rule 90474). -->
+    <key>UISupportedInterfaceOrientations~ipad</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+        <string>UIInterfaceOrientationPortraitUpsideDown</string>
         <string>UIInterfaceOrientationLandscapeLeft</string>
         <string>UIInterfaceOrientationLandscapeRight</string>
     </array>

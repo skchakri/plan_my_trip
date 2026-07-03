@@ -17,6 +17,11 @@ enum AppConfig {
         URL(string: baseURLString)!
     }
 
+    /// Resolves an app-relative path (e.g. "/trips") against the configured host.
+    static func url(_ path: String) -> URL {
+        URL(string: "\(baseURLString)\(path)")!
+    }
+
     static var pathConfigurationURL: URL {
         URL(string: "\(baseURLString)/configurations/ios.json")!
     }

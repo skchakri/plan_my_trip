@@ -8,7 +8,36 @@ screens are rendered server-side and loaded into a `WKWebView` driven by
 This directory contains only the Swift sources. Building the app requires
 **macOS + Xcode 15+** — the Linux dev box can't compile it.
 
-## One-time setup on a Mac
+## Quick build (headless, no Xcode GUI)
+
+The Xcode project is *generated* from the checked-in Swift sources by
+`generate_xcodeproj.rb` (XcodeGen-style — the `.xcodeproj` is a build artifact
+and is gitignored). To build and run on a simulator from a terminal:
+
+```bash
+gem install xcodeproj                 # one-time, if missing
+ruby ios/generate_xcodeproj.rb        # → ios/PlanMyTrip/PlanMyTrip.xcodeproj
+
+cd ios/PlanMyTrip
+xcodebuild build \
+  -project PlanMyTrip.xcodeproj -scheme PlanMyTrip \
+  -sdk iphonesimulator \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+  -derivedDataPath build CODE_SIGNING_ALLOWED=NO
+
+# install + launch on the booted simulator
+APP=build/Build/Products/Debug-iphonesimulator/PlanMyTrip.app
+xcrun simctl install booted "$APP"
+xcrun simctl launch  booted com.wanderply.PlanMyTrip
+```
+
+Bundle id is `com.wanderply.PlanMyTrip`, deployment target iOS 16. The generator
+links the `hotwire-native-ios` Swift Package automatically (no manual
+"Add Package Dependencies" step). Point the app at a running Rails server via
+`AppConfig.baseURLString` / the `BASE_URL` build setting (see below) — with no
+server it renders Hotwire's "Could not connect" screen.
+
+## One-time setup on a Mac (Xcode GUI — alternative to the generator)
 
 1. **Open Xcode** → File → New → Project → **iOS · App**
    - Product name: `PlanMyTrip`

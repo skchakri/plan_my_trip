@@ -3,7 +3,6 @@ import UIKit
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
-    private let navigator = Navigator()
 
     func scene(
         _ scene: UIScene,
@@ -13,15 +12,16 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = scene as? UIWindowScene else { return }
 
         Hotwire.config.applicationUserAgentPrefix = "Hotwire Native iOS"
+        // Native chrome: a share button on every web page, and a Done button on modals.
+        Hotwire.config.defaultViewController = { url in WebViewController(url: url) }
+        Hotwire.config.showDoneButtonOnModals = true
         Hotwire.loadPathConfiguration(from: [
             .server(AppConfig.pathConfigurationURL)
         ])
 
         let window = UIWindow(windowScene: windowScene)
-        window.rootViewController = navigator.rootViewController
+        window.rootViewController = TabBarController()
         self.window = window
         window.makeKeyAndVisible()
-
-        navigator.route(AppConfig.rootURL)
     }
 }
