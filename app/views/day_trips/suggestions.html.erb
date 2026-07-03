@@ -85,7 +85,7 @@
         radius_km: @radius_km, interests: @interests, q: @user_query
       ),
       loading: :eager,
-      data: { controller: "frame-timeout", frame_timeout_timeout_value: 60000 } do %>
+      data: { controller: "frame-timeout", frame_timeout_timeout_value: 100000 } do %>
   <div class="space-y-5" aria-busy="true">
     <div class="flex items-center gap-2 text-sm text-emerald-300">
       <svg class="w-4 h-4 motion-safe:animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.4 0 0 5.4 0 12h4z"></path></svg>
