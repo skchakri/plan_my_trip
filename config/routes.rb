@@ -56,6 +56,9 @@ Rails.application.routes.draw do
     resources :reviews, only: [ :create, :destroy ], controller: "place_reviews"
   end
 
+  # Lazy stock-photo resolver for highlight cards lacking a Wikimedia image.
+  get "place_image", to: "place_images#show", as: :place_image
+
   resources :trips do
     resources :trip_days, only: [ :create, :update, :destroy ] do
       member { patch :move }
