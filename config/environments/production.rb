@@ -1,8 +1,16 @@
 require "active_support/core_ext/integer/time"
 
 Rails.application.configure do
-  # Prepare the ingress controller used to receive mail
-  # config.action_mailbox.ingress = :relay
+  # Inbound mail via Amazon SES → SNS → Action Mailbox (feeds the forwarded-
+  # confirmation parser). The :ses ingress ships in the aws-actionmailbox-ses
+  # gem (Rails 8.1 dropped the built-in one). Raw mail is pulled from the
+  # inbound S3 bucket via the EC2 instance role.
+  #
+  # TODO: create the SNS topic + S3 bucket + SES receipt rule for
+  # inbound.wanderply.com, then fill in the real ARN below and uncomment.
+  # config.action_mailbox.ingress = :ses
+  # config.action_mailbox.ses.subscribed_topic = "arn:aws:sns:us-east-1:727185666062:wanderply-inbound-mail"
+  # config.action_mailbox.ses.s3_client_options = { region: "us-east-1" }
 
   # Settings specified here will take precedence over those in config/application.rb.
 
@@ -61,16 +69,17 @@ Rails.application.configure do
   # config.action_mailer.raise_delivery_errors = false
 
   # Set host to be used by links generated in mailer templates.
-  config.action_mailer.default_url_options = { host: "example.com" }
+  config.action_mailer.default_url_options = { host: "wanderply.com" }
 
-  # Specify outgoing SMTP server. Remember to add smtp/* credentials via bin/rails credentials:edit.
-  # config.action_mailer.smtp_settings = {
-  #   user_name: Rails.application.credentials.dig(:smtp, :user_name),
-  #   password: Rails.application.credentials.dig(:smtp, :password),
-  #   address: "smtp.example.com",
-  #   port: 587,
-  #   authentication: :plain
-  # }
+  # Outbound transactional mail via Amazon SES (SESv2), provided by the
+  # aws-actionmailer-ses gem. Auth uses the EC2 instance role at deploy time
+  # (same IMDS path as Active Storage S3) — no static credentials in the repo.
+  # DKIM + custom MAIL FROM (mail.wanderply.com) are configured on the SES
+  # domain identity; publish the DNS records in Route 53 to verify.
+  config.action_mailer.raise_delivery_errors = true
+  config.action_mailer.perform_deliveries = true
+  config.action_mailer.delivery_method = :ses_v2
+  config.action_mailer.ses_v2_settings = { region: "us-east-1" }
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation cannot be found).

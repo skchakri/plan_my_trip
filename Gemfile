@@ -57,6 +57,15 @@ gem "redcarpet", "~> 3.6"
 # Throttling + IP-level abuse blocking for unauthenticated routes
 gem "rack-attack"
 
+# Amazon SES — outbound transactional mail (:ses_v2 ActionMailer delivery
+# method) via the EC2 instance-role IAM. No static credentials in the repo.
+gem "aws-actionmailer-ses", "~> 1"
+
+# Amazon SES inbound — provides the :ses ActionMailbox ingress (Rails 8.1
+# dropped the built-in one) plus SNS verification for the forwarded-mail parser.
+gem "aws-actionmailbox-ses", "~> 0.2"
+gem "aws-sdk-sns", "~> 1"
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"

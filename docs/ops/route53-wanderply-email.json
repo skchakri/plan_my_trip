@@ -1,0 +1,12 @@
+{
+  "Comment": "Wanderply email deliverability: SES Easy DKIM + custom MAIL FROM + SPF + DMARC (us-east-1)",
+  "Changes": [
+    { "Action": "UPSERT", "ResourceRecordSet": { "Name": "3cuzu7uyc7lvcvlfzxgmqbvn4nwo43ml._domainkey.wanderply.com", "Type": "CNAME", "TTL": 1800, "ResourceRecords": [ { "Value": "3cuzu7uyc7lvcvlfzxgmqbvn4nwo43ml.dkim.amazonses.com" } ] } },
+    { "Action": "UPSERT", "ResourceRecordSet": { "Name": "mt3j4qgmhsbbi3jxgu5u7cyj5fsgj6sg._domainkey.wanderply.com", "Type": "CNAME", "TTL": 1800, "ResourceRecords": [ { "Value": "mt3j4qgmhsbbi3jxgu5u7cyj5fsgj6sg.dkim.amazonses.com" } ] } },
+    { "Action": "UPSERT", "ResourceRecordSet": { "Name": "adsjh3kstc3ezx45lkdjjybtkwpc5ycz._domainkey.wanderply.com", "Type": "CNAME", "TTL": 1800, "ResourceRecords": [ { "Value": "adsjh3kstc3ezx45lkdjjybtkwpc5ycz.dkim.amazonses.com" } ] } },
+    { "Action": "UPSERT", "ResourceRecordSet": { "Name": "mail.wanderply.com", "Type": "MX", "TTL": 1800, "ResourceRecords": [ { "Value": "10 feedback-smtp.us-east-1.amazonses.com" } ] } },
+    { "Action": "UPSERT", "ResourceRecordSet": { "Name": "mail.wanderply.com", "Type": "TXT", "TTL": 1800, "ResourceRecords": [ { "Value": "\"v=spf1 include:amazonses.com ~all\"" } ] } },
+    { "Action": "UPSERT", "ResourceRecordSet": { "Name": "wanderply.com", "Type": "TXT", "TTL": 1800, "ResourceRecords": [ { "Value": "\"v=spf1 include:amazonses.com ~all\"" } ] } },
+    { "Action": "UPSERT", "ResourceRecordSet": { "Name": "_dmarc.wanderply.com", "Type": "TXT", "TTL": 1800, "ResourceRecords": [ { "Value": "\"v=DMARC1; p=none; rua=mailto:dmarc@wanderply.com; fo=1\"" } ] } }
+  ]
+}
