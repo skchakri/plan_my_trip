@@ -2,6 +2,8 @@ class TripTemplate
   # Curated starter trips offered to new users on /trips when they have zero
   # trips of their own. Stored as plain Ruby (no DB) — these are content,
   # not user data, and live in the codebase so PRs review them.
+  # Hero images go through the same-origin /place_image resolver (stock-photo
+  # lookup + cache) — hotlinked Wikimedia thumbs proved to be link-rot magnets.
   TEMPLATES = {
     "utah-parks" => {
       title:        "Utah Mighty 5 — A 7-Night Road Trip",
@@ -10,7 +12,7 @@ class TripTemplate
       body:         "## Day 1 — Vegas to Zion\n## Day 2 — Zion canyons\n## Day 3 — Bryce sunrise\n## Day 4 — Scenic Byway 12 to Capitol Reef\n## Day 5 — Hanksville to Moab\n## Day 6 — Arches\n## Day 7 — Canyonlands & home",
       tagline:      "Five national parks, one unforgettable loop. Sandstone, slot canyons, dark skies.",
       duration_days: 8,
-      hero_image_url: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/USA_09847_Bryce_Canyon_Luca_Galuzzi_2007.jpg/1280px-USA_09847_Bryce_Canyon_Luca_Galuzzi_2007.jpg",
+      hero_image_url: "/place_image?q=Bryce+Canyon+National+Park",
       vibe: %w[nature scenic adventure]
     },
     "pnw-loop" => {
@@ -20,7 +22,7 @@ class TripTemplate
       body:         "## Day 1 — Seattle\n## Day 2 — Olympic peninsula\n## Day 3 — Hood Canal & ferry to Bainbridge\n## Day 4 — Mount Rainier\n## Day 5 — Columbia River Gorge\n## Day 6 — Cannon Beach\n## Day 7 — Portland\n## Day 8 — Home",
       tagline:      "Old-growth forests, basalt waterfalls, and a coffee on every corner.",
       duration_days: 8,
-      hero_image_url: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Mount-rainier-1.jpg/1280px-Mount-rainier-1.jpg",
+      hero_image_url: "/place_image?q=Mount+Rainier+National+Park",
       vibe: %w[nature scenic relaxing]
     },
     "beach-weekend" => {
@@ -30,7 +32,7 @@ class TripTemplate
       body:         "## Friday — Drive + check in\n## Saturday — Sunrise walk, Bodie Lighthouse, oysters\n## Sunday — Pancakes, packing, drive home",
       tagline:      "Short drive, big air. A three-day reset on the Atlantic.",
       duration_days: 3,
-      hero_image_url: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Bodie_Island_Light_2.jpg/1280px-Bodie_Island_Light_2.jpg",
+      hero_image_url: "/place_image?q=Bodie+Island+Lighthouse+Outer+Banks",
       vibe: %w[relaxing family]
     }
   }.freeze

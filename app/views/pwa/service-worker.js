@@ -3,7 +3,7 @@
 // page has been visited it stays available offline. Asset files are
 // cached on first request and refreshed in the background.
 
-const VERSION = "v8";
+const VERSION = "v9";
 const RUNTIME_CACHE = `pmt-runtime-${VERSION}`;
 const ASSET_CACHE   = `pmt-assets-${VERSION}`;
 const PAGE_CACHE    = `pmt-pages-${VERSION}`;
@@ -47,8 +47,16 @@ function isQuizImage(url) {
 }
 
 function isAsset(url) {
-  return /\.(?:js|css|svg|png|jpg|jpeg|gif|webp|ico|woff2?)$/i.test(url.pathname)
-      || url.pathname.startsWith("/assets/")
+  // Same-origin only (plus the font hosts we deliberately cache). The page's
+  // CSP connect-src also binds fetch() calls made HERE in the worker, so any
+  // cross-origin host the SW touches must be allowlisted in connect-src —
+  // matching arbitrary cross-origin .jpg/.png URLs (Wikimedia, Pexels, …)
+  // made the SW swallow every external image on production. Those now bypass
+  // the SW entirely and load as plain <img> under img-src https:.
+  const sameOrigin = url.origin === self.location.origin;
+  return (sameOrigin &&
+           (/\.(?:js|css|svg|png|jpg|jpeg|gif|webp|ico|woff2?)$/i.test(url.pathname)
+             || url.pathname.startsWith("/assets/")))
       || url.host === "fonts.googleapis.com"
       || url.host === "fonts.gstatic.com";
 }

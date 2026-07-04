@@ -21,7 +21,13 @@ Rails.application.configure do
     policy.style_src   :self, :unsafe_inline, "https://fonts.googleapis.com"
     policy.font_src    :self, :data, "https://fonts.gstatic.com"
     policy.img_src     :self, :https, :data, :blob
-    policy.connect_src :self, :ws, :wss
+    # connect-src also governs fetch() calls inside the service worker (it
+    # inherits this policy), so every cross-origin host the SW caches —
+    # map tiles, quiz flag/logo CDNs, webfonts — must be listed here.
+    policy.connect_src :self, :ws, :wss,
+                       "https://tile.openstreetmap.org", "https://*.tile.openstreetmap.org",
+                       "https://flagcdn.com", "https://cdn.simpleicons.org",
+                       "https://fonts.googleapis.com", "https://fonts.gstatic.com"
     policy.object_src  :none
     policy.base_uri    :self
     policy.form_action :self
