@@ -1,0 +1,66 @@
+{
+  "ignored_warnings": [
+    {
+      "warning_type": "Mass Assignment",
+      "warning_code": 105,
+      "fingerprint": "16c6f07f27f3d7aa2aa92fa9635c93d741b9b8dfa77c9d1d43dd1dead3f5ac74",
+      "check_name": "PermitAttributes",
+      "message": "Potentially dangerous key allowed for mass assignment",
+      "file": "app/controllers/admin/users_controller.rb",
+      "line": 50,
+      "note": "Admin-only: Admin::UsersController < BaseController enforces require_admin (current_user.admin?). Permitting :admin is intentional user-management, unreachable by non-admins."
+    },
+    {
+      "warning_type": "Format Validation",
+      "warning_code": 30,
+      "fingerprint": "7c7511b8bc4e547450a6ecd39404a3b0a994993f033ebcdb969b4cb9383db1d9",
+      "check_name": "ValidationRegex",
+      "message": "Insufficient validation for `url` using `/\\Ahttps?:\\/\\//`. Use `\\A` and `\\z` as anchors",
+      "file": "app/models/suggestion.rb",
+      "line": 11,
+      "note": "URL format validation anchored at start with \\A; missing \\z is harmless for a stored URL string (no multiline user content). allow_blank."
+    },
+    {
+      "warning_type": "Format Validation",
+      "warning_code": 30,
+      "fingerprint": "7ea4416b0a07ca9fe1674c8f05f218873b9aa731f4c3df9f35b6d902f1ff9c5e",
+      "check_name": "ValidationRegex",
+      "message": "Insufficient validation for `alltrails_url` using `/\\Ahttps?:\\/\\/(www\\.)?alltrails\\.com\\//i`. Use `\\A` and `\\z` as anchors",
+      "file": "app/models/trail.rb",
+      "line": 8,
+      "note": "alltrails_url format anchored at start with \\A (ALLTRAILS_HOST_RE); missing \\z is harmless for a stored URL. allow_blank."
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 4,
+      "fingerprint": "86990b88304918adabf08f47be0d6e0fd05504f80124db4abd0d114ad2ff385e",
+      "check_name": "LinkToHref",
+      "message": "Potentially unsafe model attribute in `link_to` href",
+      "file": "app/views/trips/checklist.html.erb",
+      "line": 27,
+      "note": "Href is the trip owner's own pwa_packing_url, target/rel=noopener set. Not attacker-controlled cross-user input."
+    },
+    {
+      "warning_type": "Redirect",
+      "warning_code": 18,
+      "fingerprint": "a85816787eaf2fae330302016ffffb8a1ccc3be1cb97e477135d99dc35315fa7",
+      "check_name": "Redirect",
+      "message": "Possible unprotected redirect",
+      "file": "app/controllers/place_images_controller.rb",
+      "line": 19,
+      "note": "Redirects to an image URL our own ResolvePlaceImageJob resolved and cached, guarded by start_with?('http'); allow_other_host is intentional (external image CDNs)."
+    },
+    {
+      "warning_type": "Unmaintained Dependency",
+      "warning_code": 121,
+      "fingerprint": "edf687f759ec9765bd5db185dbc615c80af77d6e7e19386fc42934e7a80307af",
+      "check_name": "EOLRuby",
+      "message": "Support for Ruby 3.2.2 ended on 2026-03-31",
+      "file": ".ruby-version",
+      "line": 1,
+      "note": "Ruby EOL notice, not a code vulnerability. Tracked as a separate runtime-upgrade follow-up."
+    }
+  ],
+  "updated": "2026-07-05",
+  "brakeman_version": "8.0.5"
+}

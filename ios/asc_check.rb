@@ -6,8 +6,8 @@ require "openssl"; require "base64"; require "json"; require "net/http"
 
 key_id = ENV.fetch("ASC_KEY_ID"); issuer = ENV.fetch("ASC_ISSUER_ID")
 bundle = ARGV[0] || "com.wanderply.PlanMyTrip"
-p8 = ["#{ENV['HOME']}/.appstoreconnect/private_keys/AuthKey_#{key_id}.p8",
-      "./private_keys/AuthKey_#{key_id}.p8"].find { |f| File.exist?(f) }
+p8 = [ "#{ENV['HOME']}/.appstoreconnect/private_keys/AuthKey_#{key_id}.p8",
+      "./private_keys/AuthKey_#{key_id}.p8" ].find { |f| File.exist?(f) }
 abort "missing .p8 for #{key_id}" unless p8
 
 b64 = ->(x) { Base64.urlsafe_encode64(x).delete("=") }

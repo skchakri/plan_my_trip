@@ -30,7 +30,7 @@ group = project.main_group.new_group("PlanMyTrip", "PlanMyTrip")
 swift_files = Dir[File.join(SRC_DIR, "*.swift")].sort
 swift_files.each do |path|
   ref = group.new_reference(path)
-  target.add_file_references([ref])
+  target.add_file_references([ ref ])
 end
 # Keep Info.plist visible in the navigator (not compiled).
 group.new_reference(File.join(SRC_DIR, "Info.plist"))
@@ -39,7 +39,7 @@ group.new_reference(File.join(SRC_DIR, "Info.plist"))
 assets = File.join(SRC_DIR, "Assets.xcassets")
 if File.directory?(assets)
   assets_ref = group.new_reference(assets)
-  target.add_resources([assets_ref])
+  target.add_resources([ assets_ref ])
 end
 
 # --- hotwire-native-ios Swift Package -------------------------------------
