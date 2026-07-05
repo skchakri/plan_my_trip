@@ -11,7 +11,9 @@ class Trip < ApplicationRecord
   # prep items to the checklist; "rental" / "flying" / "mixed" are
   # informational labels surfaced in the UI.
   TRANSPORT_MODES = %w[own_car rental flying mixed].freeze
-  validates :transport_mode, inclusion: { in: TRANSPORT_MODES }, allow_nil: true
+  # allow_blank (not allow_nil): the trip form's "No preference" option submits
+  # "" rather than nil, so allow_nil alone rejected an unspecified mode.
+  validates :transport_mode, inclusion: { in: TRANSPORT_MODES }, allow_blank: true
 
   # Self-declared fuel economy (mpg) for the group's own car. Feeds the
   # road-trip fuel + drive-time estimator (RoadTripEstimator). Nullable;

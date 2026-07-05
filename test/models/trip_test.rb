@@ -75,6 +75,22 @@ class TripTest < ActiveSupport::TestCase
     refute @user.owned_trips.build(title: "T", transport_mode: nil).own_car?
   end
 
+  test "transport_mode allows nil and blank (the form's \"No preference\" submits \"\")" do
+    [ nil, "" ].each do |unspecified|
+      trip = @user.owned_trips.build(title: "T", transport_mode: unspecified)
+      assert trip.valid?, "transport_mode=#{unspecified.inspect} should be valid"
+    end
+  end
+
+  test "transport_mode accepts every known mode and rejects unknown ones" do
+    Trip::TRANSPORT_MODES.each do |mode|
+      assert @user.owned_trips.build(title: "T", transport_mode: mode).valid?, "#{mode} should be valid"
+    end
+    trip = @user.owned_trips.build(title: "T", transport_mode: "teleport")
+    refute trip.valid?
+    assert trip.errors[:transport_mode].any?
+  end
+
   test "forwarding_address mints a token even when legacy columns fail validation" do
     trip = @user.owned_trips.create!(title: "T", start_date: Date.current, end_date: Date.current + 1)
     trip.update_columns(pwa_plan_url: "/vegas-trip-4days.html") # pre-validation legacy data
