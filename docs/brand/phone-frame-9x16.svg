@@ -1,0 +1,42 @@
+<svg width="1080" height="1920" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+  <!--
+    Wanderply 9:16 phone frame — transparent screen window for compositing.
+    Canvas 1080x1920. Drop this PNG/SVG on a track ABOVE your screen recording.
+    Scale the recording to fill the transparent screen window:
+      x = 150   y = 74   width = 780   height = 1736
+    On-brand: dark bezel (#0a0e1a) + amber accent edge, Wanderply pin in the chin.
+  -->
+  <defs>
+    <linearGradient id="amber" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FCD34D"/>
+      <stop offset="55%" stop-color="#FBBF24"/>
+      <stop offset="100%" stop-color="#F59E0B"/>
+    </linearGradient>
+    <mask id="screenHole">
+      <rect x="120" y="40" width="840" height="1840" rx="110" fill="white"/>
+      <rect x="150" y="74" width="780" height="1736" rx="78" fill="black"/>
+    </mask>
+  </defs>
+
+  <!-- phone body (bezel), screen punched out, amber accent edge -->
+  <rect x="120" y="40" width="840" height="1840" rx="110"
+        fill="#0a0e1a" stroke="url(#amber)" stroke-width="5" mask="url(#screenHole)"/>
+
+  <!-- thin inner screen edge line -->
+  <rect x="150" y="74" width="780" height="1736" rx="78"
+        fill="none" stroke="#1e293b" stroke-width="2"/>
+
+  <!-- dynamic island -->
+  <rect x="445" y="98" width="190" height="34" rx="17" fill="#0a0e1a"/>
+
+  <!-- side buttons -->
+  <rect x="113" y="520" width="7" height="120" rx="3" fill="#0a0e1a"/>
+  <rect x="113" y="672" width="7" height="120" rx="3" fill="#0a0e1a"/>
+  <rect x="960" y="600" width="7" height="180" rx="3" fill="#0a0e1a"/>
+
+  <!-- mini Wanderply logo in the chin -->
+  <g transform="translate(540 1845) scale(0.055) translate(-256 -256)">
+    <rect width="512" height="512" rx="120" fill="url(#amber)"/>
+    <path fill="#0a0e1a" fill-rule="evenodd" d="M256 116 C320 116 372 168 372 232 C372 304 286 380 262 402 C258 406 254 406 250 402 C226 380 140 304 140 232 C140 168 192 116 256 116 Z M256 196 C276 196 292 212 292 232 C292 252 276 268 256 268 C236 268 220 252 220 232 C220 212 236 196 256 196 Z"/>
+  </g>
+</svg>

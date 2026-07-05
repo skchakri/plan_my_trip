@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wanderply — Brand Kit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --dark:#0a0e1a; --amber3:#FCD34D; --amber4:#FBBF24; --amber5:#F59E0B; --amber2:#FDE68A;
+    --s950:#020617; --s900:#0f172a; --s800:#1e293b; --s700:#334155; --s400:#94a3b8; --s300:#cbd5e1; --s100:#f1f5f9;
+    --sky:#0ea5e9; --emerald:#10b981; --rose:#f43f5e;
+    --sans:'Inter',system-ui,sans-serif; --display:'Fraunces',Georgia,serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--dark);color:var(--s300);font-family:var(--sans);
+       font-feature-settings:'cv11','ss01';line-height:1.55;padding:48px 32px 80px}
+  .wrap{max-width:1000px;margin:0 auto}
+  h1,h2,h3{font-family:var(--display);letter-spacing:-.02em;color:var(--s100);font-weight:600;line-height:1.1}
+  h1{font-size:clamp(40px,6vw,64px);margin:0}
+  h2{font-size:28px;margin:56px 0 20px;color:var(--amber2)}
+  .sub{color:var(--s400);font-size:18px;margin:8px 0 0}
+  .head{display:flex;align-items:center;gap:20px}
+  .logo{width:72px;height:72px;flex:none;border-radius:20px;overflow:hidden}
+  .grid{display:grid;gap:16px}
+  .swatches{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}
+  .sw{border:1px solid var(--s800);border-radius:14px;overflow:hidden;background:var(--s900)}
+  .sw .chip{height:88px}
+  .sw .meta{padding:10px 12px}
+  .sw .name{color:var(--s100);font-weight:600;font-size:14px}
+  .sw .hex{color:var(--s400);font-size:12px;font-family:ui-monospace,monospace;text-transform:uppercase;margin-top:2px}
+  .sw .use{color:var(--s400);font-size:12px;margin-top:6px;line-height:1.35}
+  .row{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+  .card{border:1px solid var(--s800);border-radius:16px;background:color-mix(in oklab,var(--s900) 55%,transparent);padding:22px 24px}
+  .btn{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:15px;border-radius:12px;padding:11px 18px;border:0;cursor:default;font-family:var(--sans)}
+  .btn-primary{background:var(--amber5);color:var(--dark)}
+  .btn-secondary{background:transparent;color:var(--s100);border:1px solid var(--s700)}
+  .btn-ghost{background:transparent;color:var(--s300)}
+  .pill{display:inline-block;padding:5px 11px;border-radius:999px;font-size:13px;font-weight:500}
+  .pill-neutral{background:var(--s700);color:var(--s100)}
+  .pill-amber{background:color-mix(in oklab,var(--amber5) 15%,transparent);color:var(--amber2);border:1px solid color-mix(in oklab,var(--amber5) 40%,transparent)}
+  .pill-sky{background:color-mix(in oklab,var(--sky) 15%,transparent);color:#bae6fd;border:1px solid color-mix(in oklab,var(--sky) 30%,transparent)}
+  .pill-emerald{background:color-mix(in oklab,var(--emerald) 15%,transparent);color:#6ee7b7}
+  .type-spec{color:var(--s400);font-size:13px;font-family:ui-monospace,monospace;margin-top:6px}
+  .display-xl{font-family:var(--display);font-weight:600;letter-spacing:-.02em;color:var(--s100);font-size:52px;line-height:1.05}
+  .display-xl em{font-style:italic;color:var(--amber4)}
+  .body-lg{font-size:19px;color:var(--s300);max-width:60ch}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  td,th{text-align:left;padding:9px 10px;border-bottom:1px solid var(--s800);vertical-align:top}
+  th{color:var(--s400);font-weight:500;font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+  code{font-family:ui-monospace,monospace;font-size:12.5px;color:var(--amber2);background:color-mix(in oklab,var(--amber5) 10%,transparent);padding:1px 6px;border-radius:6px}
+  .mono{font-family:ui-monospace,monospace}
+  .note{color:var(--s400);font-size:13px;margin-top:10px}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:3px;vertical-align:middle;margin-right:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="head">
+    <div class="logo">
+      <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" width="72" height="72" role="img" aria-label="Wanderply">
+        <defs><linearGradient id="a" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#FCD34D"/><stop offset="55%" stop-color="#FBBF24"/><stop offset="100%" stop-color="#F59E0B"/>
+        </linearGradient></defs>
+        <rect width="512" height="512" rx="120" fill="url(#a)"/>
+        <path fill="#0a0e1a" fill-rule="evenodd" d="M256 116 C320 116 372 168 372 232 C372 304 286 380 262 402 C258 406 254 406 250 402 C226 380 140 304 140 232 C140 168 192 116 256 116 Z M256 196 C276 196 292 212 292 232 C292 252 276 268 256 268 C236 268 220 252 220 232 C220 212 236 196 256 196 Z"/>
+      </svg>
+    </div>
+    <div>
+      <h1>Wanderply — Brand Kit</h1>
+      <p class="sub">Reel-ready tokens pulled straight from the live app. Match these and the video reads as one thing with the product.</p>
+    </div>
+  </div>
+
+  <h2>Logo</h2>
+  <div class="card">
+    <div class="row" style="gap:32px">
+      <div style="width:96px;height:96px;border-radius:26px;overflow:hidden">
+        <svg viewBox="0 0 512 512" width="96" height="96"><defs><linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FCD34D"/><stop offset="55%" stop-color="#FBBF24"/><stop offset="100%" stop-color="#F59E0B"/></linearGradient></defs><rect width="512" height="512" rx="120" fill="url(#b)"/><path fill="#0a0e1a" fill-rule="evenodd" d="M256 116 C320 116 372 168 372 232 C372 304 286 380 262 402 C258 406 254 406 250 402 C226 380 140 304 140 232 C140 168 192 116 256 116 Z M256 196 C276 196 292 212 292 232 C292 252 276 268 256 268 C236 268 220 252 220 232 C220 212 236 196 256 196 Z"/></svg>
+      </div>
+      <div style="width:96px;height:96px;border-radius:26px;overflow:hidden;background:#fff;display:flex;align-items:center;justify-content:center">
+        <svg viewBox="0 0 512 512" width="80" height="80"><defs><linearGradient id="c" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FCD34D"/><stop offset="55%" stop-color="#FBBF24"/><stop offset="100%" stop-color="#F59E0B"/></linearGradient></defs><rect width="512" height="512" rx="120" fill="url(#c)"/><path fill="#0a0e1a" fill-rule="evenodd" d="M256 116 C320 116 372 168 372 232 C372 304 286 380 262 402 C258 406 254 406 250 402 C226 380 140 304 140 232 C140 168 192 116 256 116 Z M256 196 C276 196 292 212 292 232 C292 252 276 268 256 268 C236 268 220 252 220 232 C220 212 236 196 256 196 Z"/></svg>
+      </div>
+      <div style="flex:1;min-width:240px">
+        <div style="font-size:15px">An <strong style="color:var(--s100)">amber squircle</strong> (rounded rect) with a <strong style="color:var(--s100)">map-pin punched out</strong> in brand dark — the hole reads as the locator dot.</div>
+        <div class="note">Source: <code>public/icon.svg</code> (vector) &nbsp;·&nbsp; <code>public/icon.png</code> (512×512 raster). Use the vector for the reel end-card so it stays crisp at any scale. Wordmark pairs the mark with <strong style="color:var(--s100)">"Wanderply"</strong> set in Fraunces.</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Color — brand core</h2>
+  <div class="grid swatches">
+    <div class="sw"><div class="chip" style="background:#0a0e1a;border-bottom:1px solid var(--s800)"></div><div class="meta"><div class="name">Brand Dark</div><div class="hex">#0A0E1A</div><div class="use">Backgrounds, logo cut-out, text on amber. The reel's base color.</div></div></div>
+    <div class="sw"><div class="chip" style="background:linear-gradient(135deg,#FCD34D,#FBBF24 55%,#F59E0B)"></div><div class="meta"><div class="name">Amber Gradient</div><div class="hex">#FCD34D → #F59E0B</div><div class="use">The signature mark. Use for logo, key accents, kinetic-text highlights.</div></div></div>
+    <div class="sw"><div class="chip" style="background:#F59E0B"></div><div class="meta"><div class="name">Amber 500</div><div class="hex">#F59E0B</div><div class="use">Primary CTA fill, the "one accent" per frame.</div></div></div>
+    <div class="sw"><div class="chip" style="background:#FBBF24"></div><div class="meta"><div class="name">Amber 400</div><div class="hex">#FBBF24</div><div class="use">Hover / emphasis, italic display accent.</div></div></div>
+    <div class="sw"><div class="chip" style="background:#FCD34D"></div><div class="meta"><div class="name">Amber 300</div><div class="hex">#FCD34D</div><div class="use">Links, gradient start, bright highlight.</div></div></div>
+  </div>
+
+  <h2>Color — neutrals &amp; semantic</h2>
+  <div class="grid swatches">
+    <div class="sw"><div class="chip" style="background:#020617"></div><div class="meta"><div class="name">Slate 950</div><div class="hex">#020617</div><div class="use">Surface base.</div></div></div>
+    <div class="sw"><div class="chip" style="background:#0f172a"></div><div class="meta"><div class="name">Slate 900</div><div class="hex">#0F172A</div><div class="use">Cards / panels.</div></div></div>
+    <div class="sw"><div class="chip" style="background:#1e293b"></div><div class="meta"><div class="name">Slate 800</div><div class="hex">#1E293B</div><div class="use">Borders, dividers, screen edge.</div></div></div>
+    <div class="sw"><div class="chip" style="background:#334155"></div><div class="meta"><div class="name">Slate 700</div><div class="hex">#334155</div><div class="use">Chip backgrounds.</div></div></div>
+    <div class="sw"><div class="chip" style="background:#cbd5e1"></div><div class="meta"><div class="name">Slate 300</div><div class="hex">#CBD5E1</div><div class="use">Body text.</div></div></div>
+    <div class="sw"><div class="chip" style="background:#f1f5f9"></div><div class="meta"><div class="name">Slate 100</div><div class="hex">#F1F5F9</div><div class="use">High-contrast headings/text.</div></div></div>
+    <div class="sw"><div class="chip" style="background:#94a3b8"></div><div class="meta"><div class="name">Slate 400</div><div class="hex">#94A3B8</div><div class="use">Muted / captions (don't go lighter for text).</div></div></div>
+    <div class="sw"><div class="chip" style="background:#0ea5e9"></div><div class="meta"><div class="name">Sky 500</div><div class="hex">#0EA5E9</div><div class="use">Info / editor accents.</div></div></div>
+    <div class="sw"><div class="chip" style="background:#10b981"></div><div class="meta"><div class="name">Emerald 500</div><div class="hex">#10B981</div><div class="use">Success / "done".</div></div></div>
+    <div class="sw"><div class="chip" style="background:#f43f5e"></div><div class="meta"><div class="name">Rose 500</div><div class="hex">#F43F5E</div><div class="use">Danger only — use sparingly.</div></div></div>
+  </div>
+
+  <h2>Typography</h2>
+  <div class="card">
+    <div class="display-xl">Trips your <em>whole crew</em> will remember.</div>
+    <div class="type-spec">Display — <strong style="color:var(--s300)">Fraunces</strong> · weights 500 / 600 / 700 · optical sizing · letter-spacing −0.02em</div>
+    <p class="body-lg" style="margin-top:26px">Day-by-day itineraries with photos and maps. Drive-time games for the back seat. A two-voice podcast for the highway. And it all works offline.</p>
+    <div class="type-spec">Body / UI — <strong style="color:var(--s300)">Inter</strong> · weights 400 / 500 / 600 / 700 / 800 · features cv11, ss01</div>
+    <div class="row" style="margin-top:24px">
+      <span style="font-family:var(--sans);font-weight:800;font-size:22px;color:var(--s100)">Inter 800</span>
+      <span style="font-family:var(--sans);font-weight:600;font-size:22px;color:var(--s100)">Inter 600</span>
+      <span style="font-family:var(--sans);font-weight:400;font-size:22px;color:var(--s300)">Inter 400</span>
+      <span style="font-family:var(--display);font-weight:700;font-size:24px;color:var(--s100)">Fraunces 700</span>
+      <span style="font-family:var(--display);font-weight:500;font-style:italic;font-size:24px;color:var(--amber4)">Fraunces italic</span>
+    </div>
+    <div class="note">Both are on Google Fonts (free): <code>Fraunces</code> + <code>Inter</code>. Load them into your editor for on-brand kinetic text. Headlines &amp; big numbers → Fraunces. Captions, labels, subtitles → Inter.</div>
+  </div>
+
+  <h2>Components &amp; motion</h2>
+  <div class="card">
+    <div class="row">
+      <button class="btn btn-primary">Plan a new trip</button>
+      <button class="btn btn-secondary">Open my trips</button>
+      <button class="btn btn-ghost">Maybe later</button>
+      <span class="pill pill-neutral">catalog</span>
+      <span class="pill pill-amber">owner</span>
+      <span class="pill pill-sky">editor</span>
+      <span class="pill pill-emerald">ready</span>
+    </div>
+    <table style="margin-top:22px">
+      <tr><th>Token</th><th>Value</th><th>Use in the reel</th></tr>
+      <tr><td>Primary button</td><td class="mono">bg #F59E0B · text #0A0E1A · radius 12px</td><td>End-card CTA button, lower-third buttons</td></tr>
+      <tr><td>Corner radius</td><td class="mono">12px control · 16px card · rounded, never sharp</td><td>All overlays, lower-thirds, device screen</td></tr>
+      <tr><td>Cut rhythm</td><td class="mono">0.15–0.3s per cut, on the beat</td><td>Matches the app's snappy Hotwire feel</td></tr>
+      <tr><td>Text pop-in</td><td class="mono">120–180ms ease, slight upward drift</td><td>Kinetic captions (mirrors the app's toasts)</td></tr>
+      <tr><td>Accent rule</td><td class="mono">one amber accent per frame</td><td>Don't rainbow it — amber is the star</td></tr>
+    </table>
+  </div>
+
+  <h2>Voice &amp; export</h2>
+  <div class="card">
+    <div style="font-size:15px"><span class="dot" style="background:var(--amber5)"></span>Warm, confident, a little playful — a friend who's good at this. Lead with the outcome ("a whole trip, planned"), not the mechanism. Never "revolutionary / powered by AI / seamless."</div>
+    <div class="row" style="margin-top:18px;gap:10px">
+      <span class="pill pill-neutral">9:16 · 1080×1920 · Reels / TikTok / Shorts</span>
+      <span class="pill pill-neutral">1:1 · 1080×1080 · Feed</span>
+      <span class="pill pill-neutral">16:9 · 1920×1080 · YouTube / site hero</span>
+    </div>
+    <div class="note">One timeline, three crops. End every cut on the amber logo + <strong style="color:var(--s100)">wanderply.com</strong>. Pair with <code>docs/brand/phone-frame-9x16.png</code> to frame wide screen-recordings for the 9:16 cut.</div>
+  </div>
+
+</div>
+</body>
+</html>
