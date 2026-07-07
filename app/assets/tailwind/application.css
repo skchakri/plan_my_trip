@@ -27,6 +27,9 @@
 .btn-secondary:hover { border-color: color-mix(in oklab, var(--color-amber-500) 50%, transparent); background: color-mix(in oklab, var(--color-slate-800) 60%, transparent); }
 .btn-ghost { color: var(--color-slate-300); }
 .btn-ghost:hover { color: var(--color-slate-100); background: color-mix(in oklab, var(--color-slate-800) 60%, transparent); }
+/* Visible keyboard focus for every .btn — WCAG 2.4.7 (mouse clicks stay
+   ring-free via :focus-visible). Amber ring on a dark UI clears 3:1. */
+.btn:focus-visible { outline: 2px solid var(--color-amber-400); outline-offset: 2px; }
 
 /* AA-safe neutral chip: slate-700/slate-100 clears 4.5:1 (the old
    slate-800/slate-300 was ~3.5:1). */

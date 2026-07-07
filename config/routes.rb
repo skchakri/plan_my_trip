@@ -85,7 +85,9 @@ Rails.application.routes.draw do
       end
     end
     # Parsed booking-confirmation emails (forwarded to the per-trip address).
-    resources :reservations, only: [ :destroy ]
+    resources :reservations, only: [ :destroy ] do
+      post :retry, on: :member
+    end
     member do
       patch :rename
       patch :archive
