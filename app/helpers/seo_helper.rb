@@ -15,8 +15,10 @@ module SeoHelper
     content_for(:canonical).presence || (canonical_base_url + request.path)
   end
 
+  # 1200×630 social card (public/og-card.png), regenerated from the
+  # landing-page brand kit when the tagline changes.
   def default_og_image_url
-    "#{canonical_base_url}/icon.png"
+    "#{canonical_base_url}/og-card.png"
   end
 
   # Organization node reused by the site-wide and Article JSON-LD.
