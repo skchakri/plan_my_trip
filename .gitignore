@@ -13,6 +13,13 @@
 !/log/.keep
 !/tmp/.keep
 
+# Local marketing / brand-reel video production scratch and browser-automation
+# artifacts (screenshots, generated frames, rendered mp4s) — kept locally, not
+# checked in.
+/reel/
+/.playwright-mcp/
+/shot_*.png
+
 # Ignore pidfiles, but keep the directory.
 /tmp/pids/*
 !/tmp/pids/
