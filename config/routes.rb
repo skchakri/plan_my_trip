@@ -125,6 +125,8 @@ Rails.application.routes.draw do
   # Distinct from the auth-gated /places/:id used during trip planning.
   get "p/:slug", to: "public_places#show", as: :public_place, constraints: { slug: /[a-z0-9-]+/ }
   get "places-sitemap.xml", to: "public_places#sitemap", as: :places_sitemap, defaults: { format: :xml }
+  # Site-wide sitemap (marketing pages + blog); robots.txt lists both.
+  get "sitemap.xml", to: "pages#sitemap", as: :sitemap, defaults: { format: :xml }
 
   # ── Admin (DB-stored AI prompts + audit log) ──────────────────────
   namespace :admin do

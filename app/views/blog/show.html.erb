@@ -1,5 +1,25 @@
 <% content_for :title, "#{@post.title} · Wanderply" %>
 <% content_for :description, @post.excerpt if @post.excerpt.present? %>
+<% content_for :canonical, canonical_base_url + blog_path(@post.slug) %>
+<% content_for :og_type, "article" %>
+<% content_for :og_image, @post.cover if @post.cover.present? %>
+
+<% content_for :head do %>
+  <%# Structured data — Schema.org Article for rich results + AI citation. %>
+  <script type="application/ld+json">
+  <%= raw({
+    "@context" => "https://schema.org",
+    "@type"    => "Article",
+    "headline" => @post.title,
+    "description" => @post.excerpt,
+    "image"    => @post.cover,
+    "author"   => (@post.author.present? ? { "@type" => "Person", "name" => @post.author } : nil),
+    "datePublished" => @post.published_on&.iso8601,
+    "publisher" => organization_ld,
+    "mainEntityOfPage" => blog_url(@post.slug)
+  }.compact.to_json) %>
+  </script>
+<% end %>
 
 <%# Hero cover with overlaid title %>
 <section class="relative">

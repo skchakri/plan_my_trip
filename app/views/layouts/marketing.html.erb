@@ -4,7 +4,24 @@
     <title><%= content_for(:title) || "Wanderply · trips your crew will remember" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
     <meta name="theme-color" content="#0a0e1a">
-    <meta name="description" content="<%= content_for(:description) || 'Day-by-day itineraries, drive-time games, podcast-style narration, and an offline PWA — Wanderply turns a road trip into a story.' %>">
+    <% seo_title       = content_for(:title).presence || "Wanderply · trips your crew will remember" %>
+    <% seo_description = content_for(:description).presence || "Day-by-day itineraries, drive-time games, podcast-style narration, and an offline PWA — Wanderply turns a road trip into a story." %>
+    <% seo_image       = content_for(:og_image).presence || default_og_image_url %>
+    <meta name="description" content="<%= seo_description %>">
+
+    <%# ── SEO: canonical + social cards (views override via content_for
+        :canonical / :og_type / :og_image) ─────────────────────────── %>
+    <link rel="canonical" href="<%= canonical_url %>">
+    <meta property="og:site_name"   content="Wanderply">
+    <meta property="og:type"        content="<%= content_for(:og_type).presence || 'website' %>">
+    <meta property="og:title"       content="<%= seo_title %>">
+    <meta property="og:description" content="<%= seo_description %>">
+    <meta property="og:url"         content="<%= canonical_url %>">
+    <meta property="og:image"       content="<%= seo_image %>">
+    <meta name="twitter:card"        content="<%= content_for(:og_image).present? ? 'summary_large_image' : 'summary' %>">
+    <meta name="twitter:title"       content="<%= seo_title %>">
+    <meta name="twitter:description" content="<%= seo_description %>">
+    <meta name="twitter:image"       content="<%= seo_image %>">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <%= yield :head %>

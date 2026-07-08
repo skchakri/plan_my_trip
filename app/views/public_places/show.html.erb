@@ -2,19 +2,12 @@
 <% content_for :title, "#{page_title} · Wanderply" %>
 <% content_for :description, "#{page_title}#{" — #{@place.famous_for}" if @place.famous_for.present?}. Add it to a road-trip itinerary with day-by-day plans, drive-time games, and a podcast for the road." %>
 
-<% content_for :head do %>
-  <link rel="canonical" href="<%= public_place_url(@place.slug) %>">
-  <meta property="og:type"        content="article">
-  <meta property="og:title"       content="<%= page_title %>">
-  <meta property="og:description" content="<%= @place.famous_for.presence || @place.description.to_s[0, 200] %>">
-  <meta property="og:url"         content="<%= public_place_url(@place.slug) %>">
-  <% if @place.image_url.present? %>
-    <meta property="og:image"   content="<%= @place.image_url %>">
-    <meta name="twitter:card"   content="summary_large_image">
-  <% else %>
-    <meta name="twitter:card"   content="summary">
-  <% end %>
+<%# Canonical + social cards render in the marketing layout from these slots. %>
+<% content_for :canonical, canonical_base_url + public_place_path(@place.slug) %>
+<% content_for :og_type, "article" %>
+<% content_for :og_image, @place.image_url if @place.image_url.present? %>
 
+<% content_for :head do %>
   <%# Structured data — Schema.org TouristAttraction for rich results. %>
   <script type="application/ld+json">
   <%= raw({

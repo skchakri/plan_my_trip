@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc><%= root_url %></loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc><%= about_url %></loc>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc><%= privacy_url %></loc>
+    <changefreq>yearly</changefreq>
+  </url>
+  <url>
+    <loc><%= blog_index_url %></loc>
+    <changefreq>weekly</changefreq>
+  </url>
+  <% @posts.each do |post| %>
+  <url>
+    <loc><%= blog_url(post.slug) %></loc>
+    <% if post.published_on %>
+    <lastmod><%= post.published_on.iso8601 %></lastmod>
+    <% end %>
+    <changefreq>monthly</changefreq>
+  </url>
+  <% end %>
+</urlset>

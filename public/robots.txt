@@ -1,4 +1,5 @@
-# See https://www.robotstxt.org/robotstxt.html for documentation on how to use the robots.txt file
+# Wanderply (wanderply.com) — see also /llms.txt for an AI-readable
+# overview of the product and its public pages.
 
 User-agent: *
 Allow: /
@@ -10,4 +11,26 @@ Disallow: /users/
 Disallow: /s/
 Disallow: /invitations/
 
-Sitemap: /places-sitemap.xml
+# AI / answer-engine crawlers are welcome on the public pages (GEO).
+# Same rules as everyone else — restated because a matching group
+# overrides the * group entirely.
+User-agent: GPTBot
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: ClaudeBot
+User-agent: Claude-SearchBot
+User-agent: anthropic-ai
+User-agent: PerplexityBot
+User-agent: Google-Extended
+User-agent: CCBot
+Allow: /
+Allow: /p/
+Disallow: /admin/
+Disallow: /trips/
+Disallow: /trip_wizard/
+Disallow: /users/
+Disallow: /s/
+Disallow: /invitations/
+
+Sitemap: https://wanderply.com/sitemap.xml
+Sitemap: https://wanderply.com/places-sitemap.xml
