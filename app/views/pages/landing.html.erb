@@ -1,232 +1,552 @@
-<% content_for :title, "Wanderply · trips your crew will remember" %>
+<% content_for :title, "Wanderply · the road trip, remastered" %>
+<% content_for :description, "Wanderply writes your day-by-day road-trip plan in about two minutes — photos, maps, packing lists — then narrates every stop like a podcast on the drive. Offline, the whole way." %>
 
-<%# ── Hero ───────────────────────────────────────────────────────── %>
+<% content_for :head do %>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* ── Landing-page-only styles (lp-*) ─────────────────────────── */
+    .lp-mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; letter-spacing: 0.14em; }
+
+    /* Paper ephemera — the light artifacts on the dark page */
+    .lp-paper {
+      background:
+        radial-gradient(rgba(15,23,42,.045) 1px, transparent 1px) 0 0 / 22px 22px,
+        linear-gradient(160deg, #F2EEE3, #E9E4D6);
+      color: #0f172a;
+      box-shadow: 0 30px 60px -18px rgba(0,0,0,.75), 0 4px 14px rgba(0,0,0,.4);
+    }
+    .lp-paper-hole {
+      background: #020617;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,.5);
+    }
+
+    /* Perforation between ticket body and stub */
+    .lp-perf {
+      background-image: linear-gradient(to bottom, rgba(15,23,42,.35) 45%, transparent 45%);
+      background-size: 2px 12px;
+      background-repeat: repeat-y;
+    }
+    @media (max-width: 767px) {
+      .lp-perf { background-image: linear-gradient(to right, rgba(15,23,42,.35) 45%, transparent 45%); background-size: 12px 2px; background-repeat: repeat-x; }
+    }
+
+    /* Fake barcode on the boarding pass stub */
+    .lp-barcode {
+      background-image: repeating-linear-gradient(to right,
+        #0f172a 0 2px, transparent 2px 4px, #0f172a 4px 5px, transparent 5px 9px,
+        #0f172a 9px 12px, transparent 12px 14px, #0f172a 14px 15px, transparent 15px 20px);
+    }
+
+    /* Scroll reveals */
+    .lp-reveal {
+      opacity: 0; transform: translateY(26px);
+      transition: opacity .7s ease, transform .8s cubic-bezier(.16, 1, .3, 1);
+      transition-delay: var(--lp-d, 0ms);
+    }
+    .lp-reveal.lp-in { opacity: 1; transform: none; }
+
+    /* Itinerary route spine */
+    .lp-spine-road  { stroke: rgba(148,163,184,.28); stroke-width: 2; stroke-dasharray: 2 9; fill: none; }
+    .lp-spine-drawn { stroke: url(#lp-route-gradient); stroke-width: 2.5; fill: none;
+                      filter: drop-shadow(0 0 6px rgba(251,191,36,.55)); }
+
+    /* Chapter stop markers */
+    .lp-stop-marker {
+      transition: border-color .6s ease, color .6s ease, box-shadow .6s ease;
+      transition-delay: 150ms;
+    }
+    .lp-reveal.lp-in .lp-stop-marker {
+      border-color: rgba(251,191,36,.7); color: #fcd34d;
+      box-shadow: 0 0 22px rgba(251,191,36,.28);
+    }
+
+    /* Destination marquee */
+    .lp-marquee-track { display: flex; width: max-content; animation: lp-marquee 46s linear infinite; }
+    @keyframes lp-marquee { to { transform: translateX(-50%); } }
+
+    /* Hero route ticker — the dot driving SLC → LAS */
+    .lp-drive-dot { animation: lp-drive 9s cubic-bezier(.45,.05,.55,.95) infinite; }
+    @keyframes lp-drive {
+      0%   { left: 0%;   opacity: 0; }
+      6%   { opacity: 1; }
+      94%  { opacity: 1; }
+      100% { left: 100%; opacity: 0; }
+    }
+
+    /* Podcast waveform */
+    .lp-wave-bar { transform-origin: bottom; animation: lp-wave 1.15s ease-in-out infinite alternate; }
+    @keyframes lp-wave { from { transform: scaleY(.25); } to { transform: scaleY(1); } }
+
+    /* Async-build shimmer */
+    .lp-shimmer {
+      background: linear-gradient(100deg, rgba(251,191,36,.15) 30%, rgba(251,191,36,.5) 50%, rgba(251,191,36,.15) 70%);
+      background-size: 200% 100%;
+      animation: lp-shimmer 1.8s linear infinite;
+    }
+    @keyframes lp-shimmer { to { background-position: -200% 0; } }
+
+    @media (prefers-reduced-motion: reduce) {
+      .lp-reveal { opacity: 1; transform: none; transition: none; }
+      .lp-marquee-track, .lp-drive-dot, .lp-wave-bar, .lp-shimmer { animation: none; }
+      .lp-wave-bar { transform: scaleY(.65); }
+    }
+  </style>
+<% end %>
+
+<div data-controller="landing">
+
+<%# ═══ Hero ═══════════════════════════════════════════════════════ %>
 <section class="relative overflow-hidden">
-  <%# Background photo (full-bleed) %>
   <div class="absolute inset-0">
     <img src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1920&q=80"
          alt="" loading="eager"
-         class="absolute inset-0 w-full h-full object-cover opacity-30">
-    <div class="absolute inset-0 bg-gradient-to-b from-slate-950/60 via-slate-950/80 to-slate-950"></div>
+         class="absolute inset-0 w-full h-full object-cover opacity-25">
+    <div class="absolute inset-0 bg-gradient-to-b from-slate-950/70 via-slate-950/85 to-slate-950"></div>
     <div class="aurora"></div>
     <div class="absolute inset-0 grain opacity-30"></div>
   </div>
 
-  <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-20 sm:pt-40 sm:pb-28">
-    <div class="max-w-3xl">
-      <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 backdrop-blur border border-white/10 text-[11px] uppercase tracking-[0.18em] text-amber-200 font-semibold">
-        <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
-        New · Podcast-mode narration for the drive
-      </span>
-      <h1 class="mt-5 font-display text-4xl sm:text-6xl lg:text-7xl font-semibold tracking-tight leading-[1.05]">
-        Trips your <span class="italic pr-1 bg-gradient-to-br from-amber-200 via-amber-300 to-amber-500 bg-clip-text text-transparent">whole crew</span> will remember.
-      </h1>
-      <p class="mt-5 text-lg sm:text-xl text-slate-300 leading-relaxed max-w-2xl">
-        Day-by-day itineraries with photos and maps. Drive-time games for the back seat. A two-voice podcast for the highway. And it all works offline on the road.
-      </p>
+  <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 sm:pt-40 pb-16 sm:pb-24">
+    <div class="grid lg:grid-cols-[1fr_minmax(0,26rem)] gap-14 lg:gap-10 items-center">
 
-      <div class="mt-8 flex flex-wrap gap-3">
-        <% if user_signed_in? %>
-          <%= link_to trips_path, class: "inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 text-slate-950 font-semibold shadow-xl shadow-amber-500/30 hover:bg-amber-400 hover:shadow-amber-500/50 transition-all" do %>
-            <%= icon :list, class: "w-5 h-5" %> Open my trips
-          <% end %>
-          <%= link_to wizard_destination_path, class: "inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-white/15 bg-white/5 backdrop-blur text-slate-100 font-medium hover:bg-white/10 transition-colors" do %>
-            <%= icon :sparkles, class: "w-5 h-5 text-amber-300" %> Plan a new trip
-          <% end %>
-          <%= link_to day_trips_new_path, class: "inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-100 font-medium hover:bg-emerald-500/20 transition-colors" do %>
-            <%= icon :sun, class: "w-5 h-5 text-emerald-300" %> Plan a day trip
-          <% end %>
-        <% else %>
-          <%= link_to new_user_registration_path, class: "inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 text-slate-950 font-semibold shadow-xl shadow-amber-500/30 hover:bg-amber-400 hover:shadow-amber-500/50 transition-all" do %>
-            Start free <%= icon :arrow_right, class: "w-5 h-5" %>
-          <% end %>
-          <a href="/sample-trips.html" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-white/15 bg-white/5 backdrop-blur text-slate-100 font-medium hover:bg-white/10 transition-colors">
-            <%= icon :sparkles, class: "w-5 h-5 text-amber-300" %> See a sample plan
-          </a>
-        <% end %>
-      </div>
+      <%# ── Left: the thesis ── %>
+      <div>
+        <p class="lp-mono text-[11px] uppercase text-amber-300/90 flex items-center gap-2.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" aria-hidden="true"></span>
+          WNDR-001 &middot; Now boarding
+        </p>
+        <h1 class="mt-5 font-display text-5xl sm:text-6xl lg:text-[5.25rem] font-semibold tracking-tight leading-[1.02] text-slate-50">
+          The road trip,<br>
+          <em class="italic pr-2 bg-gradient-to-br from-amber-200 via-amber-300 to-amber-500 bg-clip-text text-transparent">remastered.</em>
+        </h1>
+        <p class="mt-6 text-lg sm:text-xl text-slate-300 leading-relaxed max-w-xl">
+          Tell Wanderply where, when, and who&rsquo;s coming. Two minutes later: a
+          day-by-day plan with photos, maps, and packing lists &mdash; narrated
+          stop-by-stop like a podcast, with trivia for the back seat. Offline,
+          the whole way.
+        </p>
 
-      <div class="mt-8 flex items-center gap-4 text-sm text-slate-400">
-        <div class="flex -space-x-2">
-          <% %w[
-            https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80
-            https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80
-            https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80
-            https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80
-          ].each do |u| %>
-            <img src="<%= u %>&q=80" alt="" class="w-8 h-8 rounded-full border-2 border-slate-950 object-cover">
+        <div class="mt-8 flex flex-wrap gap-3">
+          <% if user_signed_in? %>
+            <%= link_to trips_path, class: "inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-amber-500 text-slate-950 font-semibold shadow-xl shadow-amber-500/30 hover:bg-amber-400 hover:shadow-amber-500/50 transition-all" do %>
+              <%= icon :list, class: "w-5 h-5" %> Open my trips
+            <% end %>
+            <%= link_to wizard_destination_path, class: "inline-flex items-center gap-2 px-6 py-3.5 rounded-xl border border-white/15 bg-white/5 backdrop-blur text-slate-100 font-medium hover:bg-white/10 transition-colors" do %>
+              <%= icon :sparkles, class: "w-5 h-5 text-amber-300" %> Plan a new trip
+            <% end %>
+          <% else %>
+            <%= link_to new_user_registration_path, class: "inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-amber-500 text-slate-950 font-semibold shadow-xl shadow-amber-500/30 hover:bg-amber-400 hover:shadow-amber-500/50 transition-all" do %>
+              Start free <%= icon :arrow_right, class: "w-5 h-5" %>
+            <% end %>
+            <a href="/sample-trips.html" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl border border-white/15 bg-white/5 backdrop-blur text-slate-100 font-medium hover:bg-white/10 transition-colors">
+              <%= icon :play, class: "w-5 h-5 text-amber-300" %> See a sample plan
+            </a>
           <% end %>
         </div>
-        <span>Loved by road-trip families across the West.</span>
+
+        <%# Spec row — true numbers, set like a ticket footer %>
+        <dl class="mt-10 flex flex-wrap gap-x-8 gap-y-4">
+          <% [
+            ["Plan built in", "≈ 2 min"],
+            ["Narrators", "× 2 voices"],
+            ["Trivia decks", "× 16"],
+            ["Offline", "100%"]
+          ].each do |label, value| %>
+            <div class="border-l-2 border-amber-400/40 pl-3">
+              <dt class="lp-mono text-[10px] uppercase text-slate-400"><%= label %></dt>
+              <dd class="font-display text-xl font-semibold text-slate-100 mt-0.5"><%= value %></dd>
+            </div>
+          <% end %>
+        </dl>
+      </div>
+
+      <%# ── Right: paper day-card — the first ephemera artifact ── %>
+      <div class="relative hidden sm:block" aria-hidden="true">
+        <div class="lp-paper relative rounded-2xl p-5 rotate-2 lg:rotate-3 max-w-sm mx-auto lg:ml-auto">
+          <span class="lp-paper-hole absolute top-4 right-4 w-3.5 h-3.5 rounded-full"></span>
+          <div class="flex items-baseline justify-between pr-8">
+            <p class="lp-mono text-[10px] uppercase text-slate-600">Day 02 &middot; Zion National Park</p>
+            <p class="lp-mono text-[10px] uppercase text-slate-600">May 12</p>
+          </div>
+          <div class="mt-3 h-32 rounded-lg overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=700&q=80" alt="" loading="lazy" class="w-full h-full object-cover">
+          </div>
+          <ul class="mt-4 space-y-2.5 text-sm">
+            <li class="flex items-start gap-2.5">
+              <span class="mt-0.5 w-4 h-4 rounded border-2 border-slate-900 bg-slate-900 flex items-center justify-center shrink-0"><%= icon :check, class: "w-3 h-3 text-amber-300", stroke_width: 3 %></span>
+              <span><span class="lp-mono text-[10px] text-slate-600 mr-1.5">07:30</span><span class="font-medium line-through decoration-slate-400">Sunrise at Canyon Overlook</span></span>
+            </li>
+            <li class="flex items-start gap-2.5">
+              <span class="mt-0.5 w-4 h-4 rounded border-2 border-slate-400 shrink-0"></span>
+              <span><span class="lp-mono text-[10px] text-slate-600 mr-1.5">10:00</span><span class="font-medium">The Narrows</span> <span class="text-slate-600">&mdash; water shoes packed?</span></span>
+            </li>
+            <li class="flex items-start gap-2.5">
+              <span class="mt-0.5 w-4 h-4 rounded border-2 border-slate-400 shrink-0"></span>
+              <span><span class="lp-mono text-[10px] text-slate-600 mr-1.5">13:30</span><span class="font-medium">Lunch: Oscar&rsquo;s Cafe</span></span>
+            </li>
+          </ul>
+          <div class="mt-4 pt-3 border-t border-dashed border-slate-400/70 flex items-center justify-between">
+            <p class="lp-mono text-[9px] uppercase text-slate-600">Lat 37.2982&deg; N &mdash; Lng 113.0263&deg; W</p>
+            <%= icon :navigation, class: "w-3.5 h-3.5 text-slate-600" %>
+          </div>
+        </div>
+        <%# Narration chip peeking out from behind the card %>
+        <div class="absolute -bottom-6 left-2 lg:left-8 rounded-xl border border-white/10 bg-slate-900/90 backdrop-blur px-4 py-3 flex items-center gap-3 shadow-2xl -rotate-2">
+          <span class="flex items-end gap-[3px] h-5" aria-hidden="true">
+            <% [40, 90, 60, 100, 50, 80, 35].each_with_index do |h, i| %>
+              <span class="lp-wave-bar w-[3px] rounded-full bg-amber-400" style="height: <%= h %>%; animation-delay: <%= i * 110 %>ms"></span>
+            <% end %>
+          </span>
+          <p class="text-xs text-slate-300">&ldquo;Up next: the river that carved this&hellip;&rdquo;</p>
+        </div>
       </div>
     </div>
 
-    <%# Hero collage — photos that hint at the app's content %>
-    <div class="mt-16 lg:mt-20 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-      <% [
-        { src: "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=600&q=80",   caption: "Day plans" },      # map + field-notes flatlay
-        { src: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=600&q=80",   caption: "Maps offline" },   # SUV on a remote desert road
-        { src: "https://images.unsplash.com/photo-1541410965313-d53b3c16ef17?w=600&q=80",   caption: "For the crew" },   # winding scenic drive
-        { src: "https://images.unsplash.com/photo-1517760444937-f6397edcbbcd?w=600&q=80",   caption: "Stories aloud" }   # figure at a waterfall
-      ].each_with_index do |t, i| %>
-        <div class="relative aspect-[4/5] rounded-2xl overflow-hidden border border-white/10 bg-slate-900 shadow-2xl <%= i.even? ? '' : 'sm:translate-y-6' %>">
-          <img src="<%= t[:src] %>" alt="" loading="lazy" class="absolute inset-0 w-full h-full object-cover">
-          <div class="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-slate-950/90 to-transparent">
-            <p class="text-xs font-semibold text-amber-200 uppercase tracking-wider"><%= t[:caption] %></p>
-          </div>
-        </div>
-      <% end %>
+    <%# ── Route ticker: the drive across the bottom of the hero ── %>
+    <div class="mt-20 sm:mt-24" aria-hidden="true">
+      <div class="relative flex items-center gap-3 sm:gap-4">
+        <% %w[SLC ZION PAGE GCW LAS].each_with_index do |city, i| %>
+          <% if i.positive? %>
+            <span class="relative flex-1 border-t-2 border-dashed border-slate-700"></span>
+          <% end %>
+          <span class="relative z-10 lp-mono text-[10px] sm:text-[11px] uppercase <%= i.zero? || i == 4 ? 'text-amber-300' : 'text-slate-400' %> flex items-center gap-1.5">
+            <span class="w-1 h-1 rounded-full <%= i.zero? || i == 4 ? 'bg-amber-400' : 'bg-slate-500' %>"></span><%= city %>
+          </span>
+        <% end %>
+        <span class="lp-drive-dot absolute top-1/2 -translate-y-1/2 -ml-1.5 w-3 h-3 rounded-full bg-amber-400 shadow-[0_0_14px_rgba(251,191,36,.9)]"></span>
+      </div>
     </div>
   </div>
 </section>
 
-<%# ── Logo strip / quick stats ───────────────────────────────────── %>
-<section class="border-y border-slate-800/70 bg-slate-950/60">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
-    <% [
-      { n: "1,200+",  l: "Stops planned",       i: :map_pin },
-      { n: "73",      l: "Offline map tiles per trip", i: :download },
-      { n: "2 voices", l: "Host + guide podcast", i: :sparkles },
-      { n: "100%",    l: "Free, ad-free",       i: :sparkles }
-    ].each do |s| %>
-      <div>
-        <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 mb-2">
-          <%= icon s[:i], class: "w-5 h-5" %>
-        </div>
-        <div class="font-display text-3xl font-semibold text-slate-50"><%= s[:n] %></div>
-        <div class="text-xs uppercase tracking-widest text-slate-400 mt-1"><%= s[:l] %></div>
+<%# ═══ Destination marquee ════════════════════════════════════════ %>
+<section class="border-y border-slate-800/70 bg-slate-950/70 py-5 overflow-hidden marquee" aria-hidden="true">
+  <div class="lp-marquee-track">
+    <% 2.times do %>
+      <div class="flex items-center shrink-0">
+        <% %w[ZION MOAB SEDONA YOSEMITE BIG\ SUR TAHOE GRAND\ CANYON ARCHES DEATH\ VALLEY GLACIER JOSHUA\ TREE BRYCE].each do |place| %>
+          <span class="lp-mono text-[11px] uppercase text-slate-500 px-6"><%= place %></span><%# slate-ok: decorative aria-hidden marquee %>
+          <%= icon :compass, class: "w-3 h-3 text-amber-500/50 shrink-0" %>
+        <% end %>
       </div>
     <% end %>
   </div>
 </section>
 
-<%# ── Features ───────────────────────────────────────────────────── %>
-<section id="features" class="relative">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
-    <div class="max-w-2xl">
-      <p class="text-[11px] uppercase tracking-[0.18em] text-amber-300 font-semibold">What it does</p>
-      <h2 class="font-display text-3xl sm:text-5xl font-semibold tracking-tight mt-2">A trip planner that lives <em class="italic text-amber-300">on the road</em>, not in a tab.</h2>
-      <p class="text-slate-400 mt-4 text-lg">Most planners stop being useful the moment you leave the wifi. Wanderply is built for the drive — maps cached, plans narrated, kids entertained.</p>
+<%# ═══ The itinerary — three chapters on a drawn route ════════════ %>
+<section id="how" class="relative" data-landing-target="chapters">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-28">
+    <div class="max-w-2xl lp-reveal" data-landing-target="reveal">
+      <p class="lp-mono text-[11px] uppercase text-amber-300">The itinerary</p>
+      <h2 class="font-display text-3xl sm:text-5xl font-semibold tracking-tight mt-3 text-slate-50">
+        Three stops from <em class="italic text-amber-300">&ldquo;what if&rdquo;</em> to wheels rolling.
+      </h2>
     </div>
+  </div>
 
-    <div class="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      <%
-        # Hardcode class strings so Tailwind can scan them at build time.
-        color_classes = {
-          "amber"   => { glow: "bg-amber-500/10",   ring: "bg-amber-500/10 border-amber-500/20 text-amber-300" },
-          "teal"    => { glow: "bg-teal-500/10",    ring: "bg-teal-500/10 border-teal-500/20 text-teal-300" },
-          "violet"  => { glow: "bg-violet-500/10",  ring: "bg-violet-500/10 border-violet-500/20 text-violet-300" },
-          "emerald" => { glow: "bg-emerald-500/10", ring: "bg-emerald-500/10 border-emerald-500/20 text-emerald-300" },
-          "rose"    => { glow: "bg-rose-500/10",    ring: "bg-rose-500/10 border-rose-500/20 text-rose-300" },
-          "blue"    => { glow: "bg-blue-500/10",    ring: "bg-blue-500/10 border-blue-500/20 text-blue-300" }
-        }
-      %>
-      <% [
-        { icon: :calendar, title: "Day-by-day with photos & maps",
-          body: "Each day is a card. Each stop has a photo, address, deep-linked Maps & Uber, a famous-for blurb, and a checklist of what to bring. Color-coded by theme — arrive, sightsee, adventure, head home.",
-          color: "amber" },
-        { icon: :sparkles, title: "Podcast-style narration",
-          body: "Two voices — a warm host and a steady guide — walk through every stop with tour-guide context. Hoover Dam? You hear about 1931. Skywalk? You hear about 4,000 feet of nothing under the glass.",
-          color: "teal" },
-        { icon: :car, title: "Drive co-pilot for the back seat",
-          body: "Pick a traveler, pull a trivia question matched to their interests, and reward correct answers with a road-trip playlist. Built for the parent in the passenger seat.",
-          color: "violet" },
-        { icon: :download, title: "Offline-first PWA",
-          body: "Once you've opened a trip page online, it's cached. Map tiles too. Tap 'Save maps offline' to pre-warm them. Tunnels, dead zones, airplane mode — the plan stays open.",
-          color: "emerald" },
-        { icon: :users, title: "Share with your crew",
-          body: "Invite by email. They get a magic link. The trip lands in their list. Everyone can rename it for themselves without breaking it for the others.",
-          color: "rose" },
-        { icon: :ticket, title: "Tickets & confirmations in one place",
-          body: "Drop hotel PDFs, e-tickets, and .ics files onto a trip or a specific activity. Encrypted at rest. There when you need them at the front desk.",
-          color: "blue" }
-      ].each do |f|
-        cc = color_classes["amber"] # single-accent discipline: all feature tiles amber %>
-        <article class="group relative rounded-2xl border border-slate-800 bg-slate-900/40 p-6 hover:border-slate-700 transition-colors overflow-hidden">
-          <div class="absolute -top-12 -right-12 w-48 h-48 rounded-full <%= cc[:glow] %> blur-2xl"></div>
-          <div class="relative">
-            <div class="inline-flex items-center justify-center w-11 h-11 rounded-xl border <%= cc[:ring] %> mb-4">
-              <%= icon f[:icon], class: "w-5 h-5" %>
-            </div>
-            <h3 class="font-display text-xl font-semibold text-slate-50 leading-snug"><%= f[:title] %></h3>
-            <p class="mt-2 text-sm text-slate-400 leading-relaxed"><%= f[:body] %></p>
+  <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:pr-8 lg:pl-32 pb-10">
+    <%# The route spine — faint dashed road + amber line drawn by scroll %>
+    <svg class="hidden lg:block absolute left-8 top-0 bottom-0 w-20 h-full" viewBox="0 0 80 1000" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="lp-route-gradient" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#fde68a"/>
+          <stop offset="1" stop-color="#f59e0b"/>
+        </linearGradient>
+      </defs>
+      <path class="lp-spine-road"  vector-effect="non-scaling-stroke" d="M40 0 C 18 140, 62 240, 40 380 C 22 500, 58 620, 40 760 C 26 870, 52 940, 40 1000"/>
+      <path class="lp-spine-drawn" vector-effect="non-scaling-stroke" data-landing-target="route" d="M40 0 C 18 140, 62 240, 40 380 C 22 500, 58 620, 40 760 C 26 870, 52 940, 40 1000"/>
+    </svg>
+
+    <%# ── Stop 01 · Plan ── %>
+    <article class="relative grid lg:grid-cols-2 gap-10 lg:gap-16 items-center pt-16 sm:pt-24 lp-reveal" data-landing-target="reveal">
+      <span class="lp-stop-marker hidden lg:flex absolute -left-[5.05rem] top-24 w-12 h-12 rounded-full border-2 border-slate-700 bg-slate-950 items-center justify-center lp-mono text-xs text-slate-400 z-10">01</span>
+      <div>
+        <p class="lp-mono text-[11px] uppercase text-amber-300 flex items-center gap-2">
+          <span class="lg:hidden inline-flex w-6 h-6 rounded-full border border-amber-400/60 items-center justify-center text-[10px] text-amber-300">1</span>
+          Stop 01 &middot; Plan
+        </p>
+        <h3 class="font-display text-2xl sm:text-4xl font-semibold tracking-tight mt-3 text-slate-50">Say the word. Watch the plan write itself.</h3>
+        <p class="mt-4 text-slate-400 text-lg leading-relaxed">
+          Destination, dates, pace, budget, who&rsquo;s in the car. Wanderply&rsquo;s AI
+          researches the highlights, routes the days, and lays out every stop &mdash;
+          photo, address, one-tap directions, a famous-for blurb, what to pack.
+          It builds in the background; you&rsquo;ll barely finish your coffee.
+        </p>
+        <ul class="mt-6 flex flex-wrap gap-2">
+          <% ["Day-by-day cards", "One-tap Maps & Uber", "Packing per stop", "Day trips too"].each do |chip| %>
+            <li class="lp-mono text-[10px] uppercase text-slate-300 border border-slate-700 rounded-full px-3 py-1.5"><%= chip %></li>
+          <% end %>
+        </ul>
+      </div>
+      <div class="relative" aria-hidden="true">
+        <div class="lp-paper relative rounded-2xl p-5 -rotate-2 max-w-sm mx-auto">
+          <p class="lp-mono text-[10px] uppercase text-slate-600">Day 03 &middot; Antelope Canyon</p>
+          <div class="mt-3 h-28 rounded-lg overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1517760444937-f6397edcbbcd?w=700&q=80" alt="" loading="lazy" class="w-full h-full object-cover">
           </div>
-        </article>
-      <% end %>
-    </div>
+          <div class="mt-3.5 space-y-1.5 text-sm">
+            <p><span class="lp-mono text-[10px] text-slate-600 mr-1.5">09:00</span><span class="font-medium">Lower Antelope tour</span></p>
+            <p><span class="lp-mono text-[10px] text-slate-600 mr-1.5">12:30</span><span class="font-medium">Horseshoe Bend</span> <span class="text-slate-600">&mdash; 1.5 mi round trip</span></p>
+          </div>
+          <div class="mt-4 pt-3 border-t border-dashed border-slate-400/70 flex items-center justify-between">
+            <p class="lp-mono text-[9px] uppercase text-slate-600">Pace: balanced &mdash; budget: moderate</p>
+            <%= icon :sparkles, class: "w-3.5 h-3.5 text-slate-600" %>
+          </div>
+        </div>
+        <div class="absolute -bottom-10 right-0 sm:right-6 w-64 rounded-xl border border-amber-500/30 bg-slate-900/95 backdrop-blur p-4 shadow-2xl rotate-1">
+          <p class="lp-mono text-[10px] uppercase text-amber-300 flex items-center gap-2">
+            <%= icon :sparkles, class: "w-3.5 h-3.5" %> Assembling day 4 of 5
+          </p>
+          <div class="mt-3 h-1.5 rounded-full bg-slate-800 overflow-hidden">
+            <div class="lp-shimmer h-full w-4/5 rounded-full"></div>
+          </div>
+          <p class="mt-2.5 text-xs text-slate-400">Filling coordinates &amp; packing lists&hellip;</p>
+        </div>
+      </div>
+    </article>
+
+    <%# ── Stop 02 · Drive ── %>
+    <article class="relative grid lg:grid-cols-2 gap-10 lg:gap-16 items-center pt-28 sm:pt-36 lp-reveal" data-landing-target="reveal">
+      <span class="lp-stop-marker hidden lg:flex absolute -left-[5.05rem] top-36 w-12 h-12 rounded-full border-2 border-slate-700 bg-slate-950 items-center justify-center lp-mono text-xs text-slate-400 z-10">02</span>
+      <div class="lg:order-2">
+        <p class="lp-mono text-[11px] uppercase text-amber-300 flex items-center gap-2">
+          <span class="lg:hidden inline-flex w-6 h-6 rounded-full border border-amber-400/60 items-center justify-center text-[10px] text-amber-300">2</span>
+          Stop 02 &middot; Drive
+        </p>
+        <h3 class="font-display text-2xl sm:text-4xl font-semibold tracking-tight mt-3 text-slate-50">A podcast about the very road you&rsquo;re on.</h3>
+        <p class="mt-4 text-slate-400 text-lg leading-relaxed">
+          Two voices &mdash; a warm host and a steady guide &mdash; introduce every stop as
+          you approach it. Hoover Dam? You&rsquo;ll hear about 1931. The Skywalk?
+          Four thousand feet of nothing under the glass. When the back seat gets
+          restless, the Drive Co-Pilot deals trivia matched to each kid&rsquo;s
+          interests and pays out in playlist picks.
+        </p>
+        <ul class="mt-6 flex flex-wrap gap-2">
+          <% ["Two-voice narration", "Drive Co-Pilot trivia", "Playlist rewards", "Maps cached offline"].each do |chip| %>
+            <li class="lp-mono text-[10px] uppercase text-slate-300 border border-slate-700 rounded-full px-3 py-1.5"><%= chip %></li>
+          <% end %>
+        </ul>
+      </div>
+      <div class="lg:order-1 relative" aria-hidden="true">
+        <div class="relative rounded-2xl border border-white/10 bg-slate-900/80 backdrop-blur p-6 max-w-sm mx-auto shadow-2xl">
+          <div class="flex items-center justify-between">
+            <p class="lp-mono text-[10px] uppercase text-slate-400">Now narrating</p>
+            <span class="lp-mono text-[10px] uppercase text-emerald-300 border border-emerald-500/30 bg-emerald-500/10 rounded-full px-2.5 py-1 inline-flex items-center gap-1.5">
+              <%= icon :download, class: "w-3 h-3" %> Offline ready
+            </span>
+          </div>
+          <p class="mt-4 font-display text-xl font-semibold text-slate-50">Hoover Dam</p>
+          <p class="mt-1 text-sm text-slate-400 leading-relaxed">&ldquo;&hellip;in 1931, five thousand workers moved into a desert that had no town, no shade, and no river crossing&hellip;&rdquo;</p>
+          <div class="mt-5 flex items-end gap-[3px] h-10">
+            <% [30, 55, 80, 45, 95, 70, 40, 85, 60, 100, 50, 75, 35, 90, 65, 45, 80, 55, 70, 40, 88, 58, 72, 38].each_with_index do |h, i| %>
+              <span class="lp-wave-bar flex-1 rounded-full bg-amber-400/80" style="height: <%= h %>%; animation-delay: <%= (i * 90) % 1100 %>ms"></span>
+            <% end %>
+          </div>
+          <div class="mt-4 flex items-center justify-between">
+            <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-amber-500 text-slate-950"><%= icon :play, class: "w-5 h-5" %></span>
+            <p class="lp-mono text-[10px] uppercase text-slate-500">Host &middot; Guide &middot; 02:41</p><%# slate-ok: decorative aria-hidden mockup %>
+          </div>
+        </div>
+        <div class="absolute -bottom-6 right-0 sm:right-4 rounded-xl border border-violet-500/30 bg-slate-900/95 backdrop-blur px-4 py-3 shadow-2xl rotate-2">
+          <p class="text-xs text-slate-300 flex items-center gap-2">
+            <%= icon :zap, class: "w-4 h-4 text-violet-300" %>
+            Co-Pilot: Maya&rsquo;s turn &mdash; <span class="text-violet-200 font-medium">dinosaurs, 2 pts</span>
+          </p>
+        </div>
+      </div>
+    </article>
+
+    <%# ── Stop 03 · Together ── %>
+    <article class="relative grid lg:grid-cols-2 gap-10 lg:gap-16 items-center pt-28 sm:pt-36 pb-16 sm:pb-24 lp-reveal" data-landing-target="reveal">
+      <span class="lp-stop-marker hidden lg:flex absolute -left-[5.05rem] top-36 w-12 h-12 rounded-full border-2 border-slate-700 bg-slate-950 items-center justify-center lp-mono text-xs text-slate-400 z-10">03</span>
+      <div>
+        <p class="lp-mono text-[11px] uppercase text-amber-300 flex items-center gap-2">
+          <span class="lg:hidden inline-flex w-6 h-6 rounded-full border border-amber-400/60 items-center justify-center text-[10px] text-amber-300">3</span>
+          Stop 03 &middot; Together
+        </p>
+        <h3 class="font-display text-2xl sm:text-4xl font-semibold tracking-tight mt-3 text-slate-50">One plan. Everybody&rsquo;s on it.</h3>
+        <p class="mt-4 text-slate-400 text-lg leading-relaxed">
+          Invite the crew by email &mdash; they get a magic link and the trip lands in
+          their list. Everyone can rename it for themselves without renaming it
+          for you. Packing splits by person. Forward a hotel confirmation email
+          and it files itself into the right day; tickets and PDFs ride along,
+          encrypted.
+        </p>
+        <ul class="mt-6 flex flex-wrap gap-2">
+          <% ["Magic-link invites", "Per-person packing", "Email a reservation in", "Encrypted documents"].each do |chip| %>
+            <li class="lp-mono text-[10px] uppercase text-slate-300 border border-slate-700 rounded-full px-3 py-1.5"><%= chip %></li>
+          <% end %>
+        </ul>
+      </div>
+      <div class="relative" aria-hidden="true">
+        <div class="lp-paper relative rounded-2xl p-5 rotate-2 max-w-sm mx-auto">
+          <div class="flex items-center justify-between">
+            <p class="lp-mono text-[10px] uppercase text-slate-600">Packing &middot; 7 of 9</p>
+            <div class="flex -space-x-1.5">
+              <% %w[
+                https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=64&q=80
+                https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=64&q=80
+                https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=64&q=80
+              ].each do |u| %>
+                <img src="<%= u %>" alt="" loading="lazy" class="w-6 h-6 rounded-full border-2 border-[#EDE8DB] object-cover">
+              <% end %>
+            </div>
+          </div>
+          <div class="mt-3 h-1.5 rounded-full bg-slate-900/15 overflow-hidden">
+            <div class="h-full w-3/4 rounded-full bg-slate-900"></div>
+          </div>
+          <ul class="mt-4 space-y-2.5 text-sm">
+            <% [
+              ["Water shoes", "Maya", true],
+              ["Sunscreen SPF 50", "Everyone", true],
+              ["National Parks pass", "Dad", false]
+            ].each do |item, person, done| %>
+              <li class="flex items-center gap-2.5">
+                <% if done %>
+                  <span class="w-4 h-4 rounded border-2 border-slate-900 bg-slate-900 flex items-center justify-center shrink-0"><%= icon :check, class: "w-3 h-3 text-amber-300", stroke_width: 3 %></span>
+                <% else %>
+                  <span class="w-4 h-4 rounded border-2 border-slate-400 shrink-0"></span>
+                <% end %>
+                <span class="font-medium <%= "line-through decoration-slate-400" if done %>"><%= item %></span>
+                <span class="lp-mono text-[9px] uppercase text-slate-600 ml-auto"><%= person %></span>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+        <div class="absolute -bottom-7 left-0 sm:left-4 rounded-xl border border-emerald-500/30 bg-slate-900/95 backdrop-blur px-4 py-3 shadow-2xl -rotate-1">
+          <p class="text-xs text-slate-300 flex items-center gap-2">
+            <%= icon :mail, class: "w-4 h-4 text-emerald-300" %>
+            Reservation imported &mdash; <span class="text-emerald-200 font-medium">Hampton Inn, May 12</span>
+          </p>
+        </div>
+      </div>
+    </article>
   </div>
 </section>
 
-<%# ── How it works ──────────────────────────────────────────────── %>
-<section id="how" class="relative bg-gradient-to-b from-slate-950 via-slate-900/40 to-slate-950 border-y border-slate-800/70">
+<%# ═══ The glovebox — everything else, bento ══════════════════════ %>
+<section id="features" class="relative border-t border-slate-800/70 bg-gradient-to-b from-slate-950 via-slate-900/40 to-slate-950">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
-    <div class="max-w-2xl mx-auto text-center">
-      <p class="text-[11px] uppercase tracking-[0.18em] text-amber-300 font-semibold">How it works</p>
-      <h2 class="font-display text-3xl sm:text-5xl font-semibold tracking-tight mt-2">Three steps to a trip you'll <em class="italic text-amber-300">actually use.</em></h2>
+    <div class="max-w-2xl lp-reveal" data-landing-target="reveal">
+      <p class="lp-mono text-[11px] uppercase text-amber-300">Also in the glovebox</p>
+      <h2 class="font-display text-3xl sm:text-5xl font-semibold tracking-tight mt-3 text-slate-50">Packed for the <em class="italic text-amber-300">quiet miles.</em></h2>
     </div>
 
-    <ol class="mt-14 grid gap-8 md:grid-cols-3 relative">
-      <span aria-hidden="true" class="hidden md:block absolute top-12 left-[16.6%] right-[16.6%] h-px bg-gradient-to-r from-transparent via-amber-500/40 to-transparent"></span>
-      <% [
-        { num: "01", title: "Sketch the trip",
-          body: "Start with destination, dates, and who's coming. Add days, drop activities, and paste links to AllTrails if you've got them." },
-        { num: "02", title: "Add the texture",
-          body: "Photos, addresses, famous-for blurbs, what to pack per activity. The plan starts feeling like a guidebook, not a spreadsheet." },
-        { num: "03", title: "Hit the road",
-          body: "Save maps offline, open podcast mode, and let the dashboard tablet do the talking. Your crew shows up curious." }
-      ].each do |s| %>
-        <li class="relative rounded-2xl border border-slate-800 bg-slate-950/80 p-6 backdrop-blur">
-          <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 font-display text-lg font-bold mb-4 shadow-lg shadow-amber-500/30"><%= s[:num] %></div>
-          <h3 class="font-display text-xl font-semibold text-slate-50"><%= s[:title] %></h3>
-          <p class="mt-2 text-sm text-slate-400 leading-relaxed"><%= s[:body] %></p>
-        </li>
-      <% end %>
-    </ol>
+    <div class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <%# Travel Trivia — feature tile, spans 2 %>
+      <article class="sm:col-span-2 rounded-2xl border border-slate-800 bg-slate-900/40 p-6 hover:border-slate-700 transition-colors lp-reveal" data-landing-target="reveal">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <div class="inline-flex items-center justify-center w-11 h-11 rounded-xl border bg-amber-500/10 border-amber-500/20 text-amber-300 mb-4"><%= icon :trophy, class: "w-5 h-5" %></div>
+            <h3 class="font-display text-xl font-semibold text-slate-50">Travel Trivia &mdash; 16 decks</h3>
+            <p class="mt-2 text-sm text-slate-400 leading-relaxed">Capitals, flags, leaders, landmarks, car and airline logos &mdash; ten-question rounds with personal bests. Save every deck for airplane mode.</p>
+          </div>
+          <div class="hidden sm:grid grid-cols-3 gap-1.5 shrink-0 mt-1" aria-hidden="true">
+            <% %w[us jp br it ke nz].each do |cc| %>
+              <img src="https://flagcdn.com/w80/<%= cc %>.png" alt="" loading="lazy" class="w-12 h-8 object-cover rounded shadow">
+            <% end %>
+          </div>
+        </div>
+      </article>
+
+      <article class="rounded-2xl border border-slate-800 bg-slate-900/40 p-6 hover:border-slate-700 transition-colors lp-reveal" data-landing-target="reveal" style="--lp-d: 80ms">
+        <div class="inline-flex items-center justify-center w-11 h-11 rounded-xl border bg-amber-500/10 border-amber-500/20 text-amber-300 mb-4"><%= icon :globe, class: "w-5 h-5" %></div>
+        <h3 class="font-display text-xl font-semibold text-slate-50">Country Explorer</h3>
+        <p class="mt-2 text-sm text-slate-400 leading-relaxed">Anthem, currency, dish, bird, motto &mdash; every national fact on one page, for any country.</p>
+      </article>
+
+      <article class="rounded-2xl border border-slate-800 bg-slate-900/40 p-6 hover:border-slate-700 transition-colors lp-reveal" data-landing-target="reveal" style="--lp-d: 160ms">
+        <div class="inline-flex items-center justify-center w-11 h-11 rounded-xl border bg-amber-500/10 border-amber-500/20 text-amber-300 mb-4"><%= icon :coins, class: "w-5 h-5" %></div>
+        <h3 class="font-display text-xl font-semibold text-slate-50">The price you actually pay</h3>
+        <p class="mt-2 text-sm text-slate-400 leading-relaxed">Hotel, car, and flight links that remember your memberships &mdash; Hilton Honors, AAA, Costco &mdash; and badge the real member rates.</p>
+      </article>
+
+      <article class="rounded-2xl border border-slate-800 bg-slate-900/40 p-6 hover:border-slate-700 transition-colors lp-reveal" data-landing-target="reveal">
+        <div class="inline-flex items-center justify-center w-11 h-11 rounded-xl border bg-amber-500/10 border-amber-500/20 text-amber-300 mb-4"><%= icon :mountain, class: "w-5 h-5" %></div>
+        <h3 class="font-display text-xl font-semibold text-slate-50">Trails, linked in</h3>
+        <p class="mt-2 text-sm text-slate-400 leading-relaxed">Paste an AllTrails link and the hike lives inside the day it belongs to, notes and all.</p>
+      </article>
+
+      <article class="rounded-2xl border border-slate-800 bg-slate-900/40 p-6 hover:border-slate-700 transition-colors lp-reveal" data-landing-target="reveal" style="--lp-d: 80ms">
+        <div class="inline-flex items-center justify-center w-11 h-11 rounded-xl border bg-amber-500/10 border-amber-500/20 text-amber-300 mb-4"><%= icon :sun, class: "w-5 h-5" %></div>
+        <h3 class="font-display text-xl font-semibold text-slate-50">Day trips, same magic</h3>
+        <p class="mt-2 text-sm text-slate-400 leading-relaxed">Free Saturday? Wanderply researches what&rsquo;s within reach and builds a one-day plan around it.</p>
+      </article>
+
+      <article class="sm:col-span-2 rounded-2xl border border-slate-800 bg-slate-900/40 p-6 hover:border-slate-700 transition-colors lp-reveal" data-landing-target="reveal" style="--lp-d: 160ms">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <div class="inline-flex items-center justify-center w-11 h-11 rounded-xl border bg-amber-500/10 border-amber-500/20 text-amber-300 mb-4"><%= icon :phone, class: "w-5 h-5" %></div>
+            <h3 class="font-display text-xl font-semibold text-slate-50">On the home screen, off the grid</h3>
+            <p class="mt-2 text-sm text-slate-400 leading-relaxed">Install from the browser or the native iOS and Android apps. Visited pages, maps, and trivia decks stay usable in tunnels, canyons, and airplane mode.</p>
+          </div>
+          <span class="lp-mono hidden sm:inline-flex text-[10px] uppercase text-slate-400 border border-slate-700 rounded-full px-3 py-1.5 shrink-0 mt-1">PWA + iOS + Android</span>
+        </div>
+      </article>
+    </div>
   </div>
 </section>
 
-<%# ── Quote / testimonial — full-bleed inverted amber band ──────── %>
+<%# ═══ Testimonial — inverted amber band ══════════════════════════ %>
 <section class="relative overflow-hidden bg-gradient-to-br from-amber-300 via-amber-400 to-amber-500 text-slate-950">
   <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
-    <figure class="text-center">
-      <span class="font-display text-7xl text-slate-950/20 leading-none">"</span>
-      <blockquote class="-mt-6 font-display text-2xl sm:text-3xl font-semibold leading-snug tracking-tight max-w-3xl mx-auto text-slate-950">
-        We've done a dozen family road trips with spreadsheets and bookmarks. The first time our 8-year-old asked, <em class="italic">"what's the next thing famous for?"</em> — we knew this one was different.
+    <figure class="text-center lp-reveal" data-landing-target="reveal">
+      <span class="font-display text-7xl text-slate-950/20 leading-none" aria-hidden="true">&ldquo;</span>
+      <blockquote class="-mt-6 font-display text-2xl sm:text-3xl font-semibold leading-snug tracking-tight max-w-3xl mx-auto">
+        We&rsquo;ve done a dozen family road trips with spreadsheets and bookmarks. The first time our 8-year-old asked, <em class="italic">&ldquo;what&rsquo;s the next thing famous for?&rdquo;</em> &mdash; we knew this one was different.
       </blockquote>
       <figcaption class="mt-7 inline-flex items-center gap-3">
         <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&q=80" alt="" class="w-10 h-10 rounded-full object-cover border-2 border-slate-950/25">
         <div class="text-left">
-          <div class="text-sm font-bold text-slate-950">The Setti family</div>
-          <div class="text-xs font-medium text-slate-800">Salt Lake City → Vegas → Grand Canyon</div>
+          <div class="text-sm font-bold">The Setti family</div>
+          <div class="lp-mono text-[10px] uppercase text-slate-800">SLC &rarr; LAS &rarr; Grand Canyon</div>
         </div>
       </figcaption>
     </figure>
   </div>
 </section>
 
-<%# ── Final CTA ─────────────────────────────────────────────────── %>
+<%# ═══ Boarding pass — final CTA ══════════════════════════════════ %>
 <section class="relative">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 sm:pb-28">
-    <div class="relative rounded-3xl overflow-hidden border border-amber-500/30 bg-gradient-to-br from-amber-500/15 via-slate-900 to-teal-500/10 p-8 sm:p-14">
-      <div class="aurora opacity-50"></div>
-      <div class="relative max-w-2xl">
-        <h2 class="font-display text-3xl sm:text-5xl font-semibold tracking-tight leading-tight">Your next trip wants to be a <em class="italic text-amber-300">story.</em></h2>
-        <p class="mt-4 text-slate-300 text-lg">Sign up free in thirty seconds. Build your first day with photos and addresses, share with whoever's coming, and let the podcast do the rest on the drive.</p>
-        <div class="mt-7 flex flex-wrap gap-3">
-          <% if user_signed_in? %>
-            <%= link_to new_trip_path, class: "inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 text-slate-950 font-semibold shadow-xl shadow-amber-500/30 hover:bg-amber-400 transition-all" do %>
-              <%= icon :plus, class: "w-5 h-5" %> Start a new trip
-            <% end %>
-          <% else %>
-            <%= link_to new_user_registration_path, class: "inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 text-slate-950 font-semibold shadow-xl shadow-amber-500/30 hover:bg-amber-400 transition-all" do %>
-              Create a free account <%= icon :arrow_right, class: "w-5 h-5" %>
-            <% end %>
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
+    <div class="lp-paper relative rounded-2xl grid md:grid-cols-[1fr_minmax(0,15rem)] lp-reveal" data-landing-target="reveal">
+      <span class="lp-paper-hole absolute top-5 left-5 w-3.5 h-3.5 rounded-full" aria-hidden="true"></span>
+
+      <div class="p-7 sm:p-10 pl-12 sm:pl-14">
+        <p class="lp-mono text-[10px] sm:text-[11px] uppercase text-slate-600">Boarding pass &middot; WNDR &middot; air miles not required</p>
+        <p class="mt-4 font-display text-4xl sm:text-6xl font-semibold tracking-tight text-slate-900">
+          YOU <span class="text-amber-600" aria-hidden="true">&rarr;</span> ANYWHERE
+        </p>
+        <dl class="mt-7 grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-4">
+          <% [
+            ["Passenger", "You + the crew"],
+            ["Gate", "wanderply.com"],
+            ["Seat", "Driver's"],
+            ["Departs", "When you're ready"]
+          ].each do |label, value| %>
+            <div>
+              <dt class="lp-mono text-[9px] uppercase text-slate-600"><%= label %></dt>
+              <dd class="text-sm font-semibold text-slate-900 mt-1"><%= value %></dd>
+            </div>
           <% end %>
-          <%= link_to blog_index_path, class: "inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-white/15 bg-white/5 text-slate-100 font-medium hover:bg-white/10 transition-colors" do %>
-            <%= icon :list, class: "w-5 h-5 text-amber-300" %> Read the blog
+        </dl>
+      </div>
+
+      <div class="lp-perf relative p-7 sm:p-10 md:pl-9 flex md:flex-col items-center justify-center gap-6">
+        <div class="lp-barcode h-14 w-32 md:w-full rounded-sm opacity-80" aria-hidden="true"></div>
+        <% if user_signed_in? %>
+          <%= link_to new_trip_path, class: "inline-flex items-center justify-center gap-2 w-full px-5 py-3.5 rounded-xl bg-slate-950 text-amber-300 font-semibold shadow-xl hover:bg-slate-800 transition-colors" do %>
+            <%= icon :plus, class: "w-5 h-5" %> Start a new trip
           <% end %>
-        </div>
+        <% else %>
+          <%= link_to new_user_registration_path, class: "inline-flex items-center justify-center gap-2 w-full px-5 py-3.5 rounded-xl bg-slate-950 text-amber-300 font-semibold shadow-xl hover:bg-slate-800 transition-colors" do %>
+            Start free <%= icon :arrow_right, class: "w-5 h-5" %>
+          <% end %>
+        <% end %>
       </div>
     </div>
+    <p class="mt-5 text-center text-sm text-slate-400">Free. No card. Works on the phone you already own.</p>
   </div>
 </section>
+
+</div>
