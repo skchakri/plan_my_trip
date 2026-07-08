@@ -6,6 +6,7 @@ class ReservationPolicy < ApplicationPolicy
     active_trip? && record.trip.editable_by?(user)
   end
   alias_method :update?, :destroy?
+  alias_method :retry?, :destroy?
 
   private
 

@@ -1,4 +1,14 @@
 module ApplicationHelper
+  # Whether to surface the per-trip forwarding-address panel. The inbound-mail
+  # ingress (SES receipt rule / Mailgun route / etc.) is an infra prerequisite;
+  # until an operator wires it and flips INBOUND_EMAIL_ENABLED, showing the
+  # "forward confirmations here" affordance in production would be a dead end.
+  # Development/test always show it — the Action Mailbox conductor works locally.
+  def inbound_email_enabled?
+    return true unless Rails.env.production?
+    ActiveModel::Type::Boolean.new.cast(AppSetting.get("INBOUND_EMAIL_ENABLED"))
+  end
+
   # Extra input classes when a model attribute has validation errors, so the
   # offending field is highlighted in place (not just listed at the top).
   def input_error_classes(model, attr)

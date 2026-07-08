@@ -39,6 +39,8 @@ class AppSetting < ApplicationRecord
     # ── Email import ──
     Definition.new(key: "INBOUND_EMAIL_DOMAIN", label: "Inbound email domain", category: "Email import", secret: false,
       description: "Domain for per-trip forwarding addresses (trip-<token>@<domain>). Travelers forward hotel/flight/car confirmations here and Action Mailbox parses them into reservations. Point your inbound provider's MX (Mailgun/SendGrid/Postmark) at this domain.", placeholder: nil, default: "inbound.wanderply.com"),
+    Definition.new(key: "INBOUND_EMAIL_ENABLED", label: "Inbound email enabled", category: "Email import", secret: false,
+      description: "Set to \"true\" once the inbound-mail ingress is actually wired (SES receipt rule / SNS topic / S3 bucket, or a Mailgun/SendGrid/Postmark route). Until then the per-trip forwarding-address panel is hidden in production so users aren't shown a dead affordance. Always shown in development/test (the Action Mailbox conductor works locally).", placeholder: "true"),
 
     # ── Place data ──
     Definition.new(key: "GOOGLE_PLACES_API_KEY", label: "Google Places API key", category: "Place data", secret: true,

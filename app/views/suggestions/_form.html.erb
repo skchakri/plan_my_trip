@@ -7,6 +7,7 @@
       <%= f.text_field :title,
             placeholder: "Suggest a spot — 'Cottonwood Steakhouse for dinner?'",
             required: true,
+            "aria-label": "Suggestion",
             class: "flex-1 min-w-0 px-3 py-2 rounded-lg bg-slate-950/60 border border-slate-700 text-sm text-slate-100 placeholder-slate-500 focus:border-amber-500/60 outline-none" %>
       <%= f.submit "Suggest",
             class: "shrink-0 px-3 py-2 rounded-lg bg-amber-500 text-slate-950 text-sm font-semibold hover:bg-amber-400 transition-colors" %>
@@ -15,8 +16,10 @@
       <summary class="cursor-pointer text-[11px] uppercase tracking-wider text-slate-400 hover:text-amber-300 list-none">+ Link or notes</summary>
       <div class="mt-2 grid gap-2">
         <%= f.url_field :url, placeholder: "Link (optional)",
+              "aria-label": "Link (optional)",
               class: "px-3 py-2 rounded-lg bg-slate-950/60 border border-slate-700 text-sm text-slate-100 placeholder-slate-500 outline-none" %>
         <%= f.text_area :notes, rows: 2, placeholder: "Why this place? (optional)",
+              "aria-label": "Why this place? (optional)",
               class: "px-3 py-2 rounded-lg bg-slate-950/60 border border-slate-700 text-sm text-slate-100 placeholder-slate-500 outline-none resize-none" %>
       </div>
     </details>

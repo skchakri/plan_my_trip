@@ -15,11 +15,14 @@
     Forward any hotel, flight, car or tour confirmation to this trip and it’s read into a reservation automatically.
   </p>
 
-  <%# Per-trip forwarding address with copy-to-clipboard (reuses share-link JS). %>
+  <%# Per-trip forwarding address with copy-to-clipboard (reuses share-link JS).
+      Hidden until the inbound-mail ingress is actually wired (see
+      ApplicationHelper#inbound_email_enabled?) so we don't advertise a dead address. %>
+  <% if inbound_email_enabled? %>
   <div data-controller="share-link" class="mb-5">
     <label class="block text-[11px] uppercase tracking-wider text-slate-400 mb-1.5">This trip’s forwarding address</label>
     <div class="flex items-stretch gap-2 bg-slate-950/60 border border-slate-700 rounded-lg p-1 pl-3">
-      <span class="shrink-0 self-center text-slate-500"><%= icon :mail, class: "w-4 h-4" %></span>
+      <span class="shrink-0 self-center text-slate-400"><%= icon :mail, class: "w-4 h-4" %></span>
       <input type="text" readonly value="<%= trip.forwarding_address %>"
              data-share-link-target="url"
              aria-label="Forwarding email address for this trip"
@@ -33,6 +36,7 @@
     </div>
     <p class="text-[11px] text-slate-400 mt-1.5">Tip: in Gmail or Outlook, just hit “Forward” on the confirmation and send it here.</p>
   </div>
+  <% end %>
 
   <% if reservations.any? %>
     <ul class="space-y-2">
@@ -53,11 +57,17 @@
                 </div>
               </div>
               <% if can_edit %>
-                <%= button_to trip_reservation_path(trip, r), method: :delete,
-                      form: { data: { turbo_confirm: "Remove this reservation?" } },
-                      class: "shrink-0 text-rose-400 hover:text-rose-300 p-1 rounded transition-colors cursor-pointer", aria: { label: "Remove" } do %>
-                  <%= icon :trash, class: "w-3.5 h-3.5" %>
-                <% end %>
+                <div class="shrink-0 flex items-center gap-1">
+                  <%= button_to retry_trip_reservation_path(trip, r), method: :post,
+                        class: "inline-flex items-center gap-1 text-xs font-semibold text-amber-300 hover:text-amber-200 px-2 py-1 rounded-lg hover:bg-amber-500/10 transition-colors cursor-pointer" do %>
+                    <%= icon :refresh_cw, class: "w-3.5 h-3.5" %> Retry
+                  <% end %>
+                  <%= button_to trip_reservation_path(trip, r), method: :delete,
+                        form: { data: { turbo_confirm: "Remove this reservation?" } },
+                        class: "text-rose-400 hover:text-rose-300 p-1 rounded transition-colors cursor-pointer", aria: { label: "Remove" } do %>
+                    <%= icon :trash, class: "w-3.5 h-3.5" %>
+                  <% end %>
+                </div>
               <% end %>
             </div>
           <% else %>
