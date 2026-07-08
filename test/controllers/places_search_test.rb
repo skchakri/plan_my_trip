@@ -22,4 +22,26 @@ class PlacesSearchTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_equal [], JSON.parse(response.body)["results"]
   end
+
+  test "cities outrank alphabetically-earlier POIs on a cold catalog" do
+    # Regression: with every row at usage 0, the old `usage_count DESC, name ASC`
+    # order was alphabetical, so "San Francisco AIDS Foundation" beat the city.
+    Place.create!(name: "San Francisco AIDS Foundation", kind: "landmark", usage_count: 0)
+    Place.create!(name: "San Francisco Botanical Garden", kind: "park", usage_count: 0)
+    city = Place.create!(name: "San Francisco", kind: "city", usage_count: 0)
+
+    get search_places_path(q: "san francisco", format: :json)
+    assert_response :success
+    results = JSON.parse(response.body)["results"]
+    assert_equal city.id, results.first["id"], "the city itself should rank first"
+  end
+
+  test "exact name match outranks other cities" do
+    Place.create!(name: "Salt Lake County", kind: "city", usage_count: 5)
+    exact = Place.create!(name: "Salt Lake City", kind: "city", usage_count: 0)
+
+    get search_places_path(q: "Salt Lake City", format: :json)
+    results = JSON.parse(response.body)["results"]
+    assert_equal exact.id, results.first["id"]
+  end
 end

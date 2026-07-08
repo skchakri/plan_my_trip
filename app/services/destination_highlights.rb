@@ -271,6 +271,11 @@ class DestinationHighlights
     # Reject anything carrying wikilink/template debris or sub-page anchors —
     # those resolve to nothing useful via the Wikipedia summary endpoint.
     return true if name.match?(/[\[\]\{\}\|#]/)
+    # Big-city Wikivoyage pages delegate to district subpages, and their "See"
+    # bullets are wikilinks whose targets look like "San Francisco/Golden Gate".
+    # Those are navigation, not attractions — dropping them lets the list come
+    # up short so the Wikipedia tourist-attractions fallback fills in instead.
+    return true if name.include?("/")
     # Reject pure-prose paragraphs that snuck through the bullet matcher
     # (entries with embedded sentences are usually not attraction names).
     return true if name.length > 120

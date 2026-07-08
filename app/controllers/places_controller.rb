@@ -33,7 +33,7 @@ class PlacesController < ApplicationController
     pattern = "%#{q.downcase}%"
     catalog = Place.kept
                    .where("lower(name) LIKE ? OR lower(canonical_name) LIKE ?", pattern, pattern)
-                   .order(usage_count: :desc, name: :asc)
+                   .order(autocomplete_rank(q))
                    .limit(limit)
                    .to_a
 
@@ -145,5 +145,24 @@ class PlacesController < ApplicationController
     else
       render json: { error: review.errors.full_messages.first }, status: :unprocessable_entity
     end
+  end
+
+  private
+
+  # Autocomplete relevance for the destination pickers. The old
+  # `usage_count DESC, name ASC` collapses to *alphabetical* on a cold
+  # catalog (every row usage 0), which surfaced entities like
+  # "San Francisco AIDS Foundation" above the city itself. Rank instead:
+  # exact match → destination kinds (city/town) → prefix match → usage.
+  def autocomplete_rank(q)
+    Arel.sql(
+      Place.sanitize_sql_array([ <<~SQL.squish, q: q.downcase, prefix: "#{Place.sanitize_sql_like(q.downcase)}%" ])
+        (lower(name) = :q OR lower(canonical_name) = :q) IS TRUE DESC,
+        (kind IN ('city', 'town')) IS TRUE DESC,
+        (lower(name) LIKE :prefix OR lower(canonical_name) LIKE :prefix) IS TRUE DESC,
+        usage_count DESC,
+        name ASC
+      SQL
+    )
   end
 end
