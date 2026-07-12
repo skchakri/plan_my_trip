@@ -136,3 +136,104 @@ user_template: |
   <%- end -%>
 
   Output the JSON object now.
+# Structured Outputs: constrains decoding to this exact shape (see
+# Ai::AnthropicProvider#build_body) so a malformed/truncated JSON response is
+# no longer a possible failure mode. Mirrors the schema spelled out in
+# system_template above. additionalProperties: false everywhere + every
+# property listed in `required` (Anthropic strict mode requires this — model
+# emits "" for fields the prose calls "optional"/"skip"). No min/max/length
+# constraints (unsupported).
+output_schema:
+  type: object
+  additionalProperties: false
+  required: [excitement_pitch, days, checklist]
+  properties:
+    excitement_pitch:
+      type: string
+    days:
+      type: array
+      items:
+        type: object
+        additionalProperties: false
+        required: [label, date, title, theme, summary, accent, activities]
+        properties:
+          label:
+            type: string
+          date:
+            type: string
+          title:
+            type: string
+          theme:
+            type: string
+          summary:
+            type: string
+          accent:
+            type: string
+            enum: [blue, gold, teal, pink, violet, emerald, rose]
+          activities:
+            type: array
+            items:
+              type: object
+              additionalProperties: false
+              required: [time_label, title, location_name, address, latitude, longitude, famous_for, notes, group_label, image_query]
+              properties:
+                time_label:
+                  type: string
+                title:
+                  type: string
+                location_name:
+                  type: string
+                address:
+                  type: string
+                latitude:
+                  type: number
+                longitude:
+                  type: number
+                famous_for:
+                  type: string
+                notes:
+                  type: string
+                group_label:
+                  type: string
+                image_query:
+                  type: string
+    checklist:
+      type: object
+      additionalProperties: false
+      required: [before_trip, day, activity]
+      properties:
+        before_trip:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [title, category]
+            properties:
+              title:
+                type: string
+              category:
+                type: string
+        day:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [day_label, title]
+            properties:
+              day_label:
+                type: string
+              title:
+                type: string
+        activity:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [day_label, activity_label, title]
+            properties:
+              day_label:
+                type: string
+              activity_label:
+                type: string
+              title:
+                type: string
