@@ -17,6 +17,7 @@
 # artifacts (screenshots, generated frames, rendered mp4s) — kept locally, not
 # checked in.
 /reel/
+/store/
 /.playwright-mcp/
 /shot_*.png
 
