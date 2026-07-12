@@ -13,6 +13,8 @@ class Users::RegistrationsController < Devise::RegistrationsController
     if (token = session.delete(:invitation_token))
       session.delete(:invitation_email)
       invitation_path(token)
+    elsif (share_token = session.delete(:save_trip_token))
+      public_trip_path(share_token)
     else
       super
     end
