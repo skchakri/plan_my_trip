@@ -25,13 +25,20 @@ module Ai
     BACKOFF_BASE = 0.5
     BACKOFF_MAX = 8.0
 
-    # Only mark the system prompt for caching when it's large and static enough
-    # to clear Anthropic's cache minimum (≈1,024 tokens on Sonnet/Opus). Below
-    # this the cache_control marker is a documented no-op, and a 1h write would
-    # just burn the cache-write premium on a short, never-repeated prompt. At
-    # ~4 chars/token this comfortably exceeds the minimum while still gating out
-    # the small concierge-style systems. trip_structure.v1 (~5k chars) qualifies.
-    CACHE_MIN_SYSTEM_CHARS = 4000
+    # Only mark the system prompt for caching when it's large enough to clear
+    # Anthropic's minimum cacheable prefix. That minimum is MODEL-SPECIFIC and
+    # was raised on the current generation: Sonnet 4.6 / Fable 5 require ~2,048
+    # tokens (Opus 4.x / Haiku 4.5 require ~4,096); only the older Sonnet 4.5 line
+    # was ~1,024. Below the minimum the cache_control marker is a silent no-op
+    # (cache_creation_input_tokens stays 0) and a 1h write would just burn the
+    # write premium. The prior 4,000-char gate assumed the stale 1,024-token
+    # figure, so it marked prompts (trip_structure.v1's ~5k-char / ~1,160-token
+    # system) that never actually cached. At ~4.3 chars/token, 8,800 chars ≈ the
+    # 2,048-token Sonnet-4.6 floor. NOTE: at present NO prompt's system reaches
+    # this, so caching is effectively dormant — it will engage automatically if a
+    # system prompt grows past the floor. Do not pad a prompt just to cross it;
+    # the write premium on a rarely-repeated prefix outweighs the read savings.
+    CACHE_MIN_SYSTEM_CHARS = 8800
 
     def initialize(prompt)
       @prompt = prompt
