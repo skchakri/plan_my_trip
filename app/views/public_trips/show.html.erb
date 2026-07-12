@@ -139,9 +139,9 @@
           <%= icon :copy, class: "w-4 h-4" %> Save to my trips
         <% end %>
       <% else %>
-        <%= link_to "Sign up & save this trip →", new_user_registration_path,
+        <%= link_to "Sign up & save this trip →", new_user_registration_path(save_trip: @trip.share_token),
               class: "inline-flex items-center px-5 py-2.5 rounded-lg bg-amber-500 text-slate-950 font-semibold hover:bg-amber-400 transition-colors" %>
-        <%= link_to "Sign in to save", new_user_session_path,
+        <%= link_to "Sign in to save", new_user_session_path(save_trip: @trip.share_token),
               class: "inline-flex items-center px-5 py-2.5 rounded-lg border border-slate-700 text-slate-200 hover:border-amber-500/50 hover:bg-slate-800/40 transition-colors" %>
       <% end %>
     </div>
