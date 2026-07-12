@@ -51,3 +51,34 @@ user_template: |
   """
 
   Return the JSON object now.
+# Structured Outputs: constrains decoding to this exact shape (see
+# Ai::AnthropicProvider#build_body) — a pure extraction task, so
+# schema-constrained decoding removes the entire malformed-JSON failure class.
+# additionalProperties: false + every property listed in `required`
+# (Anthropic strict mode requires this); "null is allowed" fields use a
+# `[string, "null"]` type union since the system prompt calls for null on
+# anything not found. No min/max/length constraints (unsupported).
+output_schema:
+  type: object
+  additionalProperties: false
+  required: [kind, vendor, confirmation_number, title, location, address, start_at, end_at, notes]
+  properties:
+    kind:
+      type: string
+      enum: [stay, flight, car, activity, rail, other]
+    vendor:
+      type: [string, "null"]
+    confirmation_number:
+      type: [string, "null"]
+    title:
+      type: [string, "null"]
+    location:
+      type: [string, "null"]
+    address:
+      type: [string, "null"]
+    start_at:
+      type: [string, "null"]
+    end_at:
+      type: [string, "null"]
+    notes:
+      type: [string, "null"]
