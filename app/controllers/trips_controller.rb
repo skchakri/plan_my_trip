@@ -284,6 +284,8 @@ class TripsController < ApplicationController
   # confirmations, addresses, and lat/lng coords. Save-as-PDF target.
   def wallet
     authorize @trip, :show?
+    return redirect_to(@trip) if @trip.building? || @trip.build_failed?
+
     @days = @trip.trip_days.ordered.includes(:activities)
     @bookings = @trip.booking_claims.includes(documents_attachments: :blob)
     @reservations = @trip.reservations.parsed

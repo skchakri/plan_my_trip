@@ -46,6 +46,20 @@ class TripWalletTest < ActionDispatch::IntegrationTest
     assert_response :redirect
   end
 
+  test "redirects to the trip while it is still building" do
+    @trip.update!(build_status: "building")
+    sign_in_as(@owner)
+    get wallet_trip_path(@trip)
+    assert_redirected_to trip_path(@trip)
+  end
+
+  test "redirects to the trip when the build failed" do
+    @trip.update!(build_status: "failed")
+    sign_in_as(@owner)
+    get wallet_trip_path(@trip)
+    assert_redirected_to trip_path(@trip)
+  end
+
   private
 
   def sign_in_as(user)
