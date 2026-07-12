@@ -4,8 +4,8 @@ require "test_helper"
 # cache_control content block (so later calls read it from cache) while short
 # systems stay a plain string. Usage extraction surfaces the cache counters.
 class Ai::AnthropicProviderCachingTest < ActiveSupport::TestCase
-  BIG_SYSTEM   = ("You are a meticulous trip planner. " * 200).freeze # ≫ 4000 chars
-  SMALL_SYSTEM = "You are a concise concierge.".freeze                # ≪ 4000 chars
+  BIG_SYSTEM   = ("You are a meticulous trip planner. " * 300).freeze # ≫ CACHE_MIN_SYSTEM_CHARS
+  SMALL_SYSTEM = "You are a concise concierge.".freeze                # ≪ CACHE_MIN_SYSTEM_CHARS
 
   def body_for(system:, output_schema: nil)
     prompt = AiPrompt.new(slug: "t", name: "t", provider: "anthropic", model: "claude-sonnet-4-6",
