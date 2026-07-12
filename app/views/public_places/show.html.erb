@@ -41,7 +41,7 @@
           <span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-200 border border-amber-500/30"><%= @place.tier.humanize %></span>
         <% end %>
         <% if @place.kind.present? %>
-          <span class="px-2 py-0.5 rounded-full bg-slate-800/80 border border-slate-700"><%= @place.kind.humanize %></span>
+          <span class="chip"><%= @place.kind.humanize %></span>
         <% end %>
         <% if @place.region.present? %>
           <span class="text-slate-400">· <%= @place.region %></span>
