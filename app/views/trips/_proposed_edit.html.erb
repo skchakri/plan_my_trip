@@ -1,0 +1,30 @@
+<%# One concierge-proposed itinerary edit, shown as an Apply/Dismiss card.
+    Nothing changes until the editor taps Apply, which POSTs the allowlisted
+    (edit_action, fields) tuple to concierge_edit → TripEditor. `edit` is a
+    sanitized hash (string keys) from TripAgent#converse; `dom_id` uniquely
+    tags the card so its apply response can replace it in place. %>
+<% label = concierge_edit_label(edit) %>
+<div id="<%= dom_id %>" class="ml-9 rounded-xl border border-teal-500/25 bg-teal-500/[0.06] px-3.5 py-3">
+  <div class="flex items-start gap-2 mb-2.5">
+    <%= icon :sparkles, class: "w-3.5 h-3.5 mt-0.5 shrink-0 text-teal-300" %>
+    <p class="text-[13px] text-slate-200 leading-snug"><span class="text-teal-300 font-semibold uppercase tracking-wide text-[10px] mr-1.5">Proposed edit</span><%= label %></p>
+  </div>
+  <div class="flex items-center gap-2">
+    <%= form_with url: concierge_edit_trip_path(@trip), method: :post,
+          data: { turbo_stream: true }, class: "inline" do |f| %>
+      <%= hidden_field_tag :edit_action, edit["action"] %>
+      <%= hidden_field_tag :card_id, dom_id %>
+      <% TripAgent::EDIT_FIELDS[edit["action"]].each do |field| %>
+        <%= hidden_field_tag field, edit[field.to_s] %>
+      <% end %>
+      <button type="submit"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-500 text-slate-950 font-semibold text-[12px] hover:bg-teal-400 transition-colors">
+        <%= icon :check, class: "w-3.5 h-3.5" %> Apply
+      </button>
+    <% end %>
+    <button type="button" data-action="concierge#dismissEdit" data-edit-id="<%= dom_id %>"
+            class="px-3 py-1.5 rounded-lg border border-slate-600 bg-slate-700/60 text-slate-300 font-medium text-[12px] hover:bg-slate-700 transition-colors">
+      Dismiss
+    </button>
+  </div>
+</div>

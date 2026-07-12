@@ -81,4 +81,59 @@ class TripAgentTest < ActiveSupport::TestCase
     assert_includes d, "Hampton Inn Springdale"
     assert_includes d, "Not booked yet:"
   end
+
+  # ── converse (trip_concierge.v2 — chat + proposed edits) ──────────────
+
+  test "converse parses a JSON reply and sanitized proposed edits" do
+    payload = {
+      reply: "I can add a sunset stop to day 1 — tap Apply below.",
+      proposed_edits: [
+        { action: "add_activity", day_number: 1, activity_title: nil, title: "Sunset at the overlook",
+          time_label: "7:30 PM", location_name: "Canyon Overlook", notes: nil, direction: nil }
+      ]
+    }.to_json
+    TripAgent.ai_caller = FakeCaller.new(text: payload)
+
+    ex = TripAgent.new(trip: @trip, user: @user, question: "add a sunset stop to day 1").converse
+
+    assert_nil ex.error
+    assert_equal "I can add a sunset stop to day 1 — tap Apply below.", ex.reply
+    assert_equal 1, ex.edits.size
+    edit = ex.edits.first
+    assert_equal "add_activity", edit["action"]
+    assert_equal 1, edit["day_number"]
+    assert_equal "Sunset at the overlook", edit["title"]
+    assert_equal "Canyon Overlook", edit["location_name"]
+    refute edit.key?("direction") # blank fields dropped by sanitize_edits
+  end
+
+  test "converse calls trip_concierge.v2 with the can_edit flag" do
+    fake = FakeCaller.new(text: { reply: "ok", proposed_edits: [] }.to_json)
+    TripAgent.ai_caller = fake
+
+    TripAgent.new(trip: @trip, user: @user, question: "hi").converse
+
+    assert_equal "trip_concierge.v2", fake.calls.first[:slug]
+    assert_equal true, fake.calls.first[:variables][:can_edit] # owner may edit
+  end
+
+  test "converse drops unknown actions and caps the batch" do
+    edits = ([ { action: "nuke_trip", day_number: 1 } ] +
+             Array.new(9) { |i| { action: "update_day_title", day_number: 1, title: "T#{i}" } })
+    TripAgent.ai_caller = FakeCaller.new(text: { reply: "r", proposed_edits: edits }.to_json)
+
+    ex = TripAgent.new(trip: @trip, user: @user, question: "rename everything").converse
+
+    assert_equal TripAgent::MAX_EDITS, ex.edits.size # unknown dropped, rest capped
+    assert(ex.edits.all? { |e| e["action"] == "update_day_title" })
+  end
+
+  test "converse falls back to plain text when the backend returns prose" do
+    TripAgent.ai_caller = FakeCaller.new(text: "Just a friendly non-JSON answer.")
+
+    ex = TripAgent.new(trip: @trip, user: @user, question: "hi").converse
+
+    assert_equal "Just a friendly non-JSON answer.", ex.reply
+    assert_empty ex.edits
+  end
 end

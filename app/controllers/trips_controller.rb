@@ -1,7 +1,7 @@
 class TripsController < ApplicationController
   include MarkdownHelper
 
-  before_action :set_trip, only: %i[show edit update destroy rename archive plan checklist copilot copilot_question copilot_response concierge duplicate calendar wallet printable rebuild skip_build edit_plan brief road_trip_stats]
+  before_action :set_trip, only: %i[show edit update destroy rename archive plan checklist copilot copilot_question copilot_response concierge concierge_edit duplicate calendar wallet printable rebuild skip_build edit_plan brief road_trip_stats]
   before_action :set_owned_trip, only: %i[restore destroy_permanently]
 
   def index
@@ -255,8 +255,36 @@ class TripsController < ApplicationController
     @question = params[:question].to_s.strip
     return head :bad_request if @question.blank?
 
-    @answer = TripAgent.new(trip: @trip, user: current_user, question: @question).answer.text.presence ||
+    exchange = TripAgent.new(trip: @trip, user: current_user, question: @question).converse
+    @answer = exchange.reply.presence ||
               "Sorry — I couldn't answer that just now. Try rephrasing, or check the trip details."
+    # Only surface Apply buttons to a user who may actually edit the plan; a
+    # viewer still gets the conversational reply.
+    @proposed_edits = @trip.editable_by?(current_user) ? exchange.edits : []
+
+    respond_to do |format|
+      format.turbo_stream
+      format.html { redirect_to @trip }
+    end
+  end
+
+  # Apply ONE concierge-proposed edit. The LLM never reaches this path — it's a
+  # normal authenticated, CSRF-protected, editor-only POST that dispatches to
+  # the TripEditor mutation core. Params are an allowlisted (action, fields)
+  # tuple; TripEditor re-authorizes and re-validates.
+  def concierge_edit
+    authorize @trip, :update?
+    action_name = params[:edit_action].to_s
+    fields = TripAgent::EDIT_FIELDS[action_name]
+    return head :bad_request unless fields
+
+    # Pass every keyword the action declares (nil when absent) so a missing
+    # optional field never becomes a missing-keyword ArgumentError — TripEditor
+    # validates required values itself and returns a friendly Result.
+    editor = TripEditor.new(trip: @trip, user: current_user)
+    kwargs = fields.index_with { |f| params[f].presence }
+    kwargs[:day_number] = params[:day_number].to_i if kwargs.key?(:day_number)
+    @edit_result = editor.public_send(action_name, **kwargs)
 
     respond_to do |format|
       format.turbo_stream

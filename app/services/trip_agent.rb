@@ -26,6 +26,20 @@ class TripAgent
     end
   end
 
+  # One concierge turn: the markdown `reply` plus any `edits` the model
+  # PROPOSED (never applied — the traveler confirms each via TripEditor).
+  Exchange = Struct.new(:reply, :edits, :error, keyword_init: true)
+
+  # The edit actions the concierge may propose, mapped to the TripEditor
+  # keyword each one accepts. This is the allowlist: an action or field outside
+  # it is dropped before it ever reaches the (editor-gated) apply endpoint.
+  EDIT_FIELDS = {
+    "add_activity"     => %i[day_number title time_label location_name notes],
+    "remove_activity"  => %i[day_number activity_title],
+    "move_activity"    => %i[day_number activity_title direction],
+    "update_day_title" => %i[day_number title]
+  }.freeze
+
   def initialize(trip:, user:, question:)
     @trip = trip
     @user = user
@@ -48,12 +62,70 @@ class TripAgent
     )
   end
 
+  # Agentic turn (trip_concierge.v2): returns an Exchange with the reply text
+  # and a sanitized list of proposed edits. The model only *proposes*; nothing
+  # is mutated here. Falls back gracefully when the backend returns plain text
+  # (no JSON) — the whole text becomes the reply with no edits.
+  def converse
+    return Exchange.new(reply: nil, edits: [], error: "blank question") if @question.blank?
+
+    result = self.class.ai_caller.call(
+      slug: "trip_concierge.v2",
+      variables: {
+        dossier: dossier,
+        question: @question,
+        viewer_name: @user&.display_name.to_s,
+        can_edit: @trip.editable_by?(@user),
+        today: Date.current.strftime("%A, %B %-d, %Y")
+      },
+      user: @user,
+      trip: @trip
+    )
+    return Exchange.new(reply: nil, edits: [], error: result.error) unless result.success?
+
+    parsed = result.json
+    if parsed.is_a?(Hash) && parsed.key?("reply")
+      Exchange.new(reply: parsed["reply"].to_s, edits: sanitize_edits(parsed["proposed_edits"]))
+    else
+      # Non-JSON backend (e.g. a test fake, or a prompt swapped back to prose):
+      # treat the raw text as the reply, propose nothing.
+      Exchange.new(reply: result.text.to_s, edits: [])
+    end
+  end
+
   # Public so it can be unit-tested and reused by an admin sandbox.
   def dossier
     [ overview, travelers, itinerary, landmarks, booking ].compact.join("\n\n")
   end
 
   private
+
+  # Keep only well-formed edits with a known action, drop unknown/blank fields,
+  # and cap the batch so one turn can't queue an unbounded pile of edits. Each
+  # returned hash is safe to hand to the apply endpoint (which re-authorizes
+  # and re-validates via TripEditor).
+  MAX_EDITS = 6
+  def sanitize_edits(raw)
+    Array(raw).filter_map do |e|
+      next unless e.is_a?(Hash)
+
+      action = e["action"].to_s
+      fields = EDIT_FIELDS[action]
+      next unless fields
+
+      day = e["day_number"].to_i
+      next unless day.positive?
+
+      edit = { "action" => action, "day_number" => day }
+      fields.each do |f|
+        next if f == :day_number
+
+        val = e[f.to_s].to_s.strip
+        edit[f.to_s] = val if val.present?
+      end
+      edit
+    end.first(MAX_EDITS)
+  end
 
   def overview
     lines = [ "TRIP: #{@trip.title}" ]
