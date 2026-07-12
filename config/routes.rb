@@ -104,6 +104,7 @@ Rails.application.routes.draw do
       get :copilot_question
       post :copilot_response
       post :concierge
+      post :concierge_edit
       post   :share_link,        to: "public_trips#enable",  as: :enable_public_share
       delete :share_link,        to: "public_trips#disable", as: :disable_public_share
       post   :share_link_rotate, to: "public_trips#rotate",  as: :rotate_public_share

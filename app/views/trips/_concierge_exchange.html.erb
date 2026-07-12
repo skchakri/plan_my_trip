@@ -13,4 +13,9 @@
       <%= render_markdown(answer) %>
     </div>
   </div>
+  <%# Editor-only: each proposed edit is an Apply/Dismiss card. Nothing mutates
+      until the editor taps Apply (→ concierge_edit → TripEditor). %>
+  <% Array(local_assigns[:proposed_edits]).each do |edit| %>
+    <%= render "trips/proposed_edit", edit: edit, dom_id: "edit-#{SecureRandom.hex(6)}" %>
+  <% end %>
 </div>

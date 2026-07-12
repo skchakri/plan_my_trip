@@ -46,6 +46,12 @@ export default class extends Controller {
     }
   }
 
+  // Dismiss a proposed-edit card without applying it (purely client-side).
+  dismissEdit(event) {
+    const id = event.currentTarget.dataset.editId
+    if (id) document.getElementById(id)?.remove()
+  }
+
   scroll() {
     if (this.hasLogTarget) this.logTarget.scrollTop = this.logTarget.scrollHeight
   }

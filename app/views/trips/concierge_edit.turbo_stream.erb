@@ -1,0 +1,17 @@
+<%# Replace the tapped proposed-edit card in place with an applied/failed
+    result. The itinerary itself re-renders via the Activity/TripDay
+    broadcasts_refreshes_to callback, so we only need to settle the card. %>
+<% card_id = params[:card_id].presence || "concierge-edit-result" %>
+<%= turbo_stream.replace card_id do %>
+  <% if @edit_result.ok? %>
+    <div id="<%= card_id %>" class="ml-9 rounded-xl border border-emerald-500/25 bg-emerald-500/[0.08] px-3.5 py-2.5 flex items-start gap-2">
+      <%= icon :check_circle, class: "w-3.5 h-3.5 mt-0.5 shrink-0 text-emerald-400" %>
+      <p class="text-[13px] text-emerald-100 leading-snug"><%= @edit_result.summary %></p>
+    </div>
+  <% else %>
+    <div id="<%= card_id %>" class="ml-9 rounded-xl border border-rose-500/25 bg-rose-500/[0.08] px-3.5 py-2.5 flex items-start gap-2">
+      <%= icon :alert_triangle, class: "w-3.5 h-3.5 mt-0.5 shrink-0 text-rose-400" %>
+      <p class="text-[13px] text-rose-100 leading-snug"><%= @edit_result.error %></p>
+    </div>
+  <% end %>
+<% end %>
