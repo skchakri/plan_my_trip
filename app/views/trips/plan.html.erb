@@ -668,6 +668,13 @@
                       <% if activity.notes.present? %>
                         <div class="text-sm text-slate-300 mt-2.5 leading-relaxed prose-invert"><%= render_markdown(activity.notes) %></div>
                       <% end %>
+                      <%# Rich per-stop story. Generated async (NarrateActivityJob) so the
+                          plan itself returns fast; this fills in within ~a minute of the
+                          build, like the photos. Rendered as readable prose here (it also
+                          feeds the Drive Co-Pilot / read-aloud audio). %>
+                      <% if activity.guide_script.present? %>
+                        <div class="text-sm text-slate-300/90 mt-2.5 leading-relaxed prose-invert border-l-2 border-teal-500/30 pl-3"><%= render_markdown(activity.guide_script) %></div>
+                      <% end %>
                     </div>
 
                   </div><%# /upper region grid %>

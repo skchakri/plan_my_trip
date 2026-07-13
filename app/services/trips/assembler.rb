@@ -66,7 +66,10 @@ module Trips
       @trip.save!
 
       advance_build_step!(3)
-      build_route_landmarks(structure)
+      # Route landmarks are NOT built here: RouteLandmarksBuilder runs on the slow
+      # web-search provider (~3 min) and only feeds the Drive Co-Pilot / road-trip
+      # stats, which degrade gracefully while empty. BuildTripJob enqueues
+      # BackfillRouteLandmarksJob so the plan returns fast and they stream in after.
       @trip
     end
 
@@ -128,7 +131,10 @@ module Trips
               name: a["location_name"], lat: lat, lng: lng,
               kind: kind_for(a["group_label"]),
               image_query: a["image_query"], famous_for: a["famous_for"],
-              user: @trip.owner
+              user: @trip.owner,
+              # Skip the ~2s-per-stop Wikipedia photo lookup during the build —
+              # BackfillTripImagesJob resolves them after the plan is viewable.
+              defer_image: true
             )
           end
 
@@ -163,21 +169,6 @@ module Trips
         next if item["title"].blank? || item["day_label"].blank? || item["activity_label"].blank?
         @trip.checklist_items.build(scope: "activity", day_label: item["day_label"], activity_label: item["activity_label"], title: item["title"], position: i)
       end
-    end
-
-    def build_route_landmarks(structure)
-      itinerary_stops = Array(structure["days"]).flat_map do |d|
-        Array(d["activities"]).filter_map do |a|
-          next unless a["latitude"].present? && a["longitude"].present?
-          { name: a["location_name"].presence || a["title"], lat: a["latitude"], lng: a["longitude"] }
-        end
-      end
-      RouteLandmarksBuilder.call(
-        destination: @trip.destination, origin: @trip.origin,
-        transport_mode: @trip.transport_mode, itinerary_stops: itinerary_stops, trip: @trip
-      )
-    rescue StandardError => e
-      Rails.logger.warn("[Trips::Assembler] route landmarks: #{e.class}: #{e.message}")
     end
 
     # Fills missing activity coordinates from the geocoder (LLMs often omit or

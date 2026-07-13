@@ -33,8 +33,8 @@ system_template: |
             "address": "Full street address or town + state when no street",
             "latitude": 38.5644,
             "longitude": -110.7048,
-            "famous_for": "One sentence on the must-know hook (skip when not applicable)",
-            "notes": "For non-drive stops: 1-2 sentences of practical context. FOR DRIVE SEGMENTS (group_label='Drive'): 3-5 sentences of route character — what you'll pass, brief history, geological/cultural context, things to look for through the windshield. Markdown allowed (bold/italic, no headings).",
+            "famous_for": "A short phrase (≤10 words) on the must-know hook (skip when not applicable). Keep it tight — no full sentences.",
+            "notes": "ONE short sentence of practical context (≤20 words) — a reservation tip, a heads-up, what to bring. Skip ('') when there's nothing essential. Do NOT write route descriptions or scene-setting prose here: the richer per-stop narration is generated separately so this plan returns fast.",
             "group_label": "Optional sub-tag like 'Drive', 'Hike', 'Meal', 'Lodging'",
             "image_query": "2-5 word Wikipedia search query that would surface a meaningful photo for this activity. Lean toward the broader/famous parent landmark when the specific name isn't Wikipedia-documented. Examples: for 'Stan's Burger Shack' use 'Hanksville Utah'; for 'Hickman Bridge Trail' use 'Hickman Bridge Capitol Reef'; for 'Drive I-15 South' use the major town/region you pass through. Skip ('') for purely admin activities like 'Pick up rental'."
           }
