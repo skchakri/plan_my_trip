@@ -14,9 +14,12 @@ class BuildTripJob < ApplicationJob
     selected_slugs = Array((trip.build_args || {})["selected_slugs"])
     Trips::Assembler.call(trip: trip, highlights: highlights_for(trip, selected_slugs))
     trip.update!(build_status: "ready", build_error: nil)
-    # Narrations are generated separately so the plan is viewable fast — they
-    # backfill into the podcast + Drive Co-Pilot over the next minute.
+    # Narrations + route landmarks are generated separately so the plan is
+    # viewable fast — they backfill into the podcast + Drive Co-Pilot over the
+    # next minute (route landmarks run on the slow web-search provider).
     BackfillTripNarrationsJob.perform_later(trip.id)
+    BackfillRouteLandmarksJob.perform_later(trip.id)
+    BackfillTripImagesJob.perform_later(trip.id)
   rescue StandardError => e
     ErrorTracker.report(e, source: "BuildTripJob", context: { trip_id: trip_id })
     trip&.update_columns(build_status: "failed", build_error: "#{e.class}: #{e.message}".truncate(500))

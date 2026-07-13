@@ -17,7 +17,7 @@ module Places
       new(...).call
     end
 
-    def initialize(name:, lat: nil, lng: nil, kind: nil, image_query: nil, famous_for: nil, description: nil, tier: nil, region: nil, user: nil)
+    def initialize(name:, lat: nil, lng: nil, kind: nil, image_query: nil, famous_for: nil, description: nil, tier: nil, region: nil, user: nil, defer_image: false)
       @name = name.to_s.strip
       @lat = lat.is_a?(Numeric) ? lat.to_f : (Float(lat) rescue nil)
       @lng = lng.is_a?(Numeric) ? lng.to_f : (Float(lng) rescue nil)
@@ -28,6 +28,12 @@ module Places
       @tier = sanitize_tier(tier)
       @region = region.to_s.strip.presence
       @user = user
+      # When true, create the Place WITHOUT resolving a photo inline — each
+      # Wikipedia lookup is ~2s and a trip build does ~16 of them, so the trip
+      # builder defers them to BackfillTripImagesJob and the plan returns fast.
+      # hero_image_url reads place.image_url live, so the photo appears once the
+      # async fill lands (and a post-build broadcast refreshes any open plan).
+      @defer_image = defer_image
     end
 
     def call
@@ -70,7 +76,7 @@ module Places
       image_url = nil
       image_source = nil
 
-      if @image_query || @name.present? || (@lat && @lng)
+      if !@defer_image && (@image_query || @name.present? || (@lat && @lng))
         query = @image_query.presence || @name
         image_url = PlaceImageLookup.call(query, lat: @lat, lng: @lng)
         image_source = "wikipedia" if image_url.present?
