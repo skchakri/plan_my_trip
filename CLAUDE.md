@@ -244,6 +244,14 @@ quizzes index banner and the account dropdown.
 - **`Places::Geocoder` (`app/services/places/geocoder.rb`)** — name → real
   lat/lng via Nominatim, anchor-viewbox-biased, cached 90 days. The
   coordinate source of truth (LLMs hallucinate coords).
+- **`WeatherReport` (`app/services/weather_report.rb`)** — per-day weather
+  for a trip's dates via Open-Meteo (free, no key). Dates within 16 days get
+  the live forecast (cached 3h); further out, "typical conditions" averaged
+  from the same calendar dates over the past 3 years of archive data (cached
+  30d); past dates get recorded actuals. Rendered by `trips/_weather` into
+  lazy frames on trips/show (`GET /trips/:id/weather`) and the wizard review
+  step (`GET /trip_wizard/weather`, which reuses the draft's geocoded
+  coords). Always rescues to nil → the frame collapses to nothing.
 
 ### AI providers & the Perplexity option
 
