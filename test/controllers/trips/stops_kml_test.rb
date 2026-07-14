@@ -27,6 +27,16 @@ class Trips::StopsKmlTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "<coordinates>-115.174,36.1127</coordinates>"
   end
 
+  test "plan page renders the KML links with Turbo disabled" do
+    # A download response never fires turbo:load, so a Turbo-driven click
+    # leaves the loading-spinner overlay up forever.
+    get plan_trip_path(@trip)
+    assert_response :success
+    kml_links = response.body.scan(/<a [^>]*>/).select { |a| a.include?(stops_trip_path(@trip, format: :kml)) }
+    assert kml_links.size >= 2, "expected the popover + map-modal KML links"
+    kml_links.each { |a| assert_includes a, 'data-turbo="false"', "KML link must opt out of Turbo: #{a}" }
+  end
+
   test "requires trip access" do
     outsider = User.create!(email: "sk-out-#{SecureRandom.hex(4)}@test.example", password: "password123", name: "Out")
     delete destroy_user_session_path
