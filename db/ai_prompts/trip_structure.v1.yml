@@ -8,7 +8,10 @@ description: 'One-shot generator for the full structured plan: per-day activitie
 provider: anthropic
 model: claude-sonnet-4-6
 kind: text
-max_tokens: 8192
+# 8192 truncated real plans: a 9-day trip (~50 activities + 3-scope checklist)
+# needs ~10-12k output tokens, and a truncated structured-output response
+# parses as nothing → silent fallback skeleton. Sonnet supports far more.
+max_tokens: 16384
 temperature:
 system_template: |
   You are a meticulous travel architect. You output ONLY a JSON object. No
