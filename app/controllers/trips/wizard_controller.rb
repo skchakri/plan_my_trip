@@ -93,6 +93,16 @@ module Trips
       )
       @brief = DestinationBrief.call(@draft["destination"])
       @selected_slugs = draft_selected_slug_set
+      # Step 1's must-include favourites surface here too: highlights whose
+      # name matches one are pre-selected on the first visit (before the user
+      # has saved any picks) and badged in the grid; the rest are shown in an
+      # "anchored in your plan" strip so travelers see they're covered even
+      # when the research didn't return them as cards.
+      @must_slug_map = must_include_slug_map
+      unless @draft.key?("selected_slugs") || @draft.key?("selected_highlights")
+        @selected_slugs |= @must_slug_map.keys
+      end
+      @must_unmatched = Array(@draft["must_includes"]) - @must_slug_map.values
       render partial: "trips/wizard/highlights_body"
     rescue StandardError => e
       # Same guard as the day-trip suggestions frame: never 500 inside the lazy
@@ -103,6 +113,8 @@ module Trips
       @highlights = []
       @brief = DestinationBrief::EMPTY
       @selected_slugs ||= draft_selected_slug_set
+      @must_slug_map ||= {}
+      @must_unmatched ||= Array(@draft["must_includes"])
       render partial: "trips/wizard/highlights_body"
     end
 
@@ -277,6 +289,36 @@ module Trips
       slugs = draft_selected_slug_set
       return [] if slugs.empty?
       DestinationHighlights.call(@draft["destination"]).select { |h| slugs.include?(h.slug) }
+    end
+
+    # { highlight slug => the must-include string it matched }. First match
+    # wins so one favourite doesn't pre-select half the grid.
+    def must_include_slug_map
+      musts = Array(@draft["must_includes"]).map(&:to_s)
+      return {} if musts.empty?
+      claimed = []
+      Array(@highlights).each_with_object({}) do |h, map|
+        hit = (musts - claimed).find { |m| must_include_matches?(m, h.name) }
+        next unless hit
+        claimed << hit
+        map[h.slug] = hit
+      end
+    end
+
+    # "Disneyland — 2 days" matches "Disneyland Park": strip any duration
+    # suffix, then accept an exact or whole-word containment either way.
+    def must_include_matches?(must, name)
+      a = normalized_must(must)
+      b = name.to_s.downcase.strip
+      return false if a.length < 3 || b.blank?
+      return true if a == b
+      b.match?(/\b#{Regexp.escape(a)}\b/) || a.match?(/\b#{Regexp.escape(b)}\b/)
+    end
+
+    def normalized_must(must)
+      must.to_s.downcase.strip
+          .sub(/\s*[—–-]\s*\d+(\.\d+)?\s*(day|days|hour|hours|hr|hrs|night|nights)\b.*\z/, "")
+          .strip
     end
 
     def defaults_for_destination
