@@ -198,20 +198,42 @@
               data-controller="offline-maps"
               data-action="offline-maps#cache"
               data-offline-maps-urls-value="<%= map_tile_urls.to_json %>"
-              title="Caches this trip's in-app map thumbnails so they show with no signal. This does NOT download Google Maps — use 'Download in Google Maps' for offline turn-by-turn."
+              title="Caches this trip's in-app map thumbnails so they show with no signal. This does NOT download Google Maps — use 'Save in Google Maps' for offline turn-by-turn."
               class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-teal-500/15 text-teal-200 border border-teal-500/30 hover:bg-teal-500/25 disabled:opacity-60 disabled:cursor-not-allowed">
         <%= icon :download, class: "w-4 h-4" %>
         <span data-offline-maps-target="status">Save map previews offline (<%= map_tile_urls.size %>)</span>
       </button>
     <% end %>
+    <%# "Save in Google Maps" — Google gives websites no way to inject pins
+        into the Maps app or trigger an offline download, so this popover
+        walks the two real hand-offs: (a) KML → My Maps import, which lands
+        ALL stops in Google Maps under Saved → Maps, and (b) opening the
+        trip's area so the user saves the offline region there. %>
     <% if (gmaps_area = google_maps_area_url(trip_map_pins)) %>
-      <%= link_to gmaps_area, target: "_blank", rel: "noopener",
-            title: "Opens this trip's area in Google Maps. There, tap your profile → Offline maps → Select your own map to save it for offline turn-by-turn.",
-            class: "inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-slate-800 border border-slate-700 hover:border-amber-500/50 text-slate-100" do %>
-        <%= icon :globe, class: "w-4 h-4 text-amber-400" %>
-        <span>Download in Google Maps</span>
-        <%= icon :external_link, class: "w-3.5 h-3.5 opacity-60" %>
-      <% end %>
+      <details class="relative">
+        <summary class="list-none [&::-webkit-details-marker]:hidden inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-slate-800 border border-slate-700 hover:border-amber-500/50 text-slate-100 cursor-pointer select-none">
+          <%= icon :globe, class: "w-4 h-4 text-amber-400" %>
+          <span>Save in Google Maps</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5 opacity-60"><path d="m6 9 6 6 6-6"/></svg>
+        </summary>
+        <div class="absolute left-0 z-30 mt-2 w-[19rem] rounded-xl border border-slate-700 bg-slate-900 p-4 shadow-2xl">
+          <p class="text-[11px] uppercase tracking-[0.18em] text-amber-300 font-semibold mb-1.5">All <%= trip_map_pins.size %> stops, saved in Google Maps</p>
+          <ol class="text-xs text-slate-300 space-y-1 list-decimal list-inside mb-2.5">
+            <li>
+              <%= link_to stops_trip_path(@trip, format: :kml), class: "text-amber-300 hover:text-amber-200 underline underline-offset-2" do %>Download the stops file (KML)<% end %>
+            </li>
+            <li>Import it at <a href="https://mymaps.google.com" target="_blank" rel="noopener" class="text-amber-300 hover:text-amber-200 underline underline-offset-2">mymaps.google.com</a> → Create a new map → Import</li>
+            <li>It appears in the Google Maps app under <span class="text-slate-100">Saved → Maps</span> — every stop, layered by day</li>
+          </ol>
+          <div class="border-t border-slate-800 pt-2.5">
+            <p class="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-semibold mb-1.5">Offline turn-by-turn</p>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              <%= link_to gmaps_area, target: "_blank", rel: "noopener", class: "text-amber-300 hover:text-amber-200 underline underline-offset-2" do %>Open the trip area in Google Maps<% end %>,
+              then Profile → Offline maps → Select your own map. (Google doesn't let sites pre-load pins there — use the stops file above for that.)
+            </p>
+          </div>
+        </div>
+      </details>
     <% end %>
     <% if trip_map_pins.any? %>
       <button type="button"
@@ -808,6 +830,11 @@
         <p class="text-[11px] uppercase tracking-[0.18em] text-amber-300 font-semibold truncate" data-interactive-map-target="title">Map</p>
         <p class="text-xs text-slate-400 truncate" data-interactive-map-target="subtitle"></p>
       </div>
+      <%= link_to stops_trip_path(@trip, format: :kml),
+            title: "Download all stops as a KML file — import at mymaps.google.com to keep this map in Google Maps (Saved → Maps).",
+            class: "shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-lg bg-slate-800 border border-slate-700 hover:border-amber-500/50 text-slate-200" do %>
+        <%= icon :download, class: "w-3.5 h-3.5" %> Save stops (KML)
+      <% end %>
       <button type="button" data-action="interactive-map#close"
               class="text-slate-400 hover:text-white p-1 rounded transition-colors cursor-pointer" aria-label="Close">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>

@@ -1,7 +1,7 @@
 class TripsController < ApplicationController
   include MarkdownHelper
 
-  before_action :set_trip, only: %i[show edit update destroy rename archive plan checklist copilot copilot_question copilot_response concierge concierge_edit duplicate calendar wallet printable rebuild skip_build edit_plan brief road_trip_stats weather day_weather]
+  before_action :set_trip, only: %i[show edit update destroy rename archive plan checklist copilot copilot_question copilot_response concierge concierge_edit duplicate calendar wallet printable rebuild skip_build edit_plan brief road_trip_stats weather day_weather stops_kml]
   before_action :set_owned_trip, only: %i[restore destroy_permanently]
 
   def index
@@ -224,6 +224,18 @@ class TripsController < ApplicationController
         nil
       end
     render partial: "trips/day_weather_chip", locals: { day: day, report: report }, layout: false
+  end
+
+  # GET /trips/:id/stops.kml — every mapped stop as a KML file. Google gives
+  # websites no way to push pins into the Maps app, so this is the hand-off:
+  # import at mymaps.google.com and the map (all stops, layered by day)
+  # appears in Google Maps under Saved → Maps.
+  def stops_kml
+    authorize @trip, :show?
+    send_data TripKmlBuilder.new(@trip).to_kml,
+              type: "application/vnd.google-earth.kml+xml; charset=utf-8",
+              filename: "#{@trip.title.parameterize.presence || 'trip'}-stops.kml",
+              disposition: "attachment"
   end
 
   # GET /trips/:id/checklist — sectioned checklist (Before trip / By day / By activity)
