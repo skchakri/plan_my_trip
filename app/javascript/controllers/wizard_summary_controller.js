@@ -31,28 +31,41 @@ export default class extends Controller {
   _render() {
     const val = (name) => this.element.querySelector(`[name="wizard[${name}]"]`)?.value?.trim() || ""
 
-    if (this.hasDestinationTarget) this.destinationTarget.textContent = val("destination") || "—"
-    if (this.hasDatesTarget) this.datesTarget.textContent = this._dateRange(val("start_date"), val("end_date"))
-    if (this.hasTravelersTarget) this.travelersTarget.textContent = val("traveler_count") || "—"
+    // The rail is an aria-live region: only touch the DOM when a value
+    // actually changed, or screen readers re-announce the card on every
+    // keystroke anywhere in the form.
+    if (this.hasDestinationTarget) this._setText(this.destinationTarget, val("destination") || "—")
+    if (this.hasDatesTarget) this._setText(this.datesTarget, this._dateRange(val("start_date"), val("end_date")))
+    if (this.hasTravelersTarget) this._setText(this.travelersTarget, val("traveler_count") || "—")
 
     const mode = this.element.querySelector('input[name="wizard[transport_mode]"]:checked')?.value
-    if (this.hasModeTarget) this.modeTarget.textContent = (mode && this.modeLabelsValue[mode]) || "Not set yet"
+    if (this.hasModeTarget) this._setText(this.modeTarget, (mode && this.modeLabelsValue[mode]) || "Not set yet")
 
     const driving = DRIVING_MODES.includes(mode)
-    if (this.hasDriveNoteTarget) this.driveNoteTarget.hidden = !driving
-    if (this.hasDriveHintTarget) this.driveHintTarget.hidden = !driving
+    if (this.hasDriveNoteTarget && this.driveNoteTarget.hidden === driving) this.driveNoteTarget.hidden = !driving
+    if (this.hasDriveHintTarget && this.driveHintTarget.hidden === driving) this.driveHintTarget.hidden = !driving
 
     this._renderFavourites()
   }
 
+  _setText(target, text) {
+    if (target.textContent !== text) target.textContent = text
+  }
+
   _renderFavourites() {
     if (!this.hasFavouritesTarget) return
-    // Committed chips are hidden inputs; the visible text input shares the
-    // name so an uncommitted entry still previews (and submits) too.
-    const values = Array.from(this.element.querySelectorAll('input[name="wizard[must_includes][]"]'))
+    // Committed chips only (hidden inputs). The visible text input shares the
+    // name so an uncommitted entry still SUBMITS, but it is excluded here —
+    // previewing it per keystroke would spam the aria-live region.
+    const values = Array.from(this.element.querySelectorAll('input[type="hidden"][name="wizard[must_includes][]"]'))
       .map(input => input.value.trim())
       .filter(Boolean)
       .filter((v, i, all) => all.indexOf(v) === i)
+
+    // Same live-region rule: rebuild the list only when it changed.
+    const key = JSON.stringify(values)
+    if (key === this._lastFavourites) return
+    this._lastFavourites = key
 
     this.favouritesTarget.replaceChildren(...values.map(v => {
       const li = document.createElement("li")
