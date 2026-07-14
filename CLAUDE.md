@@ -90,8 +90,18 @@ Don't stand up another Postgres locally for this app. See workspace
   `pwa_plan_url`, `pwa_packing_url`, `discarded_at`. Owner via `owner_id`.
   Planning levers fed to the itinerary builder: `pace` (relaxed/balanced/
   packed), `budget` (shoestring/moderate/comfortable/luxury), `preferences`
-  (free-form: dietary, accessibility, must-dos, avoids). Async build lifecycle:
-  `build_status` (building/ready/failed, default ready), `build_error`.
+  (free-form: dietary, accessibility, must-dos, avoids), `transport_mode`
+  (own_car/rental/flying/mixed, labels in `TRANSPORT_MODE_LABELS`), and
+  `must_includes` (jsonb array, capped at `MUST_INCLUDES_MAX`=12 —
+  traveler-mandated anchors like "Disneyland — 2 days"; trip_structure.v1
+  schedules every one honoring stated durations, and for drive modes + origin
+  plans famous en-route stops as timed activities). Wizard step 1 collects
+  both and mirrors them in a live right-rail summary
+  (`wizard_summary_controller.js`, aria-live-safe diffed writes); the
+  highlights step pre-selects + badges fuzzy-matched cards ("Disney" →
+  "Disneyland Park", first visit only, saved selections never overridden) and
+  lists unmatched favourites in an "Already in your plan" strip. Async build
+  lifecycle: `build_status` (building/ready/failed, default ready), `build_error`.
 - **TripMembership** — join between Trip and User with `role` (owner/member)
   and `custom_title` (per-user title override). Created automatically for
   the owner on Trip creation; created by `TripSharesController#create` for
