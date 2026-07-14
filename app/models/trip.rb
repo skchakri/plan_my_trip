@@ -15,6 +15,24 @@ class Trip < ApplicationRecord
   # "" rather than nil, so allow_nil alone rejected an unspecified mode.
   validates :transport_mode, inclusion: { in: TRANSPORT_MODES }, allow_blank: true
 
+  # Human labels for TRANSPORT_MODES, shared by the wizard summary/review and
+  # any other UI that displays the mode.
+  TRANSPORT_MODE_LABELS = {
+    "own_car" => "Driving — own car",
+    "rental"  => "Driving — rental car",
+    "flying"  => "Flying",
+    "mixed"   => "Fly + drive"
+  }.freeze
+
+  # Traveler-mandated anchors from the wizard ("Disneyland — 2 days",
+  # "a beach day"). Hard constraints for TripStructureBuilder: every entry
+  # must appear in the plan, honoring any stated duration.
+  MUST_INCLUDES_MAX = 12
+
+  def must_includes=(value)
+    super(Array(value).map { |v| v.to_s.strip }.reject(&:blank?).uniq.first(MUST_INCLUDES_MAX))
+  end
+
   # Self-declared fuel economy (mpg) for the group's own car. Feeds the
   # road-trip fuel + drive-time estimator (RoadTripEstimator). Nullable;
   # a default is used (and labelled an estimate) when blank.

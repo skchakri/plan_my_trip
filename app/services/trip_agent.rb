@@ -140,6 +140,7 @@ class TripAgent
     lines << "Pace: #{@trip.pace}"   if @trip.pace.present?
     lines << "Budget: #{@trip.budget}" if @trip.budget.present?
     lines << "Transport: #{@trip.transport_mode}" if @trip.transport_mode.present?
+    lines << "Must-includes: #{Array(@trip.must_includes).join('; ')}" if Array(@trip.must_includes).any?
     lines << "Preferences: #{@trip.preferences}" if @trip.preferences.present?
     lines.join("\n")
   end

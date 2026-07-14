@@ -19,7 +19,9 @@ module Trips
     end
 
     def save_destination
-      attrs = params.require(:wizard).permit(:title, :origin, :destination, :start_date, :end_date, :departure_time, :return_time, :traveler_count, :place_id, :destination_lat, :destination_lng, :pace, :budget, :preferences)
+      attrs = params.require(:wizard).permit(:title, :origin, :destination, :start_date, :end_date, :departure_time, :return_time, :traveler_count, :place_id, :destination_lat, :destination_lng, :pace, :budget, :preferences, :transport_mode, must_includes: [])
+      attrs[:transport_mode] = nil unless Trip::TRANSPORT_MODES.include?(attrs[:transport_mode])
+      attrs[:must_includes] = Array(attrs[:must_includes]).map { |v| v.to_s.strip }.reject(&:blank?).uniq.first(Trip::MUST_INCLUDES_MAX)
       errors = validate_destination(attrs)
       if errors.any?
         @draft = @draft.merge(attrs.to_h)
@@ -158,6 +160,7 @@ module Trips
         departure_time: @draft["departure_time"].presence,
         return_time: @draft["return_time"].presence,
         transport_mode: @draft["transport_mode"].presence,
+        must_includes: Array(@draft["must_includes"]),
         pace: @draft["pace"].presence,
         budget: @draft["budget"].presence,
         preferences: @draft["preferences"].presence,

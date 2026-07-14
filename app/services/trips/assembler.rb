@@ -52,6 +52,7 @@ module Trips
         people: people_payload,
         highlights: @highlights,
         transport_mode: @trip.transport_mode,
+        must_includes: @trip.must_includes,
         pace: @trip.pace,
         budget: @trip.budget,
         preferences: @trip.preferences

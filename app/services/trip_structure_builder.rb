@@ -15,7 +15,7 @@ class TripStructureBuilder
     new(...).call
   end
 
-  def initialize(destination:, origin: nil, start_date:, end_date:, people: [], highlights: [], transport_mode: nil, pace: nil, budget: nil, preferences: nil)
+  def initialize(destination:, origin: nil, start_date:, end_date:, people: [], highlights: [], transport_mode: nil, must_includes: [], pace: nil, budget: nil, preferences: nil)
     @destination = destination.to_s.strip
     @origin = origin.to_s.strip
     @start_date = parse_date(start_date)
@@ -23,6 +23,7 @@ class TripStructureBuilder
     @people = people || []
     @highlights = highlights || []
     @transport_mode = transport_mode.to_s.presence
+    @must_includes = Array(must_includes).map { |m| m.to_s.strip }.reject(&:blank?)
     @pace = pace.to_s.presence
     @budget = budget.to_s.presence
     @preferences = preferences.to_s.strip.presence
@@ -55,6 +56,7 @@ class TripStructureBuilder
       end_date_label: @end_date.strftime("%A %b %-d, %Y"),
       day_count: day_count,
       transport_mode: @transport_mode,
+      must_includes: @must_includes,
       pace: @pace,
       budget: @budget,
       preferences: @preferences,
@@ -110,7 +112,8 @@ class TripStructureBuilder
     # back with the same three activities seven times. Days that don't land a
     # highlight get a single open "explore" slot instead.
     buckets = Array.new(day_count) { [] }
-    @highlights.each_with_index { |h, idx| buckets[idx % day_count] << h }
+    anchors = @must_includes.map { |m| { name: m, summary: "Must-include favourite" } }
+    (anchors + @highlights).each_with_index { |h, idx| buckets[idx % day_count] << h }
     times = [ "9:00 AM", "12:30 PM", "4:00 PM", "6:30 PM" ]
 
     days = (0...day_count).map do |i|

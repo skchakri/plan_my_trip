@@ -15,7 +15,12 @@
 
 <%= render "trips/wizard/progress", step: 1 %>
 
-<%= form_with url: wizard_destination_path, method: :post, scope: :wizard, class: "space-y-6" do |f| %>
+<% draft_musts = Array(@draft["must_includes"]).map { |m| m.to_s.strip }.reject(&:blank?) %>
+<div class="lg:grid lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-6 lg:items-start"
+     data-controller="wizard-summary"
+     data-wizard-summary-mode-labels-value="<%= Trip::TRANSPORT_MODE_LABELS.to_json %>"
+     data-action="input->wizard-summary#refresh change->wizard-summary#refresh click->wizard-summary#refresh keydown->wizard-summary#refresh">
+<%= form_with url: wizard_destination_path, method: :post, scope: :wizard, class: "space-y-6 min-w-0" do |f| %>
   <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 sm:p-6 space-y-5">
     <div data-controller="place-autocomplete"
          data-place-autocomplete-search-url-value="<%= search_places_path %>"
@@ -50,9 +55,29 @@
     </div>
 
     <div>
-      <%= f.label :origin, "Origin (for flight search)", class: label_classes %>
+      <%= f.label :origin, "Leaving from", class: label_classes %>
       <%= f.text_field :origin, value: @draft["origin"], placeholder: "e.g. SLC or Salt Lake City", class: input_classes %>
+      <p class="text-[11px] text-slate-400 mt-1.5">Home base — where the trip starts. Powers flight search and road-trip routing.</p>
     </div>
+
+    <fieldset class="border-0 p-0 m-0">
+      <legend class="<%= label_classes %>">Getting there</legend>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <% [["own_car", :car, "Drive", "your own car"], ["rental", :car, "Rental car", "pick up wheels"], ["flying", :plane, "Fly", "airport to airport"], ["mixed", :plane, "Fly + drive", "flight, then a car"]].each do |val, icon_name, title, hint| %>
+          <label class="cursor-pointer">
+            <input type="radio" name="wizard[transport_mode]" value="<%= val %>" <%= "checked" if @draft["transport_mode"] == val %> class="peer sr-only">
+            <span class="flex flex-col items-center gap-1 rounded-lg border border-slate-700 bg-slate-800/60 px-2 py-2.5 min-h-[44px] text-center peer-checked:border-amber-500/60 peer-checked:bg-amber-500/10 peer-checked:text-amber-100 peer-focus-visible:outline-2 peer-focus-visible:outline-amber-400 hover:border-amber-500/40 transition-colors">
+              <%= icon icon_name, class: "w-4 h-4 text-slate-400" %>
+              <span class="block text-sm font-semibold leading-tight"><%= title %></span>
+              <span class="block text-[11px] text-slate-400 leading-tight"><%= hint %></span>
+            </span>
+          </label>
+        <% end %>
+      </div>
+      <p class="text-[11px] text-amber-200/80 mt-1.5" data-wizard-summary-target="driveHint" hidden>
+        Road trip picked — we'll fold the famous stops along your route into the day-by-day plan.
+      </p>
+    </fieldset>
 
     <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
       <div>
@@ -83,6 +108,33 @@
     <div>
       <%= f.label :title, "Trip title (optional)", class: label_classes %>
       <%= f.text_field :title, value: @draft["title"], placeholder: "We'll auto-name it if you skip", class: input_classes %>
+    </div>
+  </div>
+
+  <%# ---- Must-include favourites: hard anchors the plan is built around ---- %>
+  <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 sm:p-6">
+    <p class="text-[11px] uppercase tracking-[0.18em] text-amber-400/90 font-semibold">Must include <span class="text-slate-400 normal-case tracking-normal font-normal">optional · we'll build the plan around these</span></p>
+    <p class="text-sm text-slate-400 mt-1.5">Favourites this trip has to have. Add a duration and we'll allocate it — e.g. “Disneyland — 2 days”, “Yosemite”, “a beach day”.</p>
+    <div data-controller="interests-input" data-interests-input-name-value="wizard[must_includes][]">
+      <div data-interests-input-target="chips"
+           class="mt-3 flex flex-wrap items-center gap-2 rounded-lg bg-slate-800/70 border border-slate-700 px-3 py-2.5 focus-within:border-amber-500 transition-colors">
+        <% draft_musts.each do |m| %>
+          <span data-interests-input-target="chip" data-value="<%= m %>" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs bg-amber-500/20 border border-amber-500/50 text-amber-200">
+            <input type="hidden" name="wizard[must_includes][]" value="<%= m %>">
+            <%= m %>
+            <button type="button" class="text-amber-200/70 hover:text-rose-300 ml-0.5 cursor-pointer leading-none" aria-label="Remove <%= m %>" data-action="interests-input#removeChip">×</button>
+          </span>
+        <% end %>
+        <input type="text" name="wizard[must_includes][]"
+               data-interests-input-target="newInput"
+               data-action="keydown->interests-input#keydown blur->interests-input#commit"
+               placeholder="<%= draft_musts.any? ? "Add another…" : "Type one, press Enter — e.g. Disneyland — 2 days" %>"
+               aria-label="Add a must-include favourite"
+               autocomplete="off"
+               class="flex-1 min-w-40 bg-transparent border-0 p-0 py-1 text-sm text-slate-100 placeholder-slate-500 focus:ring-0 focus:outline-none">
+      </div>
+      <%# Blank marker so removing every chip still submits the (empty) list. %>
+      <input type="hidden" name="wizard[must_includes][]" value="" data-interests-input-target="emptyMarker">
     </div>
   </div>
 
@@ -132,3 +184,39 @@
     <%= f.submit "Continue → Travelers", class: "inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-amber-500 text-slate-950 font-semibold shadow-lg shadow-amber-500/20 hover:bg-amber-400 transition-colors cursor-pointer" %>
   </div>
 <% end %>
+
+<%# ---- Live "your trip so far" summary — desktop right rail ---- %>
+<aside class="hidden lg:block lg:sticky lg:top-6 mt-6 lg:mt-0" aria-label="Trip summary" aria-live="polite">
+  <div class="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 space-y-4">
+    <p class="text-[11px] uppercase tracking-[0.18em] text-amber-400/90 font-semibold flex items-center gap-1.5">
+      <%= icon :compass, class: "w-3.5 h-3.5" %> Your trip so far
+    </p>
+    <dl class="space-y-3 text-sm">
+      <div>
+        <dt class="text-[11px] uppercase tracking-widest text-slate-400">Destination</dt>
+        <dd class="text-slate-100 font-medium mt-0.5" data-wizard-summary-target="destination">—</dd>
+      </div>
+      <div>
+        <dt class="text-[11px] uppercase tracking-widest text-slate-400">Dates</dt>
+        <dd class="text-slate-100 mt-0.5" data-wizard-summary-target="dates">—</dd>
+      </div>
+      <div>
+        <dt class="text-[11px] uppercase tracking-widest text-slate-400">Travelers</dt>
+        <dd class="text-slate-100 mt-0.5" data-wizard-summary-target="travelers">—</dd>
+      </div>
+      <div>
+        <dt class="text-[11px] uppercase tracking-widest text-slate-400">Getting there</dt>
+        <dd class="text-slate-100 mt-0.5" data-wizard-summary-target="mode">Not set yet</dd>
+      </div>
+    </dl>
+    <div>
+      <p class="text-[11px] uppercase tracking-widest text-slate-400">Must include</p>
+      <ul class="mt-1.5 flex flex-wrap gap-1.5" data-wizard-summary-target="favourites" hidden></ul>
+      <p class="text-xs text-slate-400 mt-1" data-wizard-summary-target="favouritesEmpty">Nothing yet — favourites you add will pin here.</p>
+    </div>
+    <p class="text-[11px] text-slate-400 border-t border-slate-800 pt-3" data-wizard-summary-target="driveNote" hidden>
+      Driving? We'll break the drive into legs and plan the famous stops along the way.
+    </p>
+  </div>
+</aside>
+</div>

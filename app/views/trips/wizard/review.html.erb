@@ -39,7 +39,24 @@
           <% end %>
         </dd>
       </div>
+      <% if @draft["transport_mode"].present? %>
+        <div>
+          <dt class="text-slate-400 text-[11px] uppercase tracking-widest">Getting there</dt>
+          <dd class="text-slate-100"><%= Trip::TRANSPORT_MODE_LABELS[@draft["transport_mode"]] || @draft["transport_mode"] %></dd>
+        </div>
+      <% end %>
     </dl>
+    <% musts = Array(@draft["must_includes"]).map { |m| m.to_s.strip }.reject(&:blank?) %>
+    <% if musts.any? %>
+      <div class="mt-4 pt-3 border-t border-slate-800">
+        <p class="text-slate-400 text-[11px] uppercase tracking-widest mb-1.5">Must include <span class="normal-case tracking-normal">· the plan is built around these</span></p>
+        <ul class="flex flex-wrap gap-1.5">
+          <% musts.each do |m| %>
+            <li class="inline-flex items-center px-2.5 py-1 rounded-full text-xs bg-amber-500/20 border border-amber-500/50 text-amber-200"><%= m %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
   </section>
 
   <%# Travelers %>

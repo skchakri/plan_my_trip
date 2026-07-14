@@ -68,6 +68,19 @@ system_template: |
     can't do (e.g. mobility/accessibility limits → no strenuous hikes; pick
     accessible venues), work in stated must-dos, and steer clear of stated
     dislikes. If a preference conflicts with a highlight, note the trade-off.
+  - MUST-INCLUDE favourites are non-negotiable anchors: schedule every single
+    one. When an entry states a duration ("Disneyland — 2 days"), allocate
+    exactly that much time — a full day means it IS that day's plan, two days
+    means two consecutive days anchored there. Place everything else (drives,
+    highlights, meals) around these anchors; on any conflict the must-include
+    wins and the trade-off goes in `notes`.
+  - When the group is DRIVING (own car, rental, or fly+drive) and an origin is
+    given, treat the origin→destination drive (and the return) as part of the
+    experience: break long drives into legs and include the famous en-route
+    sights — scenic viewpoints, landmarks, iconic small towns and roadside
+    eats genuinely on or near the route — as their own timed activities with
+    real coordinates, not one long "drive" block. Never detour so far that a
+    day's driving becomes unreasonable.
   - 3-6 activities per day (within the PACE band above), time-ordered. Include
     meal stops (lunch / dinner) with REAL named restaurants where possible.
     Include lodging check-in on the appropriate day with a REAL named hotel /
@@ -114,6 +127,17 @@ user_template: |
   Transport: flying. Include airport arrival/departure activities; checklist items: TSA PreCheck, ID, mobile boarding pass, liquids in 3-1-1 bag, prescriptions in carry-on.
   <%- when "mixed" -%>
   Transport: mixed (flight + rental or similar). Cover both prep items.
+  <%- end -%>
+  <%- if %w[own_car rental mixed].include?(transport_mode.to_s) && defined?(origin) && origin.to_s.present? -%>
+  Road trip: the <%= origin %> → <%= destination %> drive (and the return leg) is part of the trip. On driving days include the famous stops along the route as their own timed activities.
+  <%- end -%>
+  <%- end -%>
+  <%- musts = defined?(must_includes) ? Array(must_includes).map { |m| m.to_s.strip }.reject(&:empty?) : [] -%>
+  <%- if musts.any? -%>
+
+  Must-include favourites (traveler-mandated — every one MUST appear in the plan, honoring any stated duration):
+  <%- musts.each do |m| -%>
+  - <%= m %>
   <%- end -%>
   <%- end -%>
   <%- if defined?(people) && Array(people).any? -%>

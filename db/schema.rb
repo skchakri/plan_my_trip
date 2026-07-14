@@ -10,9 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-
-ActiveRecord::Schema[8.1].define(version: 2026_06_24_120000) do
-
+ActiveRecord::Schema[8.1].define(version: 2026_07_14_160000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -502,6 +500,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_24_120000) do
     t.string "inbox_token"
     t.jsonb "interests", default: [], null: false
     t.integer "max_radius_km"
+    t.jsonb "must_includes", default: [], null: false
     t.string "origin"
     t.uuid "owner_id", null: false
     t.string "pace"
