@@ -59,6 +59,24 @@
     <% end %>
   </section>
 
+  <%# Weather for the drafted dates — lazy frame so the Open-Meteo call never
+      blocks the review page; collapses to nothing if unavailable. The
+      partial's mb-6 sits inside the space-y-4 flow, matching other cards. %>
+  <% if @draft["destination"].present? && start_d && end_d %>
+    <%= turbo_frame_tag "wizard-weather", src: wizard_weather_path, loading: :lazy,
+          data: { controller: "frame-timeout", frame_timeout_timeout_value: 45000 } do %>
+      <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 sm:p-6 animate-pulse" aria-busy="true">
+        <div class="h-3 w-24 bg-slate-800 rounded mb-3.5"></div>
+        <div class="flex gap-2 overflow-hidden">
+          <div class="h-28 w-24 bg-slate-800/70 rounded-xl shrink-0"></div>
+          <div class="h-28 w-24 bg-slate-800/70 rounded-xl shrink-0"></div>
+          <div class="h-28 w-24 bg-slate-800/70 rounded-xl shrink-0"></div>
+          <div class="h-28 w-24 bg-slate-800/70 rounded-xl shrink-0"></div>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
+
   <%# Travelers %>
   <section class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 sm:p-6">
     <div class="flex items-start justify-between gap-3 mb-3">

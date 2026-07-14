@@ -20,6 +20,9 @@ Rails.application.routes.draw do
     post "highlights",  action: :save_highlights
     get  "highlights/:slug/details", action: :highlight_details, as: :wizard_highlight_details
     get  "review",      action: :review,           as: :wizard_review
+    # Lazy turbo-frame body: per-day weather for the drafted dates, loaded
+    # off the review page so the Open-Meteo call never blocks it.
+    get  "weather",     action: :weather,          as: :wizard_weather
     post "",            action: :create,           as: :wizard_create
     delete "",          action: :reset,            as: :wizard_reset
   end
@@ -99,6 +102,7 @@ Rails.application.routes.draw do
       get :edit_plan
       get :brief
       get :road_trip_stats
+      get :weather
       get :checklist
       get :copilot
       get :copilot_question

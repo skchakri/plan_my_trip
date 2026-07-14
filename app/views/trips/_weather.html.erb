@@ -1,0 +1,63 @@
+<%# Per-day weather strip (WeatherReport / Open-Meteo). Rendered lazily into
+    the "trip-weather" frame on trips/show and "wizard-weather" on the wizard
+    review step. `report` nil (bad destination, API down) → the frame simply
+    collapses to nothing. Days within 16 days carry a live forecast; further
+    out we show "typical" conditions averaged from past years — labelled as
+    such, never passed off as a forecast. %>
+<% frame_id = local_assigns.fetch(:frame_id, "trip-weather") %>
+<% margin = local_assigns.fetch(:margin, "mb-6") %>
+<%= turbo_frame_tag frame_id do %>
+  <% if report&.days&.any? %>
+    <%
+      badge =
+        if report.sources == [ :forecast ]
+          "live forecast"
+        elsif report.sources.include?(:forecast)
+          "forecast + typical"
+        elsif report.sources == [ :recorded ]
+          "recorded"
+        else
+          "typical for these dates"
+        end
+    %>
+    <section class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 sm:p-6 <%= margin %>">
+      <div class="flex items-center justify-between gap-3 flex-wrap mb-3.5">
+        <p class="text-[11px] uppercase tracking-[0.18em] text-amber-400 font-medium inline-flex items-center gap-2">
+          <%= icon :sun, class: "w-3.5 h-3.5" %> Weather
+        </p>
+        <span class="text-[10px] uppercase tracking-widest px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700"><%= badge %></span>
+      </div>
+
+      <div class="flex gap-2 overflow-x-auto pb-1.5 -mx-1 px-1">
+        <% report.days.each do |day| %>
+          <div class="shrink-0 w-[96px] rounded-xl bg-slate-800/40 border border-slate-700/50 px-2 py-3 text-center">
+            <p class="text-[11px] uppercase tracking-widest text-slate-400 font-semibold"><%= day.date.strftime("%a") %></p>
+            <p class="text-xs text-slate-400 mt-0.5 tabular-nums"><%= day.date.strftime("%b %-d") %></p>
+            <p class="text-2xl leading-none my-2"><span role="img" aria-label="<%= day.label %>"><%= day.emoji %></span></p>
+            <p class="text-sm font-semibold text-slate-100 tabular-nums"><%= day.high_f %>°<span class="text-slate-400 font-normal"> / <%= day.low_f %>°</span></p>
+            <p class="text-[11px] text-slate-400 mt-1 leading-tight"><%= day.label %></p>
+            <% if day.precip_chance.to_i >= 20 %>
+              <p class="text-[11px] text-sky-300 mt-1 tabular-nums">💧 <%= day.precip_chance %>%</p>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+
+      <p class="text-[11px] text-slate-400 mt-3 leading-relaxed">
+        <% if report.sources.include?(:forecast) && report.sources.include?(:typical) %>
+          The next 16 days are a live forecast; later days show typical conditions for the date, from the past <%= WeatherReport::CLIMATE_YEARS %> years.
+        <% elsif report.sources == [ :typical ] %>
+          Too far out for a live forecast — these are typical conditions for these dates over the past <%= WeatherReport::CLIMATE_YEARS %> years. A live forecast appears within 16 days of the trip.
+        <% elsif report.sources == [ :recorded ] %>
+          Recorded conditions for these dates.
+        <% else %>
+          Live forecast, refreshed every few hours.
+        <% end %>
+        Temperatures in °F · data by Open-Meteo.
+        <% if report.truncated_days.positive? %>
+          Showing the first <%= WeatherReport::MAX_DAYS %> days (<%= report.truncated_days %> more not shown).
+        <% end %>
+      </p>
+    </section>
+  <% end %>
+<% end %>

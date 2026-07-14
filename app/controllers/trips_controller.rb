@@ -1,7 +1,7 @@
 class TripsController < ApplicationController
   include MarkdownHelper
 
-  before_action :set_trip, only: %i[show edit update destroy rename archive plan checklist copilot copilot_question copilot_response concierge concierge_edit duplicate calendar wallet printable rebuild skip_build edit_plan brief road_trip_stats]
+  before_action :set_trip, only: %i[show edit update destroy rename archive plan checklist copilot copilot_question copilot_response concierge concierge_edit duplicate calendar wallet printable rebuild skip_build edit_plan brief road_trip_stats weather]
   before_action :set_owned_trip, only: %i[restore destroy_permanently]
 
   def index
@@ -178,6 +178,26 @@ class TripsController < ApplicationController
     render partial: "trips/road_trip_stats",
            locals: { stats: @stats, detail: params[:detail].present? },
            layout: false
+  end
+
+  # GET /trips/:id/weather — lazy turbo-frame target: per-day weather strip
+  # for the trip's dates (WeatherReport / Open-Meteo, cached). Loaded off the
+  # trip page so geocode + API latency never blocks it; a nil report renders
+  # an empty frame. Guarded like the other lazy frames — never a 500.
+  def weather
+    authorize @trip, :show?
+    report =
+      begin
+        WeatherReport.call(
+          destination: @trip.destination,
+          start_date: @trip.start_date,
+          end_date: @trip.end_date
+        )
+      rescue StandardError => e
+        Rails.logger.warn("[TripsController#weather] trip=#{@trip.id}: #{e.class}: #{e.message}")
+        nil
+      end
+    render partial: "trips/weather", locals: { report: report }, layout: false
   end
 
   # GET /trips/:id/checklist — sectioned checklist (Before trip / By day / By activity)

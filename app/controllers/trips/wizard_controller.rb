@@ -142,6 +142,30 @@ module Trips
       @selected_highlights = selected_highlights_from_cache
     end
 
+    # GET /trip_wizard/weather — lazy turbo-frame target on the review step:
+    # per-day weather for the drafted destination + dates (WeatherReport /
+    # Open-Meteo). The draft already carries geocoded destination coords, so
+    # this usually skips the geocoder entirely. A nil report renders an empty
+    # frame — never a 500 the frame can't recover from.
+    def weather
+      report =
+        begin
+          WeatherReport.call(
+            destination: @draft["destination"],
+            start_date: @draft["start_date"],
+            end_date: @draft["end_date"],
+            lat: @draft["destination_lat"],
+            lng: @draft["destination_lng"]
+          )
+        rescue StandardError => e
+          Rails.logger.warn("[Trips::WizardController#weather] #{e.class}: #{e.message}")
+          nil
+        end
+      render partial: "trips/weather",
+             locals: { report: report, frame_id: "wizard-weather", margin: "" },
+             layout: false
+    end
+
     # Persist a Trip *shell* immediately (status: building) and hand the slow
     # AI assembly (structured itinerary + route landmarks, minutes long) to
     # BuildTripJob. The user is redirected to the trip page right away, which
