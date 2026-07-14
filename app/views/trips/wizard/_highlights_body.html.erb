@@ -97,6 +97,27 @@
         <span><%= @highlights.size %> spots curated for you · <strong class="text-amber-200/90" data-highlight-detail-target="selectedCount" data-empty="<%= selected_slugs_now.empty? %>"><%= selected_slugs_now.size %></strong> in your plan</span>
       </div>
 
+      <%# ---- Must-include favourites from step 1: matched ones are pre-selected
+          below; unmatched ones are still anchored in the itinerary the AI builds,
+          so say so instead of letting them look forgotten. ---- %>
+      <% musts = Array(@draft["must_includes"]).map { |m| m.to_s.strip }.reject(&:blank?) %>
+      <% if musts.any? %>
+        <div class="rounded-xl border border-amber-500/20 bg-amber-500/[0.04] px-4 py-3 mb-4">
+          <p class="text-[11px] uppercase tracking-[0.18em] text-amber-400/90 font-semibold mb-1.5">Already in your plan</p>
+          <ul class="flex flex-wrap gap-1.5">
+            <% matched = (@must_slug_map || {}).values %>
+            <% musts.each do |m| %>
+              <li class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs bg-amber-500/20 border border-amber-500/50 text-amber-200">
+                <%= icon(matched.include?(m) ? :check : :map_pin, class: "w-3 h-3") %>
+                <%= m %>
+                <% if matched.include?(m) %><span class="text-amber-200/70">· selected below</span><% end %>
+              </li>
+            <% end %>
+          </ul>
+          <p class="text-[11px] text-slate-400 mt-1.5">Your step-1 favourites are built into the itinerary either way — matching spots below start selected.</p>
+        </div>
+      <% end %>
+
       <%# ---- Map of all highlight points ---- %>
       <%
         map_points = @highlights.filter_map do |h|
@@ -173,6 +194,11 @@
                 <img src="<%= img_src %>" alt="<%= h.name %>" loading="lazy" class="absolute inset-0 w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500" referrerpolicy="no-referrer">
                 <div class="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/10 to-transparent"></div>
                 <div class="absolute top-3 left-3 flex flex-col items-start gap-1.5 z-10">
+                  <% if @must_slug_map&.key?(h.slug) %>
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-widest font-semibold bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/30">
+                      <%= icon :star, class: "w-3 h-3" %> Must include
+                    </span>
+                  <% end %>
                   <%= place_rank_chip(h) %>
                   <%= place_tier_badge(h) %>
                 </div>
