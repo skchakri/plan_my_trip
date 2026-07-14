@@ -1,7 +1,7 @@
 class TripsController < ApplicationController
   include MarkdownHelper
 
-  before_action :set_trip, only: %i[show edit update destroy rename archive plan checklist copilot copilot_question copilot_response concierge concierge_edit duplicate calendar wallet printable rebuild skip_build edit_plan brief road_trip_stats weather]
+  before_action :set_trip, only: %i[show edit update destroy rename archive plan checklist copilot copilot_question copilot_response concierge concierge_edit duplicate calendar wallet printable rebuild skip_build edit_plan brief road_trip_stats weather day_weather]
   before_action :set_owned_trip, only: %i[restore destroy_permanently]
 
   def index
@@ -198,6 +198,32 @@ class TripsController < ApplicationController
         nil
       end
     render partial: "trips/weather", locals: { report: report }, layout: false
+  end
+
+  # GET /trips/:id/day_weather/:day_id — lazy day-header chip: ONE day's
+  # weather at that day's own coordinates (a road trip's days happen in
+  # different places, so the trip-level destination would be wrong for most
+  # of them). Same guarantees as #weather: cached WeatherReport (3h TTL for
+  # live forecasts, so the chip self-refreshes on the day), never a 500,
+  # nil → empty frame.
+  def day_weather
+    authorize @trip, :show?
+    day = @trip.trip_days.find_by(id: params[:day_id])
+    report =
+      begin
+        if day&.date
+          lat, lng = day.representative_coords
+          WeatherReport.call(
+            destination: @trip.destination,
+            start_date: day.date, end_date: day.date,
+            lat: lat, lng: lng
+          )
+        end
+      rescue StandardError => e
+        Rails.logger.warn("[TripsController#day_weather] trip=#{@trip.id} day=#{params[:day_id]}: #{e.class}: #{e.message}")
+        nil
+      end
+    render partial: "trips/day_weather_chip", locals: { day: day, report: report }, layout: false
   end
 
   # GET /trips/:id/checklist — sectioned checklist (Before trip / By day / By activity)

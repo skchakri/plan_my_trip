@@ -1,0 +1,21 @@
+<%# Compact weather chip for one plan-day header (lazy turbo-frame).
+    `report` is a single-day WeatherReport at the day's own coordinates —
+    nil (no date, no coords, API down) collapses the frame to nothing.
+    Live forecasts are cached 3h, so the chip self-refreshes on the day;
+    far-out days show "typical" conditions and say so. %>
+<%= turbo_frame_tag "day-weather-#{day&.id}" do %>
+  <% wday = report&.days&.first %>
+  <% if wday %>
+    <span class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-slate-700 bg-slate-900/60 text-xs text-slate-200"
+          title="<%= wday.label %><%= " · #{wday.precip_chance}% chance of rain" if wday.precip_chance.to_i >= 20 %><%= " · typical for this date" if wday.source == :typical %>">
+      <span role="img" aria-label="<%= wday.label %>"><%= wday.emoji %></span>
+      <span class="tabular-nums font-semibold"><%= wday.high_f %>°<span class="text-slate-400 font-normal">/<%= wday.low_f %>°</span></span>
+      <% if wday.precip_chance.to_i >= 20 %>
+        <span class="text-sky-300 tabular-nums">💧<%= wday.precip_chance %>%</span>
+      <% end %>
+      <% if wday.source == :typical %>
+        <span class="text-[10px] uppercase tracking-widest text-slate-400">typical</span>
+      <% end %>
+    </span>
+  <% end %>
+<% end %>

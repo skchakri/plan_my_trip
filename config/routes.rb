@@ -103,6 +103,9 @@ Rails.application.routes.draw do
       get :brief
       get :road_trip_stats
       get :weather
+      # Lazy per-day-header chip: one day's weather at the day's own
+      # location (road-trip days happen in different places).
+      get "day_weather/:day_id", action: :day_weather, as: :day_weather
       get :checklist
       get :copilot
       get :copilot_question
@@ -114,6 +117,8 @@ Rails.application.routes.draw do
       post   :share_link_rotate, to: "public_trips#rotate",  as: :rotate_public_share
       post   :duplicate
       get    :calendar, defaults: { format: :ics }, constraints: { format: :ics }
+      # /trips/:id/stops.kml — all mapped stops for Google My Maps import.
+      get    :stops, to: "trips#stops_kml", defaults: { format: :kml }, constraints: { format: :kml }
       get    :wallet
       get    :printable
     end
