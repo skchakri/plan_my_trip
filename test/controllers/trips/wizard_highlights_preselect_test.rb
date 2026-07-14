@@ -10,7 +10,7 @@ class Trips::WizardHighlightsPreselectTest < ActionDispatch::IntegrationTest
   end
 
   test "first visit pre-selects highlights matching must-includes and badges them" do
-    draft!("must_includes" => [ "Disneyland — 2 days", "Yosemite", "LA beach" ])
+    draft!("must_includes" => [ "Disney — 2 days", "Yosemite", "LA beach" ])
     with_stubbed_research([ hl("disneyland-park", "Disneyland Park"), hl("yosemite-np", "Yosemite National Park"), hl("golden-gate", "Golden Gate Bridge") ]) do
       get wizard_highlights_results_path
     end

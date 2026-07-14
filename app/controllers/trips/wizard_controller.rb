@@ -305,14 +305,22 @@ module Trips
       end
     end
 
-    # "Disneyland — 2 days" matches "Disneyland Park": strip any duration
-    # suffix, then accept an exact or whole-word containment either way.
+    # "Disneyland — 2 days" matches "Disneyland Park", and "Disney" matches
+    # "Disneyland": strip any duration suffix, then accept an exact match,
+    # whole-word containment either way, or all favourite tokens prefixing
+    # highlight tokens ("disney" → "disneyland"). Every token must land (so
+    # "LA beach" won't grab every beach) and one must be ≥4 chars.
     def must_include_matches?(must, name)
       a = normalized_must(must)
       b = name.to_s.downcase.strip
       return false if a.length < 3 || b.blank?
       return true if a == b
-      b.match?(/\b#{Regexp.escape(a)}\b/) || a.match?(/\b#{Regexp.escape(b)}\b/)
+      return true if b.match?(/\b#{Regexp.escape(a)}\b/) || a.match?(/\b#{Regexp.escape(b)}\b/)
+
+      a_tokens = a.split(/[^a-z0-9]+/).reject(&:empty?)
+      return false if a_tokens.none? { |t| t.length >= 4 }
+      b_tokens = b.split(/[^a-z0-9]+/)
+      a_tokens.all? { |t| b_tokens.any? { |bt| bt.start_with?(t) } }
     end
 
     def normalized_must(must)
