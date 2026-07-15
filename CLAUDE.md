@@ -208,9 +208,18 @@ quizzes index banner and the account dropdown.
   seed refreshes leaders in place (idempotent upsert on `iso2` / `abbreviation`).
 - **`QuizzesController`** — `index` (deck grid + personal bests), `show`
   (renders the player), `record` (`POST /quizzes/:category/attempts`, persists a
-  `QuizAttempt`). No Pundit policy — these are global reference quizzes, gated
-  only by auth. Best %/deck is `MAX(score*100.0/NULLIF(total,0))` grouped by
-  category.
+  `QuizAttempt`). No Pundit policy — these are global reference quizzes.
+  **Playing is public and must stay that way**: `index`/`show`/`explore`/
+  `offline` skip `authenticate_user!`, are listed in `sitemap.xml`, and each deck
+  carries its own title/description/canonical + `schema.org/Quiz`
+  (`QuizzesHelper#quiz_seo_*`). The decks are the app's widest organic-search
+  surface — people search "guess the flag quiz" far more than "AI trip planner" —
+  so a login wall here hides ~1,500 ready-made questions from crawlers and
+  first-time visitors. `record` is public too but answers guests
+  `{ ok: false, guest: true }` (never a 401, which the player would read as a
+  failed save and retry) so finishing a deck surfaces a sign-up CTA at peak
+  engagement; scores only persist for signed-in users. Best %/deck is
+  `MAX(score*100.0/NULLIF(total,0))` grouped by category.
 - **Player** is client-side (`app/javascript/controllers/quiz_controller.js`):
   the server embeds the questions (with answer keys) as a Stimulus Array value
   and the controller grades each tap with no round-trip — acceptable for casual
@@ -356,6 +365,44 @@ an executable path, so a web-editable value would be an RCE vector.
 `Places::Geocoder` uses **Google Places Text Search** when
 `GOOGLE_PLACES_API_KEY` is set (better POI matching, no 1-req/sec cap) and falls
 back to free Nominatim otherwise.
+
+## Cost control (`BuildQuota`)
+
+Every trip build fans out paid AI calls (`trip_structure.v1` + one
+`activity_narration.v1` per stop), so spend scales with signups.
+`BuildQuota` (`app/services/build_quota.rb`) caps AI-built trips **per
+account** in a rolling 24h / 30d — the account-side companion to the
+Rack::Attack **IP** throttles in `config/initializers/rack_attack.rb`
+(which only guard anonymous traffic). Checked at the top of both build
+paths (`Trips::WizardController#create`, `DayTripsController#create`)
+**before** the shell + job are persisted. Admins are exempt. Counts run
+against `owned_trips`, not `Trip.kept`, so discarding doesn't refund quota
+(else delete-and-rebuild loops around the cap). Limits are
+`TRIP_BUILD_DAILY_LIMIT` / `TRIP_BUILD_MONTHLY_LIMIT` in
+`AppSetting::REGISTRY` — retunable at `/admin/app_settings`, no redeploy;
+0/blank disables. **Raise these before any traffic push, not after.**
+
+## Analytics (`POSTHOG_API_KEY`)
+
+Opt-in product analytics. `layouts/_analytics.html.erb` renders nothing
+unless `POSTHOG_API_KEY` is set at `/admin/app_settings`, so dev/test/CI
+and un-keyed deploys serve no tracking script. Gotchas encoded there:
+
+- It's rendered in **five layouts** (`application`, `marketing`, `auth`,
+  `public`, `wallet`) — the sign-up funnel crosses marketing → auth →
+  application, so wiring one layout breaks the funnel at the conversion
+  step. `admin` is excluded on purpose (operator noise).
+- Pageviews fire on **`turbo:load`** with `capture_pageview: false` —
+  PostHog's built-in only fires on hard loads, which in a Hotwire app
+  records the first page of a session and nothing after it.
+- Users are identified by **UUID only**; email/name are never sent.
+- **The privacy page is coupled to this.** `/privacy` reads the same
+  `analytics_enabled?` helper (`app/helpers/analytics_helper.rb`) — with
+  tracking off it claims no "analytics profiles"; with it on it discloses
+  PostHog. Tests pin both states, so don't decouple them: turning tracking
+  on must never leave the policy claiming otherwise.
+- Costs one fixed `AppSetting` lookup per page render (Solid Cache is
+  DB-backed) — hence the `trips#index` query budget is 27, not 26.
 
 ## Authorization
 
