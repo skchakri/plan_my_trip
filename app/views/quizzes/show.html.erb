@@ -1,5 +1,21 @@
-<% content_for :title, @category.title %>
+<% content_for :title, quiz_seo_title(@category) %>
 <% a = quiz_accent(@category.accent) %>
+
+<% content_for :head do %>
+  <meta name="description" content="<%= quiz_seo_description(@category) %>">
+  <link rel="canonical" href="<%= quiz_url(@category.key) %>">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Wanderply">
+  <meta property="og:title" content="<%= quiz_seo_title(@category) %>">
+  <meta property="og:description" content="<%= quiz_seo_description(@category) %>">
+  <meta property="og:url" content="<%= quiz_url(@category.key) %>">
+  <meta property="og:image" content="<%= root_url.chomp('/') %>/og-card.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="<%= quiz_seo_title(@category) %>">
+  <meta name="twitter:description" content="<%= quiz_seo_description(@category) %>">
+  <meta name="twitter:image" content="<%= root_url.chomp('/') %>/og-card.png">
+  <script type="application/ld+json"><%= quiz_jsonld(@category).html_safe %></script>
+<% end %>
 
 <style>
   @keyframes quizOptIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
@@ -93,6 +109,26 @@
     <p data-quiz-target="finalMessage" class="text-sm text-slate-400 mt-1.5 mb-5">You scored 0 of 0.</p>
 
     <div data-quiz-target="recap" class="text-left space-y-1.5 mb-6 max-h-72 overflow-y-auto pr-1"></div>
+
+    <%# Shown only to guests, once they finish a deck — the one moment they've
+        proven they enjoy the thing. Bridges trivia → the actual product. %>
+    <div data-quiz-target="guestCta" hidden
+      class="mb-6 rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 sm:p-5 text-center">
+      <p class="font-display text-lg font-semibold text-slate-50">Keep your scores?</p>
+      <p class="text-sm text-slate-400 mt-1 mb-4">
+        Create a free account to track your best runs across all
+        <%= QuizCatalog.keys.size %> decks — and let Wanderply plan a road trip
+        to the places you just aced, narrated stop by stop.
+      </p>
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5">
+        <%= link_to new_user_registration_path, class: "inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-lg bg-amber-500 text-slate-950 font-semibold shadow-lg shadow-amber-500/20 hover:bg-amber-400 transition-all" do %>
+          <%= icon :sparkles, class: "w-4 h-4" %> Create a free account
+        <% end %>
+        <%= link_to new_user_session_path, class: "inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-lg border border-slate-700 text-slate-200 font-semibold hover:bg-white/5 transition-all" do %>
+          Sign in
+        <% end %>
+      </div>
+    </div>
 
     <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5">
       <button type="button" data-action="quiz#playAgain"

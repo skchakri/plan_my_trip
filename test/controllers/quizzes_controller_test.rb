@@ -1,6 +1,8 @@
 require "test_helper"
 
 class QuizzesControllerTest < ActionDispatch::IntegrationTest
+  include QuizzesHelper # for the quiz_seo_* SEO assertions below
+
   setup do
     @user = User.create!(email: "quiz-#{SecureRandom.hex(4)}@test.example", password: "password123", name: "Quinn")
     6.times do |i|
@@ -19,9 +21,58 @@ class QuizzesControllerTest < ActionDispatch::IntegrationTest
     QuizQuestion.rebuild! # questions are served from the stored bank
   end
 
-  test "requires authentication" do
+  # Playing is public on purpose — the decks are the app's organic front door,
+  # and a login wall would hide them from crawlers and first-time visitors.
+  test "guests can browse the deck index" do
     get quizzes_path
-    assert_redirected_to new_user_session_path
+    assert_response :success
+    QuizCatalog.all.each { |c| assert_includes response.body, c.title }
+  end
+
+  test "guests can play any deck" do
+    QuizCatalog.keys.each do |key|
+      get quiz_path(key)
+      assert_response :success, "#{key} should be playable logged-out"
+      assert_includes response.body, 'data-controller="quiz"'
+    end
+  end
+
+  test "guests can use the country explorer and the offline manifest" do
+    get quiz_explore_path
+    assert_response :success
+
+    get quiz_offline_path
+    assert_response :success
+  end
+
+  test "a deck page carries its own title, description, canonical, and Quiz schema" do
+    get quiz_path("countries_capitals")
+    category = QuizCatalog.find("countries_capitals")
+
+    assert_includes response.body, quiz_url("countries_capitals")           # canonical
+    assert_includes response.body, "application/ld+json"                    # Quiz schema
+    assert_includes response.body, %(<meta name="description")
+    # The <title> must lead with the deck name, not the brand — that's the query.
+    assert_match %r{<title>#{Regexp.escape(category.title)} Quiz}, response.body
+  end
+
+  test "deck titles and descriptions are unique across decks so they aren't duplicate pages" do
+    titles = QuizCatalog.all.map { |c| quiz_seo_title(c) }
+    descriptions = QuizCatalog.all.map { |c| quiz_seo_description(c) }
+
+    assert_equal titles.uniq.size, titles.size, "deck <title>s must be unique"
+    assert_equal descriptions.uniq.size, descriptions.size, "deck descriptions must be unique"
+  end
+
+  test "a guest finishing a deck is offered a sign-up instead of a failed save" do
+    assert_no_difference -> { QuizAttempt.count } do
+      post quiz_attempts_path("countries_capitals"), params: { score: 8, total: 10 }, as: :json
+    end
+    assert_response :success   # NOT a 401/redirect — the player must not read it as an error
+    body = JSON.parse(response.body)
+    assert_equal false, body["ok"]
+    assert_equal true,  body["guest"]
+    assert_equal new_user_registration_path, body["sign_up_url"]
   end
 
   test "index lists every deck" do

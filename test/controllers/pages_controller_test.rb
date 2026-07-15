@@ -44,4 +44,13 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, blog_index_url
     assert_includes response.body, blog_url(BlogPost.all.first.slug)
   end
+
+  test "sitemap lists every public quiz deck" do
+    get sitemap_path
+    assert_includes response.body, quizzes_url
+    assert_includes response.body, quiz_explore_url
+    QuizCatalog.keys.each do |key|
+      assert_includes response.body, quiz_url(key), "#{key} must be in the sitemap to be indexable"
+    end
+  end
 end

@@ -185,6 +185,14 @@ module Trips
     # This keeps create from blocking the request for minutes and never wastes
     # AI work on a record that failed to save.
     def create
+      # Refuse before persisting anything: a build is real AI spend, so the cap
+      # has to bite ahead of the shell + BuildTripJob, not after.
+      quota = BuildQuota.new(current_user)
+      if quota.exceeded?
+        flash.now[:alert] = quota.message
+        return render :review, status: :too_many_requests
+      end
+
       people = Array(@draft["people"]).map(&:symbolize_keys)
 
       trip = current_user.owned_trips.new(

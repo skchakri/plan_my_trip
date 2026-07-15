@@ -97,6 +97,13 @@ class DayTripsController < ApplicationController
   # The user is redirected to the trip page right away, which streams in the plan
   # when the job broadcasts a Turbo refresh. Mirrors the multi-day wizard.
   def create
+    # Same account-side spend cap as the multi-day wizard — a day plan fans out
+    # DayPlanBuilder + per-stop narrations, so it isn't a free path around it.
+    quota = BuildQuota.new(current_user)
+    if quota.exceeded?
+      redirect_to(day_trips_new_path, alert: quota.message) and return
+    end
+
     @date         = (Date.parse(params[:date].to_s) rescue Date.current)
     @anchor_label = params[:anchor_label].to_s.strip.presence || "Home"
     @anchor_lat   = params[:anchor_lat].to_f

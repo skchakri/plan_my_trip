@@ -151,4 +151,38 @@ module QuizzesHelper
   def quiz_accent(name)
     QUIZ_ACCENTS.fetch(name.to_s, QUIZ_ACCENTS.fetch("amber"))
   end
+
+  # SEO title for a deck page. Leads with the deck name + "Quiz" because that's
+  # the literal shape of the search ("world capitals quiz"), not the brand —
+  # nobody searches for us yet. Brand trails for SERP recognition.
+  def quiz_seo_title(category)
+    name = category.title
+    name = "#{name} Quiz" unless name.match?(/\bquiz\b/i)
+    "#{name} · Free Online Trivia · Wanderply"
+  end
+
+  # Meta description: the deck's own tagline, then the deck size and the fact
+  # it's free and login-free — the two things that decide the click.
+  def quiz_seo_description(category)
+    "#{category.tagline} #{QuizCatalog::DEFAULT_COUNT} questions, instant scoring, " \
+      "no sign-up needed. One of #{QuizCatalog.keys.size} free travel trivia decks on Wanderply."
+  end
+
+  # schema.org/Quiz so answer engines and rich results can read the deck for
+  # what it is. Kept minimal and honest — questions are sampled per play, so we
+  # describe the deck, not a fixed question set.
+  def quiz_jsonld(category)
+    {
+      "@context" => "https://schema.org",
+      "@type" => "Quiz",
+      "name" => quiz_seo_title(category),
+      "description" => quiz_seo_description(category),
+      "url" => quiz_url(category.key),
+      "educationalLevel" => "beginner",
+      "isAccessibleForFree" => true,
+      "learningResourceType" => "Quiz",
+      "about" => { "@type" => "Thing", "name" => category.title },
+      "publisher" => { "@type" => "Organization", "name" => "Wanderply", "url" => root_url }
+    }.to_json
+  end
 end

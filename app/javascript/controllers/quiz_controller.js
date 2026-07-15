@@ -28,7 +28,8 @@ export default class extends Controller {
   static targets = [
     "question", "results", "prompt", "media", "options", "progressBar",
     "counter", "score", "streak", "nextWrap", "nextLabel",
-    "finalScore", "finalHeadline", "finalMessage", "recap", "ring", "bestBadge"
+    "finalScore", "finalHeadline", "finalMessage", "recap", "ring", "bestBadge",
+    "guestCta"
   ]
 
   connect() {
@@ -235,6 +236,10 @@ export default class extends Controller {
         return r.json()
       })
       .then((data) => {
+        // Guests can play, but scores need an account. That's not a failure —
+        // don't queue it (there's no one to save it to) and don't toast an
+        // error; offer the sign-up instead, right at peak engagement.
+        if (data && data.guest) return surfaceBest && this.showGuestCta()
         if (surfaceBest) this.showBest(data)
       })
       .catch(() => {
@@ -247,6 +252,10 @@ export default class extends Controller {
           }))
         }
       })
+  }
+
+  showGuestCta() {
+    if (this.hasGuestCtaTarget) this.guestCtaTarget.hidden = false
   }
 
   showBest(data) {

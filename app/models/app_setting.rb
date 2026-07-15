@@ -46,6 +46,12 @@ class AppSetting < ApplicationRecord
     Definition.new(key: "GOOGLE_PLACES_API_KEY", label: "Google Places API key", category: "Place data", secret: true,
       description: "When set, Places::Geocoder uses Google Places Text Search for coordinate lookups (better POI matching, no 1-req/sec cap). Blank → free OpenStreetMap Nominatim. console.cloud.google.com → enable Places API.", placeholder: "AIza…"),
 
+    # ── Usage limits ──
+    Definition.new(key: "TRIP_BUILD_DAILY_LIMIT", label: "Trip builds per account per day", category: "Usage limits", secret: false,
+      description: "Max AI-built plans one account can start in a rolling 24h (BuildQuota). Each build costs real AI spend, so this is the account-side companion to the Rack::Attack IP throttles. Admins are exempt. 0 or blank disables the cap.", placeholder: nil, default: BuildQuota::DAILY_DEFAULT),
+    Definition.new(key: "TRIP_BUILD_MONTHLY_LIMIT", label: "Trip builds per account per month", category: "Usage limits", secret: false,
+      description: "Max AI-built plans one account can start in a rolling 30 days (BuildQuota). Discarded trips still count — otherwise delete-and-rebuild loops around the cap. 0 or blank disables.", placeholder: nil, default: BuildQuota::MONTHLY_DEFAULT),
+
     # ── Travel data ──
     Definition.new(key: "EIA_API_KEY", label: "EIA gas-price API key", category: "Travel data", secret: true,
       description: "Free U.S. Energy Information Administration API (api.eia.gov/register) — current gas price for RoadTripEstimator's fuel estimate. Blank → a hardcoded national-average price is used.", placeholder: nil),

@@ -1,4 +1,17 @@
-<% content_for :title, "Travel Trivia" %>
+<% content_for :title, "Free Travel Trivia · #{QuizCatalog.keys.size} Geography Quizzes · Wanderply" %>
+
+<% content_for :head do %>
+  <meta name="description" content="<%= QuizCatalog.keys.size %> free travel trivia decks — world capitals, flags, landmarks, currencies, car and airline logos and more. No sign-up needed, instant scoring, and every deck plays offline.">
+  <link rel="canonical" href="<%= quizzes_url %>">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Wanderply">
+  <meta property="og:title" content="Free Travel Trivia · <%= QuizCatalog.keys.size %> Geography Quizzes">
+  <meta property="og:description" content="World capitals, flags, landmarks, currencies, car and airline logos — <%= QuizCatalog.keys.size %> free decks, no sign-up, playable offline.">
+  <meta property="og:url" content="<%= quizzes_url %>">
+  <meta property="og:image" content="<%= root_url.chomp('/') %>/og-card.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="<%= root_url.chomp('/') %>/og-card.png">
+<% end %>
 
 <style>
   @keyframes quizCardIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }

@@ -26,4 +26,23 @@
     <changefreq>monthly</changefreq>
   </url>
   <% end %>
+  <%# The trivia decks are public and are the app's widest organic surface —
+      people search "guess the flag quiz" far more than "AI trip planner". %>
+  <url>
+    <loc><%= quizzes_url %></loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc><%= quiz_explore_url %></loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <% @quiz_keys.each do |key| %>
+  <url>
+    <loc><%= quiz_url(key) %></loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <% end %>
 </urlset>
