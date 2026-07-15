@@ -46,6 +46,12 @@ class AppSetting < ApplicationRecord
     Definition.new(key: "GOOGLE_PLACES_API_KEY", label: "Google Places API key", category: "Place data", secret: true,
       description: "When set, Places::Geocoder uses Google Places Text Search for coordinate lookups (better POI matching, no 1-req/sec cap). Blank → free OpenStreetMap Nominatim. console.cloud.google.com → enable Places API.", placeholder: "AIza…"),
 
+    # ── Analytics ──
+    Definition.new(key: "POSTHOG_API_KEY", label: "PostHog project API key", category: "Analytics", secret: true,
+      description: "Turns on product analytics (funnels: landing → sign-up → trip built). Blank → no tracking script is served at all, which is the default. Free tier at posthog.com covers 1M events/month. This is the client-side project key (safe to expose in the page), not a personal API key.", placeholder: "phc_…"),
+    Definition.new(key: "POSTHOG_HOST", label: "PostHog host", category: "Analytics", secret: false,
+      description: "PostHog ingestion host. US cloud is https://us.i.posthog.com; EU cloud is https://eu.i.posthog.com. Must stay a *.posthog.com origin — the CSP only allow-lists that.", placeholder: nil, default: "https://us.i.posthog.com"),
+
     # ── Usage limits ──
     Definition.new(key: "TRIP_BUILD_DAILY_LIMIT", label: "Trip builds per account per day", category: "Usage limits", secret: false,
       description: "Max AI-built plans one account can start in a rolling 24h (BuildQuota). Each build costs real AI spend, so this is the account-side companion to the Rack::Attack IP throttles. Admins are exempt. 0 or blank disables the cap.", placeholder: nil, default: BuildQuota::DAILY_DEFAULT),

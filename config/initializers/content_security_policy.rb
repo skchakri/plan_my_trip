@@ -9,6 +9,13 @@
 #                                               Pexels/Unsplash/Pixabay place photos,
 #                                               tile.openstreetmap.org map tiles
 #   ws/wss                                    — ActionCable (turbo_stream_from)
+#   *.posthog.com                             — product analytics, and only when
+#                                               POSTHOG_API_KEY is set (see
+#                                               layouts/_analytics). Allow-listing
+#                                               a host loads nothing by itself, and
+#                                               the alternative — reading AppSetting
+#                                               here — would touch the DB at boot
+#                                               and break assets:precompile.
 #
 # Inline <script> tags (layout SW registration, copilot player) carry the
 # per-session nonce; importmap tags pick the nonce up automatically. Inline
@@ -17,7 +24,7 @@
 Rails.application.configure do
   config.content_security_policy do |policy|
     policy.default_src :self
-    policy.script_src  :self
+    policy.script_src  :self, "https://*.posthog.com"
     policy.style_src   :self, :unsafe_inline, "https://fonts.googleapis.com"
     policy.font_src    :self, :data, "https://fonts.gstatic.com"
     policy.img_src     :self, :https, :data, :blob
@@ -27,7 +34,8 @@ Rails.application.configure do
     policy.connect_src :self, :ws, :wss,
                        "https://tile.openstreetmap.org", "https://*.tile.openstreetmap.org",
                        "https://flagcdn.com", "https://cdn.simpleicons.org",
-                       "https://fonts.googleapis.com", "https://fonts.gstatic.com"
+                       "https://fonts.googleapis.com", "https://fonts.gstatic.com",
+                       "https://*.posthog.com"
     policy.object_src  :none
     policy.base_uri    :self
     policy.form_action :self

@@ -26,14 +26,23 @@
       <li><strong class="text-amber-200">Sharing data</strong> — the email addresses you invite to a trip, so we can deliver the invitation.</li>
       <li><strong class="text-amber-200">Documents you upload</strong> — hotel confirmations, tickets, and similar files you attach to a trip, stored privately in our cloud storage.</li>
       <li><strong class="text-amber-200">Quiz scores</strong> — your Travel Trivia results, kept for your personal bests.</li>
+      <% if analytics_enabled? %>
+        <li><strong class="text-amber-200">Usage analytics</strong> — which pages you visit and which features you use, so we can see where Wanderply is confusing or broken. Signed-in activity is tagged with your account's random ID, never your name or email. Signed-out visitors aren't given a profile at all.</li>
+      <% end %>
     </ul>
-    <p>We do not collect precise device location, contacts, advertising identifiers, or analytics profiles. The mobile apps are thin wrappers around this website and collect nothing extra.</p>
+    <p>
+      We do not collect precise device location, contacts, or advertising identifiers<% unless analytics_enabled? %>, or analytics profiles<% end %>.
+      The mobile apps are thin wrappers around this website and collect nothing extra.
+    </p>
 
     <h2>How trip planning uses AI</h2>
     <p>When you ask Wanderply to build an itinerary or suggest day trips, the trip details you entered (destination, dates, pace, preferences) are sent to our AI providers — currently Anthropic and Perplexity — to generate the plan. These inputs are trip-planning text, not your account credentials. We don't send your email address or password to AI providers.</p>
 
     <h2>Cookies</h2>
-    <p>We use a session cookie to keep you signed in and a CSRF token to protect forms. No advertising or cross-site tracking cookies — there are no ads.</p>
+    <p>
+      We use a session cookie to keep you signed in and a CSRF token to protect forms.<%= " Our analytics provider sets a first-party cookie to recognise repeat visits from the same browser." if analytics_enabled? %>
+      No advertising or cross-site tracking cookies — there are no ads.
+    </p>
 
     <h2>Third-party services</h2>
     <ul class="list-disc pl-6 space-y-2">
@@ -41,6 +50,9 @@
       <li><strong class="text-amber-200">Email</strong> — Amazon SES sends invitations and account emails.</li>
       <li><strong class="text-amber-200">Images</strong> — trip and quiz images load from public CDNs (Pexels, Unsplash, Pixabay, Wikimedia, flagcdn, Simple Icons). Those requests carry your IP address like any image load.</li>
       <li><strong class="text-amber-200">Geocoding</strong> — place names on your itinerary (not your location) are looked up via Google Places or OpenStreetMap Nominatim to pin them on maps.</li>
+      <% if analytics_enabled? %>
+        <li><strong class="text-amber-200">Product analytics</strong> — PostHog records which pages and features are used, so we can fix what's broken. It receives your account's random ID (not your name or email), your IP address, and your browser type. It is not an ad network and we don't sell or share this with one.</li>
+      <% end %>
     </ul>
 
     <h2>What we never do</h2>

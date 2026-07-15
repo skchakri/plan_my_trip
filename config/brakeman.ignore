@@ -59,6 +59,36 @@
       "file": ".ruby-version",
       "line": 1,
       "note": "Ruby EOL notice, not a code vulnerability. Tracked as a separate runtime-upgrade follow-up."
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "f85b7e1d0c3d14e23d51e2e504022adcca901616761b152fb4610b35a5b62d2d",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped parameter value",
+      "file": "app/views/quizzes/show.html.erb",
+      "line": 17,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "quiz_jsonld(QuizCatalog.find(params[:category]))",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "QuizzesController",
+          "method": "show",
+          "line": 29,
+          "file": "app/controllers/quizzes_controller.rb",
+          "rendered": {
+            "name": "quizzes/show",
+            "file": "app/views/quizzes/show.html.erb"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "quizzes/show"
+      },
+      "user_input": "params[:category]",
+      "note": "JSON-LD built entirely from QuizCatalog::CATEGORIES, a frozen in-code constant. params[:category] never reaches the output: QuizCatalog.find only COMPARES it (c.key == key.to_s) and returns a constant Category or nil, and #show redirects on nil. No user input is interpolated, so there is nothing to escape."
     }
   ],
   "updated": "2026-07-05",

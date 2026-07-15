@@ -45,9 +45,13 @@ class TripsIndexQueryCountTest < ActionDispatch::IntegrationTest
     assert_response :success
     # Budget reflects the policy_scope + trip + owner + days + activities +
     # photo attachments/blobs + places + landmarks fan-out, plus one fixed
-    # EXISTS for the "Archived" header link. With the `with_cover_data` scope
-    # this is bounded and does not grow with the number of trips.
-    assert_operator query_count, :<=, 26, "trips#index used #{query_count} queries (budget 26). New N+1?"
+    # EXISTS for the "Archived" header link, plus one fixed AppSetting lookup
+    # for the analytics snippet in the layout (Solid Cache is DB-backed, so a
+    # cached read is still a query). With the `with_cover_data` scope this is
+    # bounded and does not grow with the number of trips — which is what this
+    # test actually guards. Constant additions belong in the budget; anything
+    # that scales with trip count does not.
+    assert_operator query_count, :<=, 27, "trips#index used #{query_count} queries (budget 27). New N+1?"
   end
 
   private
