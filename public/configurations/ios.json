@@ -33,13 +33,6 @@
       }
     },
     {
-      "patterns": ["/users/edit$"],
-      "properties": {
-        "context": "modal",
-        "title": "Account"
-      }
-    },
-    {
       "patterns": ["/$"],
       "properties": {
         "context": "default",
