@@ -1,5 +1,5 @@
 class Notification < ApplicationRecord
-  KINDS = %w[comment_posted comment_mention trip_share_accepted invitation_pending].freeze
+  KINDS = %w[comment_posted comment_mention trip_share_accepted invitation_pending flight_status].freeze
 
   belongs_to :recipient, class_name: "User"
   belongs_to :actor,     class_name: "User", optional: true

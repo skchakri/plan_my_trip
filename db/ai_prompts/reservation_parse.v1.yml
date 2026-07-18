@@ -27,6 +27,8 @@ system_template: |
     "address": full street address if present, else null,
     "start_at": ISO 8601 with timezone offset if known (check-in / departure / pickup), else null,
     "end_at": ISO 8601 (check-out / arrival / drop-off), else null,
+    "flight_number": for a flight, the flight number incl. airline code, no spaces (e.g. "DL1422", "BA286"), else null,
+    "carrier_code": for a flight, the 2-letter IATA airline code (e.g. "DL", "BA"), else null,
     "notes": one short sentence of anything else useful (room type, seat, fare class), else null
   }
 
@@ -61,7 +63,7 @@ user_template: |
 output_schema:
   type: object
   additionalProperties: false
-  required: [kind, vendor, confirmation_number, title, location, address, start_at, end_at, notes]
+  required: [kind, vendor, confirmation_number, title, location, address, start_at, end_at, flight_number, carrier_code, notes]
   properties:
     kind:
       type: string
@@ -79,6 +81,10 @@ output_schema:
     start_at:
       type: [string, "null"]
     end_at:
+      type: [string, "null"]
+    flight_number:
+      type: [string, "null"]
+    carrier_code:
       type: [string, "null"]
     notes:
       type: [string, "null"]

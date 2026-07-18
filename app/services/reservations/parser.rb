@@ -69,6 +69,8 @@ module Reservations
         notes:               presence_str(data["notes"]),
         start_at:            parse_time(data["start_at"]),
         end_at:              parse_time(data["end_at"]),
+        flight_number:       presence_str(data["flight_number"]),
+        carrier_code:        presence_str(data["carrier_code"]),
         parsed:              data
       )
     end

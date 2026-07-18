@@ -30,3 +30,10 @@ production:
   pre_trip_reminders:
     class: PreTripReminderJob
     schedule: at 9am every day
+
+  # Refresh flight status (gate/delay/cancellation) for flights departing in the
+  # next 24h and alert trip members on changes. No-ops without an
+  # AERODATABOX_API_KEY, so it's dark until an operator opts in.
+  poll_flight_status:
+    class: PollFlightStatusJob
+    schedule: every hour

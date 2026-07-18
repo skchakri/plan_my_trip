@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_18_130000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_18_140000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -373,10 +373,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_18_130000) do
 
   create_table "reservations", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "address"
+    t.string "carrier_code"
     t.string "confirmation_number"
     t.datetime "created_at", null: false
+    t.integer "departure_delay_minutes"
     t.datetime "discarded_at"
     t.datetime "end_at"
+    t.datetime "flight_checked_at"
+    t.string "flight_number"
+    t.string "flight_status"
+    t.string "gate"
     t.string "kind", default: "other", null: false
     t.string "location"
     t.text "notes"
@@ -385,12 +391,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_18_130000) do
     t.string "source_from"
     t.datetime "start_at"
     t.string "status", default: "parsing", null: false
+    t.string "terminal"
     t.string "title"
     t.uuid "trip_day_id"
     t.uuid "trip_id", null: false
     t.datetime "updated_at", null: false
     t.string "vendor"
     t.index ["discarded_at"], name: "index_reservations_on_discarded_at"
+    t.index ["kind", "start_at"], name: "index_reservations_on_kind_and_start_at"
     t.index ["trip_day_id"], name: "index_reservations_on_trip_day_id"
     t.index ["trip_id", "confirmation_number"], name: "index_reservations_on_trip_and_confirmation", unique: true, where: "((confirmation_number IS NOT NULL) AND (discarded_at IS NULL))"
     t.index ["trip_id", "kind"], name: "index_reservations_on_trip_id_and_kind"

@@ -48,6 +48,18 @@ class Reservation < ApplicationRecord
   scope :parsed,  -> { where(status: "parsed") }
   scope :failed,  -> { where(status: "failed") }
 
+  # Flights with a number, departing within the given window — the set
+  # PollFlightStatusJob refreshes. Default: the next 24h.
+  scope :trackable_flights, ->(within: 24.hours) {
+    kept.where(kind: "flight")
+        .where.not(flight_number: [ nil, "" ])
+        .where(start_at: Time.current..(Time.current + within))
+  }
+
+  def flight?
+    kind == "flight"
+  end
+
   def kind_label
     KIND_LABELS[kind] || kind.to_s.humanize
   end

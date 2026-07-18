@@ -31,6 +31,24 @@ class NotificationDispatcher
     end
   end
 
+  # Alert every trip member that a tracked flight's status changed (gate/delay/
+  # cancellation). `changes` is a short list of human phrases from
+  # PollFlightStatusJob. One notification per member per change batch.
+  def self.flight_status_changed(reservation, changes)
+    trip = reservation.trip
+    return if trip.nil? || Array(changes).empty?
+
+    label = [ reservation.flight_number.presence, reservation.headline ].compact.uniq.join(" · ")
+    body  = "#{label}: #{Array(changes).join(', ')} (#{trip.title})"
+    url   = Rails.application.routes.url_helpers.trip_path(trip)
+
+    trip.trip_memberships.find_each do |m|
+      Notification.create!(
+        recipient_id: m.user_id, subject: reservation, kind: "flight_status", url: url, body: body
+      )
+    end
+  end
+
   # Notify the trip owner when someone accepts a share invitation.
   def self.trip_share_accepted(membership)
     return if membership.user_id == membership.trip.owner_id

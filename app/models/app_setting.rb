@@ -61,6 +61,8 @@ class AppSetting < ApplicationRecord
     # ── Travel data ──
     Definition.new(key: "EIA_API_KEY", label: "EIA gas-price API key", category: "Travel data", secret: true,
       description: "Free U.S. Energy Information Administration API (api.eia.gov/register) — current gas price for RoadTripEstimator's fuel estimate. Blank → a hardcoded national-average price is used.", placeholder: nil),
+    Definition.new(key: "AERODATABOX_API_KEY", label: "AeroDataBox API key", category: "Travel data", secret: true,
+      description: "Turns on flight-status alerts (gate/delay/cancellation) for parsed flight reservations, checked in the 24h before departure by PollFlightStatusJob. Blank → the feature stays off (no calls). Free tier via RapidAPI (aerodatabox.com) — ~600 requests/month, enough at low volume; watch the quota if flight tracking scales.", placeholder: nil),
 
     # ── Image search ──
     Definition.new(key: "PEXELS_API_KEY", label: "Pexels API key", category: "Image search", secret: true,
