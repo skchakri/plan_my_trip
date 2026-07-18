@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_18_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_18_130000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -445,9 +445,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_18_120000) do
   create_table "trails", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "alltrails_url"
     t.datetime "created_at", null: false
+    t.datetime "enriched_at"
     t.string "name", null: false
     t.text "notes"
     t.integer "position", default: 0, null: false
+    t.integer "trailhead_elevation_ft"
+    t.decimal "trailhead_lat", precision: 9, scale: 6
+    t.decimal "trailhead_lng", precision: 9, scale: 6
     t.uuid "trip_id", null: false
     t.datetime "updated_at", null: false
     t.index ["trip_id", "position"], name: "index_trails_on_trip_id_and_position"
