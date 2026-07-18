@@ -34,10 +34,14 @@ class TripAgent
   # keyword each one accepts. This is the allowlist: an action or field outside
   # it is dropped before it ever reaches the (editor-gated) apply endpoint.
   EDIT_FIELDS = {
-    "add_activity"     => %i[day_number title time_label location_name notes],
-    "remove_activity"  => %i[day_number activity_title],
-    "move_activity"    => %i[day_number activity_title direction],
-    "update_day_title" => %i[day_number title]
+    "add_activity"        => %i[day_number title time_label location_name notes],
+    "remove_activity"     => %i[day_number activity_title],
+    "move_activity"       => %i[day_number activity_title direction],
+    "update_day_title"    => %i[day_number title],
+    "update_activity_time" => %i[day_number activity_title time_label],
+    "add_checklist_item"  => %i[title category],
+    "update_pace"         => %i[pace],
+    "update_budget"       => %i[budget]
   }.freeze
 
   def initialize(trip:, user:, question:)
@@ -113,10 +117,14 @@ class TripAgent
       fields = EDIT_FIELDS[action]
       next unless fields
 
-      day = e["day_number"].to_i
-      next unless day.positive?
+      edit = { "action" => action }
+      # Only day-scoped actions carry (and require) a valid day_number.
+      if fields.include?(:day_number)
+        day = e["day_number"].to_i
+        next unless day.positive?
 
-      edit = { "action" => action, "day_number" => day }
+        edit["day_number"] = day
+      end
       fields.each do |f|
         next if f == :day_number
 

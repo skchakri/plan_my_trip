@@ -87,6 +87,57 @@ class TripEditorTest < ActiveSupport::TestCase
     assert_equal 2, @d1.activities.reload.size # unchanged
   end
 
+  test "update_activity_time sets and clears a stop's time" do
+    res = editor.update_activity_time(day_number: 1, activity_title: "goblin", time_label: "9:00 AM")
+    assert res.ok?, res.error
+    assert_equal "9:00 AM", @d1.activities.order(:position).first.reload.time_label
+
+    res = editor.update_activity_time(day_number: 1, activity_title: "goblin", time_label: "  ")
+    assert res.ok?, res.error
+    assert_nil @d1.activities.order(:position).first.reload.time_label
+    assert_match(/cleared/i, res.summary)
+  end
+
+  test "add_checklist_item appends a before-trip item" do
+    assert_difference -> { @trip.checklist_items.count }, +1 do
+      res = editor.add_checklist_item(title: "Pack rain jacket", category: "Clothing")
+      assert res.ok?, res.error
+    end
+    item = @trip.checklist_items.order(:created_at).last
+    assert_equal "before_trip", item.scope
+    assert_equal "Clothing", item.category
+  end
+
+  test "add_checklist_item requires a title" do
+    res = editor.add_checklist_item(title: " ")
+    refute res.ok?
+    assert_match(/title/i, res.error)
+  end
+
+  test "update_pace only accepts a valid pace" do
+    assert editor.update_pace(pace: "Relaxed").ok?
+    assert_equal "relaxed", @trip.reload.pace
+
+    res = editor.update_pace(pace: "warp speed")
+    refute res.ok?
+    assert_equal "relaxed", @trip.reload.pace
+  end
+
+  test "update_budget only accepts a valid band" do
+    assert editor.update_budget(budget: "luxury").ok?
+    assert_equal "luxury", @trip.reload.budget
+
+    refute editor.update_budget(budget: "free").ok?
+    assert_equal "luxury", @trip.reload.budget
+  end
+
+  test "a viewer cannot use the new day-less actions either" do
+    viewer = User.create!(email: "v2-#{SecureRandom.hex(4)}@ex.com", password: "password123", name: "V2")
+    @trip.trip_memberships.create!(user: viewer, role: "member")
+    refute editor(viewer).add_checklist_item(title: "sneaky").ok?
+    refute editor(viewer).update_pace(pace: "packed").ok?
+  end
+
   test "edits never reach another trip's rows (trip-scoped)" do
     other = @owner.owned_trips.create!(title: "Other", destination: "Nevada",
                                        start_date: Date.current, end_date: Date.current + 1)

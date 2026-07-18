@@ -94,6 +94,57 @@ class TripEditor
     end
   end
 
+  # Set (or clear) a stop's time label — "9:00 AM", "after lunch", etc. Blank
+  # clears it. Mirrors the manual editor's inline time edit.
+  def update_activity_time(day_number:, activity_title:, time_label:)
+    guard do
+      day = find_day!(day_number)
+      act = find_one_activity!(day, activity_title)
+      act.update!(time_label: time_label.to_s.strip.presence)
+      sync
+      label = act.time_label.presence
+      success(label ? %(Set "#{act.title}" to #{label} on day #{day_number}.) : %(Cleared the time on "#{act.title}".))
+    end
+  end
+
+  # Add a trip-level (before-trip) checklist item — e.g. "Pack rain jacket".
+  # Only the packing/prep scope is exposed here; day/activity-scoped items need
+  # a label the concierge can't reliably supply.
+  def add_checklist_item(title:, category: nil)
+    guard do
+      title = title.to_s.strip
+      return failure("A title is required to add a checklist item.") if title.blank?
+
+      @trip.checklist_items.create!(
+        title: title, category: category.to_s.strip.presence, scope: "before_trip",
+        position: (@trip.checklist_items.before_trip.maximum(:position) || -1) + 1
+      )
+      success(%(Added "#{title}" to the checklist.))
+    end
+  end
+
+  # Change the trip's planning pace. Validated against Trip::PACES by the model.
+  def update_pace(pace:)
+    guard do
+      value = pace.to_s.strip.downcase
+      return failure(%(Pace must be one of: #{Trip::PACES.join(', ')}.)) unless Trip::PACES.include?(value)
+
+      @trip.update!(pace: value)
+      success(%(Set the pace to #{value}.))
+    end
+  end
+
+  # Change the trip's budget band. Validated against Trip::BUDGETS by the model.
+  def update_budget(budget:)
+    guard do
+      value = budget.to_s.strip.downcase
+      return failure(%(Budget must be one of: #{Trip::BUDGETS.join(', ')}.)) unless Trip::BUDGETS.include?(value)
+
+      @trip.update!(budget: value)
+      success(%(Set the budget to #{value}.))
+    end
+  end
+
   private
 
   # Wrap every mutation: enforce edit rights and turn record errors into a

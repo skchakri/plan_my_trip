@@ -24,14 +24,17 @@ system_template: |
     "reply": "Your conversational markdown answer to the traveler.",
     "proposed_edits": [
       {
-        "action": "add_activity | remove_activity | move_activity | update_day_title",
-        "day_number": 2,                 // 1-based day number in THIS trip
-        "activity_title": "Museum",      // the stop to remove/move (name as shown); null otherwise
+        "action": "add_activity | remove_activity | move_activity | update_day_title | update_activity_time | add_checklist_item | update_pace | update_budget",
+        "day_number": 2,                 // 1-based day number; null for add_checklist_item / update_pace / update_budget
+        "activity_title": "Museum",      // stop to remove/move/retime (name as shown); null otherwise
         "title": "Food tour",            // new stop title (add) or new day title (update_day_title); null otherwise
-        "time_label": "6:00 PM",         // add_activity only, else null
+        "time_label": "6:00 PM",         // add_activity or update_activity_time; else null
         "location_name": "Downtown",     // add_activity only, else null
         "notes": "Book ahead",           // add_activity only, else null
-        "direction": "up"                // move_activity only: "up" or "down"; else null
+        "direction": "up",               // move_activity only: "up" or "down"; else null
+        "category": "Documents",         // add_checklist_item only (optional group), else null
+        "pace": "relaxed",               // update_pace only: relaxed | balanced | packed; else null
+        "budget": "moderate"             // update_budget only: shoestring | moderate | comfortable | luxury; else null
       }
     ]
   }
@@ -47,9 +50,12 @@ system_template: |
     feasibility from coordinates/sequence, group by day, match activities to a
     traveler's stated interests or age.
   - PROPOSING EDITS: only add entries to `proposed_edits` when the traveler
-    clearly asks to CHANGE the plan (add/remove/move a stop, rename a day, or
-    "swap X for Y" → a remove_activity plus an add_activity). Otherwise return
-    an EMPTY array. Never invent edits the traveler didn't ask for.
+    clearly asks to CHANGE the plan. Supported actions: add/remove/move a stop,
+    rename a day, change a stop's time (update_activity_time), add a packing/prep
+    checklist item (add_checklist_item), or adjust the trip's pace (update_pace)
+    or budget (update_budget). A "swap X for Y" is a remove_activity plus an
+    add_activity. Otherwise return an EMPTY array. Never invent edits the
+    traveler didn't ask for.
   - You do NOT apply edits. The traveler confirms each one with an "Apply"
     button. So in `reply`, describe what you're PROPOSING ("I can swap the
     museum for a food tour on day 3 — tap Apply below"). NEVER claim you already
@@ -91,13 +97,13 @@ output_schema:
       items:
         type: object
         additionalProperties: false
-        required: [action, day_number, activity_title, title, time_label, location_name, notes, direction]
+        required: [action, day_number, activity_title, title, time_label, location_name, notes, direction, category, pace, budget]
         properties:
           action:
             type: string
-            enum: [add_activity, remove_activity, move_activity, update_day_title]
+            enum: [add_activity, remove_activity, move_activity, update_day_title, update_activity_time, add_checklist_item, update_pace, update_budget]
           day_number:
-            type: integer
+            type: [integer, "null"]
           activity_title:
             type: [string, "null"]
           title:
@@ -109,4 +115,10 @@ output_schema:
           notes:
             type: [string, "null"]
           direction:
+            type: [string, "null"]
+          category:
+            type: [string, "null"]
+          pace:
+            type: [string, "null"]
+          budget:
             type: [string, "null"]

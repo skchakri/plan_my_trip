@@ -107,6 +107,27 @@ class TripAgentTest < ActiveSupport::TestCase
     refute edit.key?("direction") # blank fields dropped by sanitize_edits
   end
 
+  test "converse keeps day-less actions (checklist / pace) without a day_number" do
+    payload = {
+      reply: "Slowing the pace and adding a packing item — tap Apply.",
+      proposed_edits: [
+        { action: "update_pace", day_number: nil, pace: "relaxed", title: nil },
+        { action: "add_checklist_item", day_number: nil, title: "Pack sunscreen", category: "Health" }
+      ]
+    }.to_json
+    TripAgent.ai_caller = FakeCaller.new(text: payload)
+
+    ex = TripAgent.new(trip: @trip, user: @user, question: "slow it down and add sunscreen").converse
+
+    assert_equal 2, ex.edits.size
+    pace = ex.edits.find { |e| e["action"] == "update_pace" }
+    assert_equal "relaxed", pace["pace"]
+    refute pace.key?("day_number") # no day for a trip-level action
+    check = ex.edits.find { |e| e["action"] == "add_checklist_item" }
+    assert_equal "Pack sunscreen", check["title"]
+    assert_equal "Health", check["category"]
+  end
+
   test "converse calls trip_concierge.v2 with the can_edit flag" do
     fake = FakeCaller.new(text: { reply: "ok", proposed_edits: [] }.to_json)
     TripAgent.ai_caller = fake
