@@ -97,6 +97,7 @@ class Trip < ApplicationRecord
   accepts_nested_attributes_for :trails, allow_destroy: true, reject_if: :all_blank
   has_many :invitations, class_name: "TripInvitation", dependent: :destroy
   has_many :checklist_items, dependent: :destroy
+  has_many :expenses, dependent: :destroy
   has_many :booking_claims, dependent: :destroy
   has_many :reservations, -> { kept.ordered }, dependent: :destroy
   has_many :trip_days, -> { ordered }, dependent: :destroy

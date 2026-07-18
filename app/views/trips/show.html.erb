@@ -49,6 +49,9 @@
         <%= link_to checklist_trip_path(@trip), class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-200 border border-emerald-500/30 text-sm hover:bg-emerald-500/20 transition-colors" do %>
           <%= icon :check, class: "w-4 h-4" %> Checklist
         <% end %>
+        <%= link_to trip_expenses_path(@trip), class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-200 border border-amber-500/30 text-sm hover:bg-amber-500/20 transition-colors" do %>
+          <%= icon :coins, class: "w-4 h-4" %> Expenses
+        <% end %>
 
         <%# Secondary actions folded into a More menu to keep the toolbar calm. %>
         <% webcal = calendar_trip_url(@trip, format: :ics).sub(%r{\Ahttps?://}, "webcal://") %>

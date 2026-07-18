@@ -1,0 +1,20 @@
+<li id="expense-<%= expense.id %>" class="flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-900/40 px-4 py-3 group">
+  <div class="min-w-0 flex-1">
+    <p class="text-sm font-medium text-slate-100 truncate"><%= expense.description %></p>
+    <p class="text-xs text-slate-400 mt-0.5">
+      <% if expense.paid_by %><%= expense.paid_by.name %> paid<% else %>Paid<% end %>
+      <% if expense.category.present? %> · <%= expense.category %><% end %>
+      <% if expense.incurred_on %> · <%= expense.incurred_on.strftime("%b %-d") %><% end %>
+    </p>
+  </div>
+  <span class="shrink-0 font-semibold text-slate-100"><%= money(expense.amount_cents, expense.currency) %></span>
+  <% if expense.created_by_id == current_user.id || @trip.owner_id == current_user.id %>
+    <%= button_to trip_expense_path(@trip, expense),
+          method: :delete,
+          form: { data: { turbo_confirm: "Remove this expense?" }, class: "inline shrink-0" },
+          class: "text-slate-500 hover:text-rose-300 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity",
+          aria: { label: "Remove #{expense.description}" } do %>
+      <%= icon :trash, class: "w-4 h-4" %>
+    <% end %>
+  <% end %>
+</li>

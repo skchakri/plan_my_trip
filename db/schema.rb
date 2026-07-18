@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_14_160000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_18_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -243,6 +243,26 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_14_160000) do
     t.uuid "user_id", null: false
     t.index ["expires_at"], name: "index_draft_trips_on_expires_at"
     t.index ["user_id"], name: "index_draft_trips_on_user_id", unique: true
+  end
+
+  create_table "expenses", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.integer "amount_cents", default: 0, null: false
+    t.string "category"
+    t.datetime "created_at", null: false
+    t.uuid "created_by_id"
+    t.string "currency", default: "USD", null: false
+    t.string "description", null: false
+    t.datetime "discarded_at"
+    t.date "incurred_on"
+    t.uuid "paid_by_id"
+    t.jsonb "split_between", default: [], null: false
+    t.uuid "trip_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_id"], name: "index_expenses_on_created_by_id"
+    t.index ["discarded_at"], name: "index_expenses_on_discarded_at"
+    t.index ["paid_by_id"], name: "index_expenses_on_paid_by_id"
+    t.index ["trip_id", "created_at"], name: "index_expenses_on_trip_id_and_created_at"
+    t.index ["trip_id"], name: "index_expenses_on_trip_id"
   end
 
   create_table "landmarks", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -604,6 +624,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_14_160000) do
   add_foreign_key "comments", "activities"
   add_foreign_key "comments", "users", column: "author_id"
   add_foreign_key "draft_trips", "users"
+  add_foreign_key "expenses", "people", column: "paid_by_id", on_delete: :nullify
+  add_foreign_key "expenses", "trips"
+  add_foreign_key "expenses", "users", column: "created_by_id", on_delete: :nullify
   add_foreign_key "notifications", "users", column: "actor_id"
   add_foreign_key "notifications", "users", column: "recipient_id"
   add_foreign_key "people", "trips"

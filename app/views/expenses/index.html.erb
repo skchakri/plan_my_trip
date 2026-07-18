@@ -1,0 +1,122 @@
+<% content_for :title, "Expenses · #{@trip.title_for(current_user)}" %>
+
+<div class="mb-5">
+  <%= link_to @trip, class: "inline-flex items-center gap-1 text-sm text-slate-400 hover:text-amber-300 transition-colors" do %>
+    <%= icon :arrow_left, class: "w-4 h-4" %> <%= @trip.title_for(current_user) %>
+  <% end %>
+</div>
+
+<header class="mb-5">
+  <p class="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-medium mb-1.5 inline-flex items-center gap-2">
+    <%= icon :coins, class: "w-3.5 h-3.5 text-amber-400" %> Expenses
+  </p>
+  <h1 class="font-display text-3xl sm:text-4xl font-semibold tracking-tight"><%= @trip.title_for(current_user) %></h1>
+  <p class="text-sm text-slate-400 mt-2">Log who paid for what, split it across travelers, and see who owes whom. Amounts stay with the trip — nothing leaves the app.</p>
+</header>
+
+<% if @people.empty? %>
+  <div class="rounded-2xl border border-dashed border-slate-700/70 bg-slate-900/30 p-8 text-center">
+    <p class="text-slate-200 font-medium">Add travelers first</p>
+    <p class="text-sm text-slate-400 mt-1">Expense splitting needs at least one traveler on the trip.</p>
+    <%= link_to "Edit trip & add travelers", edit_trip_path(@trip), class: "btn btn-md btn-secondary mt-4" %>
+  </div>
+<% else %>
+  <%# ── Settle up ──────────────────────────────────────────── %>
+  <% if @groups.any? %>
+    <section class="mb-6 space-y-4" aria-label="Settle up">
+      <% @groups.each do |g| %>
+        <div class="rounded-2xl border border-slate-800/80 bg-gradient-to-br from-slate-900/70 to-slate-900/40 p-5">
+          <div class="flex items-baseline justify-between gap-3 mb-4">
+            <h2 class="font-display text-lg font-semibold text-slate-50">Settle up</h2>
+            <span class="text-sm text-slate-400"><%= money(g.total_cents, g.currency) %> total<% if @groups.size > 1 %> · <%= g.currency %><% end %></span>
+          </div>
+
+          <% if g.transfers.empty? %>
+            <p class="text-sm text-emerald-300 inline-flex items-center gap-1.5">
+              <%= icon :check, class: "w-4 h-4" %> All square — nobody owes anyone.
+            </p>
+          <% else %>
+            <ul class="space-y-2">
+              <% g.transfers.each do |t| %>
+                <li class="flex items-center gap-2 text-sm">
+                  <span class="font-medium text-slate-100"><%= t.from.name %></span>
+                  <%= icon :arrow_right, class: "w-4 h-4 text-slate-500 shrink-0" %>
+                  <span class="font-medium text-slate-100"><%= t.to.name %></span>
+                  <span class="ml-auto font-semibold text-amber-300"><%= money(t.amount_cents, g.currency) %></span>
+                </li>
+              <% end %>
+            </ul>
+          <% end %>
+
+          <details class="mt-4 group">
+            <summary class="cursor-pointer list-none text-[11px] uppercase tracking-wider text-slate-400 hover:text-amber-300 transition-colors">Per-person breakdown</summary>
+            <ul class="mt-3 space-y-1.5">
+              <% g.balances.each do |b| %>
+                <li class="flex items-center gap-3 text-sm">
+                  <span class="text-slate-200 min-w-0 truncate"><%= b.person.name %></span>
+                  <span class="text-slate-500 text-xs">paid <%= money(b.paid_cents, g.currency) %> · share <%= money(b.share_cents, g.currency) %></span>
+                  <span class="ml-auto font-medium <%= b.net_cents.negative? ? 'text-rose-300' : (b.net_cents.positive? ? 'text-emerald-300' : 'text-slate-400') %>">
+                    <%= b.net_cents.zero? ? "even" : (b.net_cents.positive? ? "+#{money(b.net_cents, g.currency)}" : "−#{money(-b.net_cents, g.currency)}") %>
+                  </span>
+                </li>
+              <% end %>
+            </ul>
+          </details>
+        </div>
+      <% end %>
+    </section>
+  <% end %>
+
+  <%# ── Add expense ────────────────────────────────────────── %>
+  <section class="mb-6 rounded-2xl border border-slate-800/80 bg-slate-900/40 p-5">
+    <h2 class="font-display text-lg font-semibold text-slate-50 mb-4">Add an expense</h2>
+    <%= form_with model: @expense, url: trip_expenses_path(@trip), method: :post, class: "space-y-3" do |f| %>
+      <div class="flex flex-col sm:flex-row gap-2">
+        <%= f.text_field :description, required: true, placeholder: "What was it? (e.g. Dinner at Pier 39)", aria: { label: "Description" }, class: "field flex-1 rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm" %>
+        <div class="flex gap-2">
+          <%= f.text_field :amount, required: true, inputmode: "decimal", placeholder: "0.00", aria: { label: "Amount" }, class: "field w-28 rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm" %>
+          <%= f.select :currency, Expense::CURRENCIES, {}, class: "field w-24 rounded-lg bg-slate-800 border border-slate-700 px-2 py-2 text-sm" %>
+        </div>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-2">
+        <label class="flex-1 text-sm">
+          <span class="block text-xs text-slate-400 mb-1">Paid by</span>
+          <%= f.select :paid_by_id, @people.map { |p| [ p.name, p.id ] }, { include_blank: "—" }, class: "field w-full rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm" %>
+        </label>
+        <label class="flex-1 text-sm">
+          <span class="block text-xs text-slate-400 mb-1">Category (optional)</span>
+          <%= f.text_field :category, placeholder: "Food, Lodging, Gas…", aria: { label: "Category" }, class: "field w-full rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm" %>
+        </label>
+      </div>
+
+      <fieldset>
+        <legend class="text-xs text-slate-400 mb-1.5">Split between <span class="text-slate-500">(none checked = everyone)</span></legend>
+        <div class="flex flex-wrap gap-2">
+          <% @people.each do |p| %>
+            <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800/60 text-sm cursor-pointer hover:border-amber-500/50 has-[:checked]:border-amber-500 has-[:checked]:bg-amber-500/10">
+              <%= check_box_tag "expense[split_between][]", p.id, false, class: "accent-amber-500" %>
+              <%= p.name %>
+            </label>
+          <% end %>
+        </div>
+      </fieldset>
+
+      <div class="flex justify-end">
+        <%= f.submit "Add expense", class: "btn btn-md btn-primary cursor-pointer" %>
+      </div>
+    <% end %>
+  </section>
+
+  <%# ── Ledger ─────────────────────────────────────────────── %>
+  <section aria-label="Logged expenses">
+    <h2 class="font-display text-lg font-semibold text-slate-50 mb-3">Ledger</h2>
+    <% if @expenses.empty? %>
+      <p class="text-sm text-slate-400">No expenses logged yet.</p>
+    <% else %>
+      <ul class="space-y-2">
+        <%= render partial: "expenses/expense", collection: @expenses, as: :expense %>
+      </ul>
+    <% end %>
+  </section>
+<% end %>

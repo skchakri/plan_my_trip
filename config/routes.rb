@@ -74,6 +74,7 @@ Rails.application.routes.draw do
     resources :checklist_items, only: [ :create, :update, :destroy ] do
       member { patch :restore }
     end
+    resources :expenses, only: [ :index, :create, :destroy ]
     resources :activities, only: [ :create, :update, :destroy ] do
       member { patch :move }
       resources :documents, only: [ :create, :destroy ], controller: "activity_documents"
