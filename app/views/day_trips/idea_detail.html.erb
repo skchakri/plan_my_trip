@@ -97,7 +97,8 @@
       <%# ── Click-to-load rich detail (best time, things to do, pro tips) ──
           The link targets its own frame, so tapping it swaps the button for
           the HighlightDetail sections without leaving the modal. %>
-      <%= turbo_frame_tag "idea-more", class: "block aria-busy:opacity-60 aria-busy:animate-pulse" do %>
+      <%= turbo_frame_tag "idea-more", class: "block aria-busy:opacity-60 aria-busy:animate-pulse",
+            data: { controller: "frame-timeout", frame_timeout_timeout_value: 45000 } do %>
         <%= link_to day_trip_idea_more_path(request.query_parameters),
                     class: "w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-200 text-sm font-semibold transition-colors" do %>
           <%= icon :sparkles, class: "w-4 h-4" %>

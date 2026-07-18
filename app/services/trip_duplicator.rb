@@ -6,7 +6,7 @@ class TripDuplicator
     title destination origin body pwa_plan_url pwa_packing_url
     traveler_count transport_mode must_includes vehicle_mpg departure_time return_time
     day_trip max_radius_km interests anchor_label anchor_lat anchor_lng
-    excitement_pitch
+    excitement_pitch pace budget preferences
   ].freeze
 
   COPYABLE_DAY_FIELDS      = %w[label title accent summary theme position].freeze

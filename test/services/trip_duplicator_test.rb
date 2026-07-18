@@ -48,6 +48,15 @@ class TripDuplicatorTest < ActiveSupport::TestCase
     assert_equal "Vegas 2027", new_trip.title
   end
 
+  test "carries over planning levers: pace, budget, and preferences" do
+    @trip.update!(pace: "relaxed", budget: "shoestring",
+                  preferences: "Vegetarian; wheelchair-accessible; must see the Grand Canyon")
+    new_trip = duplicate_for(@other)
+    assert_equal "relaxed", new_trip.pace
+    assert_equal "shoestring", new_trip.budget
+    assert_equal "Vegetarian; wheelchair-accessible; must see the Grand Canyon", new_trip.preferences
+  end
+
   test "clones structure: people, trails, days, activities, checklist, landmarks" do
     new_trip = duplicate_for(@other)
     assert_equal 2, new_trip.people.count

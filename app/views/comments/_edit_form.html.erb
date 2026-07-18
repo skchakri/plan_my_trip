@@ -1,0 +1,25 @@
+<%# Inline comment editor, swapped into the comment's turbo-frame by
+    CommentsController#edit and #update. Cancel (a GET to #show) swaps the
+    read-only body back. %>
+<%= turbo_frame_tag "comment-#{comment.id}-body" do %>
+  <%= form_with model: [ comment.trip, comment.activity, comment ],
+        url: trip_activity_comment_path(comment.trip, comment.activity, comment),
+        method: :patch,
+        class: "flex gap-2 items-start" do |f| %>
+    <%= f.text_area :body,
+          rows: 1,
+          aria: { label: "Edit your comment" },
+          class: "flex-1 min-w-0 px-3 py-2 rounded-lg bg-slate-950/60 border border-slate-700 text-sm text-slate-100 placeholder-slate-500 focus:border-amber-500/60 outline-none resize-none",
+          data: { controller: "auto-grow", action: "input->auto-grow#resize" },
+          required: true %>
+    <div class="shrink-0 flex flex-col gap-1">
+      <%= f.submit "Save",
+            class: "px-3 py-2 rounded-lg bg-amber-500 text-slate-950 text-sm font-semibold hover:bg-amber-400 transition-colors" %>
+      <%= link_to "Cancel", trip_activity_comment_path(comment.trip, comment.activity, comment),
+            class: "text-[11px] text-center text-slate-400 hover:text-slate-200" %>
+    </div>
+  <% end %>
+  <% if comment.errors.any? %>
+    <p class="mt-1 text-xs text-rose-300"><%= comment.errors.full_messages.to_sentence %></p>
+  <% end %>
+<% end %>

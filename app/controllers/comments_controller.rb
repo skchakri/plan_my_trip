@@ -33,6 +33,31 @@ class CommentsController < ApplicationController
     end
   end
 
+  # Cancel target for the inline editor — re-renders the read-only comment
+  # body back into its turbo-frame.
+  def show
+    comment = @activity.comments.find(params[:id])
+    authorize comment, :show?
+    render partial: "comments/body_frame", locals: { comment: comment }
+  end
+
+  def edit
+    comment = @activity.comments.find(params[:id])
+    authorize comment, :update?
+    render partial: "comments/edit_form", locals: { comment: comment }
+  end
+
+  def update
+    comment = @activity.comments.find(params[:id])
+    authorize comment, :update?
+
+    if comment.update(comment_params)
+      render partial: "comments/body_frame", locals: { comment: comment }
+    else
+      render partial: "comments/edit_form", locals: { comment: comment }, status: :unprocessable_entity
+    end
+  end
+
   def destroy
     comment = @activity.comments.find(params[:id])
     authorize comment, :destroy?

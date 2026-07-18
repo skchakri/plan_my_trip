@@ -1,26 +1,12 @@
 <%# Render a single comment row. Used both for the initial render and the
-    Turbo Stream append on create. %>
+    Turbo Stream append on create. The read/edit body lives in its own
+    turbo-frame (comments/_body_frame) so the inline editor can swap in place. %>
 <li id="comment-<%= comment.id %>"
     class="flex gap-3 group">
   <div class="shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-amber-500/30 to-amber-500/5 border border-amber-500/30 flex items-center justify-center text-amber-200 text-xs font-semibold">
     <%= comment.author.display_name[0].upcase %>
   </div>
   <div class="min-w-0 flex-1">
-    <div class="flex items-baseline gap-2 flex-wrap">
-      <span class="text-sm font-medium text-slate-200"><%= comment.author.display_name %></span>
-      <span class="text-[11px] text-slate-400" title="<%= comment.created_at.utc.iso8601 %>">
-        <%= time_ago_in_words(comment.created_at) %> ago
-        <% if comment.edited? %><span class="opacity-60">· edited</span><% end %>
-      </span>
-      <% if comment.author_id == current_user.id || comment.trip.owner_id == current_user.id %>
-        <%= button_to trip_activity_comment_path(comment.trip, comment.activity, comment),
-              method: :delete,
-              form: { data: { turbo_confirm: "Delete this comment?" }, class: "inline ml-auto opacity-0 group-hover:opacity-100 transition-opacity" },
-              class: "text-[11px] text-slate-400 hover:text-rose-300" do %>
-          Delete
-        <% end %>
-      <% end %>
-    </div>
-    <p class="mt-0.5 text-sm text-slate-200 leading-relaxed whitespace-pre-line break-words"><%= MentionParser.new(comment.trip).render_html(comment.body) %></p>
+    <%= render "comments/body_frame", comment: comment %>
   </div>
 </li>

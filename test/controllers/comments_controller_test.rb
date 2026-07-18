@@ -69,6 +69,46 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
     refute comment.reload.discarded?
   end
 
+  test "author can edit their own comment" do
+    sign_in_as(@friend)
+    comment = @activity.comments.create!(author: @friend, body: "orignal typo")
+
+    patch trip_activity_comment_path(@trip, @activity, comment),
+          params: { comment: { body: "original, fixed" } }
+
+    assert_response :success
+    assert_equal "original, fixed", comment.reload.body
+  end
+
+  test "editing to a blank body is rejected" do
+    sign_in_as(@friend)
+    comment = @activity.comments.create!(author: @friend, body: "keep me")
+
+    patch trip_activity_comment_path(@trip, @activity, comment),
+          params: { comment: { body: "" } }
+
+    assert_response :unprocessable_entity
+    assert_equal "keep me", comment.reload.body
+  end
+
+  test "a member cannot edit someone else's comment (owner included)" do
+    comment = @activity.comments.create!(author: @friend, body: "friend's words")
+
+    sign_in_as(@owner) # owner may delete for moderation, but not edit
+    patch trip_activity_comment_path(@trip, @activity, comment),
+          params: { comment: { body: "putting words in your mouth" } }
+
+    assert_response :redirect # Pundit failure is rescued to a redirect
+    assert_equal "friend's words", comment.reload.body
+  end
+
+  test "edit form is reachable by the author" do
+    sign_in_as(@friend)
+    comment = @activity.comments.create!(author: @friend, body: "edit me")
+    get edit_trip_activity_comment_path(@trip, @activity, comment)
+    assert_response :success
+  end
+
   private
 
   def sign_in_as(user)

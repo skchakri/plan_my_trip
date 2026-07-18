@@ -31,6 +31,27 @@ class TripTemplateTest < ActiveSupport::TestCase
     trip = TripTemplate.new("beach-weekend").build_for(@user, start_date: target)
     assert_equal target, trip.start_date
   end
+
+  test "seeded days carry the template's own headings, not generic 'Day N'" do
+    trip = TripTemplate.new("utah-parks").build_for(@user)
+    titles = trip.trip_days.order(:position).pluck(:title)
+    # "## Day 1 — Vegas to Zion" → "Vegas to Zion" (the "Day N —" prefix is dropped).
+    assert_equal "Vegas to Zion", titles.first
+    assert_includes titles, "Arches"
+    assert_not_includes titles, "Day 1"
+  end
+
+  test "weekday-prefixed headings are stripped too" do
+    trip = TripTemplate.new("beach-weekend").build_for(@user)
+    titles = trip.trip_days.order(:position).pluck(:title)
+    assert_equal "Drive + check in", titles.first
+  end
+
+  test "days beyond the available headings fall back to 'Day N'" do
+    # utah-parks has 8 duration_days but only 7 "## Day" headings.
+    trip = TripTemplate.new("utah-parks").build_for(@user)
+    assert_equal "Day 8", trip.trip_days.order(:position).last.title
+  end
 end
 
 class TripTemplatesControllerTest < ActionDispatch::IntegrationTest

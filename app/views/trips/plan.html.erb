@@ -496,7 +496,8 @@
             <% read_text = "Day #{idx + 1}, #{day.title}.#{day.summary.present? ? " #{day.summary}" : ""} #{day.activities.map { |a| [a.time_label, a.title, a.famous_for.presence || a.notes.to_s.split('.').first].compact.join('. ') }.join(' Then, ')}" %>
             <div class="shrink-0 flex items-center flex-wrap gap-2">
               <% if day.date %>
-                <%= turbo_frame_tag "day-weather-#{day.id}", src: day_weather_trip_path(@trip, day_id: day.id), loading: :lazy %>
+                <%= turbo_frame_tag "day-weather-#{day.id}", src: day_weather_trip_path(@trip, day_id: day.id), loading: :lazy,
+                      data: { controller: "frame-timeout", frame_timeout_timeout_value: 45000 } %>
               <% end %>
               <% if (dir_url = day_directions_url(day)) %>
                 <%= link_to dir_url, target: "_blank", rel: "noopener",

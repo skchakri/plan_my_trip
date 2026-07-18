@@ -78,7 +78,7 @@ Rails.application.routes.draw do
       member { patch :move }
       resources :documents, only: [ :create, :destroy ], controller: "activity_documents"
       resources :photos, only: [ :create, :destroy ], controller: "activity_photos"
-      resources :comments, only: [ :create, :destroy ]
+      resources :comments, only: [ :create, :show, :edit, :update, :destroy ]
     end
     resources :people, only: [ :create, :destroy ]
     resources :documents, only: [ :create, :destroy ], controller: "trip_documents"

@@ -78,14 +78,32 @@ class TripTemplate
 
   def seed_trip_days(trip, start)
     accent_palette = %w[blue gold teal pink violet emerald rose]
+    headings = day_headings
     duration_days.times do |i|
       trip.trip_days.create!(
         label:    "day-#{i + 1}",
-        title:    "Day #{i + 1}",
+        # Carry the template's own day headings (e.g. "Vegas to Zion") onto the
+        # day cards. Without this, the Plan page — which is day/activity-driven,
+        # not body-driven — renders blank "Day 1" cards and the itinerary is
+        # buried in the collapsed markdown notes, so a fresh template looks empty.
+        title:    headings[i] || "Day #{i + 1}",
         accent:   accent_palette[i % accent_palette.size],
         position: i + 1,
         date:     start + i
       )
+    end
+  end
+
+  # The descriptive part of each "## Day 1 — Vegas to Zion" (or
+  # "## Friday — Drive + check in") heading in the template body, in order.
+  # The leading "Day N —" / weekday prefix is stripped since the card already
+  # shows a day number; anything without a recognizable prefix is kept whole.
+  def day_headings
+    data[:body].to_s.lines.filter_map do |line|
+      next unless line.start_with?("## ")
+
+      heading = line.delete_prefix("## ").strip
+      heading.sub(/\A(?:Day\s*\d+|Mon(?:day)?|Tue(?:sday)?|Wed(?:nesday)?|Thu(?:rsday)?|Fri(?:day)?|Sat(?:urday)?|Sun(?:day)?)\s*[—–-]\s*/i, "").presence || heading
     end
   end
 end

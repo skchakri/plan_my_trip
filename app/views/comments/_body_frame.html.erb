@@ -1,0 +1,27 @@
+<%# Read-only view of one comment, inside a turbo-frame the inline editor
+    swaps with comments/_edit_form and back. %>
+<%= turbo_frame_tag "comment-#{comment.id}-body" do %>
+  <div class="flex items-baseline gap-2 flex-wrap">
+    <span class="text-sm font-medium text-slate-200"><%= comment.author.display_name %></span>
+    <span class="text-[11px] text-slate-400" title="<%= comment.created_at.utc.iso8601 %>">
+      <%= time_ago_in_words(comment.created_at) %> ago
+      <% if comment.edited? %><span class="opacity-60">· edited</span><% end %>
+    </span>
+    <% is_author = comment.author_id == current_user.id %>
+    <% if is_author || comment.trip.owner_id == current_user.id %>
+      <div class="ml-auto flex items-center gap-2 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+        <% if is_author %>
+          <%= link_to "Edit", edit_trip_activity_comment_path(comment.trip, comment.activity, comment),
+                class: "text-[11px] text-slate-400 hover:text-amber-300" %>
+        <% end %>
+        <%= button_to trip_activity_comment_path(comment.trip, comment.activity, comment),
+              method: :delete,
+              form: { data: { turbo_confirm: "Delete this comment?" }, class: "inline" },
+              class: "text-[11px] text-slate-400 hover:text-rose-300" do %>
+          Delete
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+  <p class="mt-0.5 text-sm text-slate-200 leading-relaxed whitespace-pre-line break-words"><%= MentionParser.new(comment.trip).render_html(comment.body) %></p>
+<% end %>
