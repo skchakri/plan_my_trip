@@ -19,13 +19,13 @@
     <% end %>
   </p>
 
-  <div class="inline-flex mt-4 rounded-xl border border-slate-700 bg-slate-900/60 p-1 text-sm">
-    <%= link_to copilot_trip_path(@trip),
-                class: "px-3 py-1.5 rounded-lg font-semibold transition-colors #{@mode == 'trivia' ? 'bg-amber-500 text-slate-950' : 'text-slate-300 hover:text-amber-300'}" do %>
+  <div role="tablist" aria-label="Question mode" class="inline-flex mt-4 rounded-xl border border-slate-700 bg-slate-900/60 p-1 text-sm">
+    <%= link_to copilot_trip_path(@trip), role: "tab", "aria-selected": (@mode == "trivia").to_s,
+                class: "btn btn-sm rounded-lg font-semibold #{@mode == 'trivia' ? 'bg-amber-500 text-slate-950' : 'text-slate-300 hover:text-amber-300'}" do %>
       Trivia
     <% end %>
-    <%= link_to copilot_trip_path(@trip, mode: "riddle"),
-                class: "px-3 py-1.5 rounded-lg font-semibold transition-colors inline-flex items-center gap-1 #{@mode == 'riddle' ? 'bg-amber-500 text-slate-950' : 'text-slate-300 hover:text-amber-300'}" do %>
+    <%= link_to copilot_trip_path(@trip, mode: "riddle"), role: "tab", "aria-selected": (@mode == "riddle").to_s,
+                class: "btn btn-sm rounded-lg font-semibold #{@mode == 'riddle' ? 'bg-amber-500 text-slate-950' : 'text-slate-300 hover:text-amber-300'}" do %>
       <%= icon :sparkles, class: "w-3.5 h-3.5" %> Riddles
     <% end %>
   </div>

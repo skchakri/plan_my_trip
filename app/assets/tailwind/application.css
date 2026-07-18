@@ -46,6 +46,16 @@
   .btn-sm { min-height: 44px; }
 }
 
+/* Consistent, WCAG 2.4.7-safe text-input focus. Mirrors .btn:focus-visible
+   (full-opacity 2px amber) instead of the ad-hoc border-color-only or
+   20%-alpha rings that varied field to field. */
+.field:focus-visible,
+.field:focus {
+  outline: 2px solid var(--color-amber-400);
+  outline-offset: 1px;
+  border-color: var(--color-amber-500);
+}
+
 /* Custom utilities for the prose article inside trip show pages.
    Tailwind v4 doesn't ship `prose` by default — provide a minimal one. */
 .prose-invert :where(h1, h2, h3, h4) { color: var(--color-amber-200); font-weight: 600; }

@@ -27,9 +27,31 @@ export default class extends Controller {
   }
 
   connect() {
-    this._closeHandler = (e) => { if (e.key === "Escape") this.close() }
+    this._closeHandler = (e) => {
+      if (!this.hasModalTarget || this.modalTarget.hidden) return
+      if (e.key === "Escape") { this.close(); return }
+      if (e.key === "Tab") this._trapTab(e)
+    }
     document.addEventListener("keydown", this._closeHandler)
     this._refreshCount()
+  }
+
+  // Keep Tab focus inside the open dialog — otherwise keyboard users tab out
+  // into the still-visible highlight cards behind the scrim.
+  _trapTab(e) {
+    const focusables = Array.from(this.modalTarget.querySelectorAll(
+      'a[href], button:not([disabled]), textarea, input:not([disabled]), select, [tabindex]:not([tabindex="-1"])'
+    )).filter(el => !el.hidden && el.getClientRects().length > 0)
+    if (!focusables.length) return
+    const first = focusables[0]
+    const last = focusables[focusables.length - 1]
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault()
+      last.focus()
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault()
+      first.focus()
+    }
   }
 
   disconnect() {

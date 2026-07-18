@@ -27,10 +27,16 @@ export default class extends Controller {
   static values = { questions: Array, recordUrl: String, best: Number }
   static targets = [
     "question", "results", "prompt", "media", "options", "progressBar",
-    "counter", "score", "streak", "nextWrap", "nextLabel",
+    "counter", "score", "streak", "nextWrap", "nextButton", "nextLabel",
     "finalScore", "finalHeadline", "finalMessage", "recap", "ring", "bestBadge",
-    "guestCta"
+    "guestCta", "playAgainButton", "announcer"
   ]
+
+  // Secondary/outline treatment (matches the "Pick another deck" link) applied
+  // to "Play again" when the guest sign-up CTA is showing, so only one amber
+  // primary button competes for the tap at that moment. Literal so Tailwind
+  // v4 compiles it.
+  static SECONDARY_BTN = "inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-lg border border-slate-700 text-slate-200 font-semibold hover:bg-white/5 transition-all"
 
   connect() {
     this.index = 0
@@ -87,6 +93,15 @@ export default class extends Controller {
     this.scoreTarget.textContent = this.correct
     this.streakTarget.textContent = this.streak
     this.progressBarTarget.style.width = `${(this.index / this.total) * 100}%`
+
+    // Move focus to the new question so screen-reader and keyboard users are
+    // told it changed. Not on the first render (index 0) — that would steal
+    // focus on page load.
+    if (this.index > 0) this.promptTarget.focus()
+  }
+
+  announce(message) {
+    if (this.hasAnnouncerTarget) this.announcerTarget.textContent = message
   }
 
   renderMedia(q) {
@@ -148,8 +163,13 @@ export default class extends Controller {
     this.scoreTarget.textContent = this.correct
     this.streakTarget.textContent = this.streak
 
+    const correctLabel = labels[q.answer_index]
+    this.announce(right ? "Correct." : `Incorrect. The answer is ${correctLabel}.`)
+
     this.nextLabelTarget.textContent = this.index + 1 >= this.total ? "See results" : "Next question"
     this.nextWrapTarget.hidden = false
+    // Advance focus to the Next button so the flow is keyboard-continuable.
+    if (this.hasNextButtonTarget) this.nextButtonTarget.focus()
   }
 
   next() {
@@ -177,6 +197,9 @@ export default class extends Controller {
 
     this.record()
     this.resultsTarget.scrollIntoView({ behavior: "smooth", block: "center" })
+    // Announce the outcome and move focus into the results so it isn't silent.
+    this.announce(`Quiz complete. You scored ${this.correct} of ${this.total}, ${pct} percent.`)
+    this.finalHeadlineTarget.focus()
   }
 
   renderRecap() {
@@ -256,6 +279,9 @@ export default class extends Controller {
 
   showGuestCta() {
     if (this.hasGuestCtaTarget) this.guestCtaTarget.hidden = false
+    // The sign-up CTA is now the primary action — demote "Play again" so two
+    // amber buttons don't compete at the conversion moment.
+    if (this.hasPlayAgainButtonTarget) this.playAgainButtonTarget.className = this.constructor.SECONDARY_BTN
   }
 
   showBest(data) {

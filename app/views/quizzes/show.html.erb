@@ -34,6 +34,10 @@
   data-quiz-best-value="<%= @best.to_i %>"
   class="max-w-2xl mx-auto"
 >
+  <%# Visually-hidden live region: announces correct/incorrect and the final
+      result to screen readers, since the whole player is JS-rendered. %>
+  <div data-quiz-target="announcer" role="status" aria-live="assertive" class="sr-only"></div>
+
   <%# ── Top bar ─────────────────────────────────────────────── %>
   <div class="flex items-center justify-between gap-3 mb-4">
     <%= link_to quizzes_path, class: "inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-200 transition-colors" do %>
@@ -79,11 +83,11 @@
   <%# ── Question card ───────────────────────────────────────── %>
   <div data-quiz-target="question" class="rounded-2xl border border-slate-800/80 bg-gradient-to-br from-slate-900/70 to-slate-900/40 p-5 sm:p-6">
     <div data-quiz-target="media" hidden class="mb-4"></div>
-    <p data-quiz-target="prompt" class="font-display text-xl sm:text-2xl font-semibold text-slate-50 leading-snug mb-5">…</p>
-    <div data-quiz-target="options" class="grid gap-2.5"></div>
+    <p data-quiz-target="prompt" tabindex="-1" class="font-display text-xl sm:text-2xl font-semibold text-slate-50 leading-snug mb-5 focus:outline-none">…</p>
+    <div data-quiz-target="options" role="group" aria-label="Answer choices" class="grid gap-2.5"></div>
 
     <div data-quiz-target="nextWrap" hidden class="mt-5 flex justify-end">
-      <button type="button" data-action="quiz#next"
+      <button type="button" data-action="quiz#next" data-quiz-target="nextButton"
         class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-amber-500 text-slate-950 font-semibold shadow-lg shadow-amber-500/20 hover:bg-amber-400 hover:shadow-amber-500/40 transition-all">
         <span data-quiz-target="nextLabel">Next question</span>
         <%= icon :arrow_right, class: "w-4 h-4" %>
@@ -105,7 +109,7 @@
       </div>
     </div>
 
-    <h2 data-quiz-target="finalHeadline" class="font-display text-2xl font-semibold text-slate-50">Nicely done</h2>
+    <h2 data-quiz-target="finalHeadline" tabindex="-1" class="font-display text-2xl font-semibold text-slate-50 focus:outline-none">Nicely done</h2>
     <p data-quiz-target="finalMessage" class="text-sm text-slate-400 mt-1.5 mb-5">You scored 0 of 0.</p>
 
     <div data-quiz-target="recap" class="text-left space-y-1.5 mb-6 max-h-72 overflow-y-auto pr-1"></div>
@@ -131,7 +135,7 @@
     </div>
 
     <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5">
-      <button type="button" data-action="quiz#playAgain"
+      <button type="button" data-action="quiz#playAgain" data-quiz-target="playAgainButton"
         class="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-lg bg-amber-500 text-slate-950 font-semibold shadow-lg shadow-amber-500/20 hover:bg-amber-400 transition-all">
         <%= icon :refresh_cw, class: "w-4 h-4" %> Play again
       </button>
