@@ -20,8 +20,6 @@
   ]
 %>
 <% content_for :head do %>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-
   <%# GEO/SEO: one @graph for the org, the site, and the app itself. %>
   <script type="application/ld+json">
   <%= raw({
@@ -61,94 +59,7 @@
     ]
   }.to_json) %>
   </script>
-  <style>
-    /* ── Landing-page-only styles (lp-*) ─────────────────────────── */
-    .lp-mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; letter-spacing: 0.14em; }
-
-    /* Paper ephemera — the light artifacts on the dark page */
-    .lp-paper {
-      background:
-        radial-gradient(rgba(15,23,42,.045) 1px, transparent 1px) 0 0 / 22px 22px,
-        linear-gradient(160deg, #F2EEE3, #E9E4D6);
-      color: #0f172a;
-      box-shadow: 0 30px 60px -18px rgba(0,0,0,.75), 0 4px 14px rgba(0,0,0,.4);
-    }
-    .lp-paper-hole {
-      background: #020617;
-      box-shadow: inset 0 1px 2px rgba(0,0,0,.5);
-    }
-
-    /* Perforation between ticket body and stub */
-    .lp-perf {
-      background-image: linear-gradient(to bottom, rgba(15,23,42,.35) 45%, transparent 45%);
-      background-size: 2px 12px;
-      background-repeat: repeat-y;
-    }
-    @media (max-width: 767px) {
-      .lp-perf { background-image: linear-gradient(to right, rgba(15,23,42,.35) 45%, transparent 45%); background-size: 12px 2px; background-repeat: repeat-x; }
-    }
-
-    /* Fake barcode on the boarding pass stub */
-    .lp-barcode {
-      background-image: repeating-linear-gradient(to right,
-        #0f172a 0 2px, transparent 2px 4px, #0f172a 4px 5px, transparent 5px 9px,
-        #0f172a 9px 12px, transparent 12px 14px, #0f172a 14px 15px, transparent 15px 20px);
-    }
-
-    /* Scroll reveals */
-    .lp-reveal {
-      opacity: 0; transform: translateY(26px);
-      transition: opacity .7s ease, transform .8s cubic-bezier(.16, 1, .3, 1);
-      transition-delay: var(--lp-d, 0ms);
-    }
-    .lp-reveal.lp-in { opacity: 1; transform: none; }
-
-    /* Itinerary route spine */
-    .lp-spine-road  { stroke: rgba(148,163,184,.28); stroke-width: 2; stroke-dasharray: 2 9; fill: none; }
-    .lp-spine-drawn { stroke: url(#lp-route-gradient); stroke-width: 2.5; fill: none;
-                      filter: drop-shadow(0 0 6px rgba(251,191,36,.55)); }
-
-    /* Chapter stop markers */
-    .lp-stop-marker {
-      transition: border-color .6s ease, color .6s ease, box-shadow .6s ease;
-      transition-delay: 150ms;
-    }
-    .lp-reveal.lp-in .lp-stop-marker {
-      border-color: rgba(251,191,36,.7); color: #fcd34d;
-      box-shadow: 0 0 22px rgba(251,191,36,.28);
-    }
-
-    /* Destination marquee */
-    .lp-marquee-track { display: flex; width: max-content; animation: lp-marquee 46s linear infinite; }
-    @keyframes lp-marquee { to { transform: translateX(-50%); } }
-
-    /* Hero route ticker — the dot driving SLC → LAS */
-    .lp-drive-dot { animation: lp-drive 9s cubic-bezier(.45,.05,.55,.95) infinite; }
-    @keyframes lp-drive {
-      0%   { left: 0%;   opacity: 0; }
-      6%   { opacity: 1; }
-      94%  { opacity: 1; }
-      100% { left: 100%; opacity: 0; }
-    }
-
-    /* Podcast waveform */
-    .lp-wave-bar { transform-origin: bottom; animation: lp-wave 1.15s ease-in-out infinite alternate; }
-    @keyframes lp-wave { from { transform: scaleY(.25); } to { transform: scaleY(1); } }
-
-    /* Async-build shimmer */
-    .lp-shimmer {
-      background: linear-gradient(100deg, rgba(251,191,36,.15) 30%, rgba(251,191,36,.5) 50%, rgba(251,191,36,.15) 70%);
-      background-size: 200% 100%;
-      animation: lp-shimmer 1.8s linear infinite;
-    }
-    @keyframes lp-shimmer { to { background-position: -200% 0; } }
-
-    @media (prefers-reduced-motion: reduce) {
-      .lp-reveal { opacity: 1; transform: none; transition: none; }
-      .lp-marquee-track, .lp-drive-dot, .lp-wave-bar, .lp-shimmer { animation: none; }
-      .lp-wave-bar { transform: scaleY(.65); }
-    }
-  </style>
+  <%= render "shared/lp_styles" %>
 <% end %>
 
 <div data-controller="landing">
@@ -587,6 +498,38 @@
     </div>
   </div>
 </section>
+
+<%# ═══ Popular road trips — SEO landing pages + internal links ═════ %>
+<% featured_road_trips = RoadTrip.published.ordered.limit(6) %>
+<% if featured_road_trips.any? %>
+  <section class="relative border-t border-slate-800/70">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-24">
+      <div class="max-w-2xl lp-reveal" data-landing-target="reveal">
+        <p class="lp-mono text-[11px] uppercase text-amber-300">Start from a classic</p>
+        <h2 class="font-display text-3xl sm:text-5xl font-semibold tracking-tight mt-3 text-slate-50">Popular road trips</h2>
+        <p class="mt-4 text-slate-400 text-lg">Famous routes with the stops, a day-by-day plan, and one tap to make it yours.</p>
+      </div>
+      <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <% featured_road_trips.each do |rt| %>
+          <%= link_to road_trip_path(rt.slug), class: "group rounded-2xl overflow-hidden border border-slate-800 bg-slate-900/40 hover:border-amber-500/40 transition-colors lp-reveal", data: { "landing-target": "reveal" } do %>
+            <div class="relative aspect-[16/9] bg-slate-800 overflow-hidden">
+              <% if rt.hero_image_url.present? %>
+                <img src="<%= rt.hero_image_url %>" alt="" loading="lazy" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+              <% end %>
+              <span class="absolute top-3 left-3 lp-mono inline-flex items-center px-2.5 py-1 rounded-full bg-slate-950/80 backdrop-blur text-[10px] uppercase tracking-widest font-semibold text-amber-200 border border-amber-500/30"><%= rt.corridor %></span>
+            </div>
+            <div class="p-4">
+              <h3 class="font-display text-base font-semibold tracking-tight leading-snug text-slate-100 group-hover:text-amber-100"><%= rt.title %></h3>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+      <div class="mt-8">
+        <%= link_to "All road trip guides →", road_trips_path, class: "lp-mono text-sm uppercase text-amber-300 hover:text-amber-200" %>
+      </div>
+    </div>
+  </section>
+<% end %>
 
 <%# ═══ Boarding pass — final CTA ══════════════════════════════════ %>
 <section class="relative">

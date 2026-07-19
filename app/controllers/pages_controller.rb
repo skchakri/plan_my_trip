@@ -16,6 +16,7 @@ class PagesController < ApplicationController
   # lists both.
   def sitemap
     @posts = BlogPost.published.recent
+    @road_trips = RoadTrip.published.ordered
     @quiz_keys = QuizCatalog.keys
     respond_to do |format|
       format.xml { render layout: false }

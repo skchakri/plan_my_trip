@@ -1,0 +1,106 @@
+<%= form_with model: [ :admin, road_trip ], class: "space-y-5 max-w-3xl" do |f| %>
+  <% if road_trip.errors.any? %>
+    <div class="rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-100 px-3 py-2 text-sm">
+      <%= road_trip.errors.full_messages.to_sentence %>
+    </div>
+  <% end %>
+
+  <% field = "w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm text-slate-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500" %>
+  <% label = "block text-xs uppercase tracking-widest text-slate-400 font-semibold mb-1" %>
+  <% mono  = "#{field} font-mono" %>
+
+  <div class="grid sm:grid-cols-2 gap-5">
+    <div>
+      <%= f.label :origin, class: label %>
+      <%= f.text_field :origin, class: field %>
+    </div>
+    <div>
+      <%= f.label :destination, class: label %>
+      <%= f.text_field :destination, class: field %>
+    </div>
+  </div>
+
+  <div>
+    <%= f.label :title, class: label %>
+    <%= f.text_field :title, class: field %>
+  </div>
+
+  <div>
+    <%= f.label :slug, "Slug (blank = auto from origin/destination)", class: label %>
+    <%= f.text_field :slug, placeholder: "auto-generated", class: field %>
+  </div>
+
+  <div>
+    <%= f.label :tagline, class: label %>
+    <%= f.text_area :tagline, rows: 2, class: field %>
+  </div>
+
+  <div class="grid sm:grid-cols-2 gap-5">
+    <div>
+      <%= f.label :status, class: label %>
+      <%= f.select :status, RoadTrip::STATUSES.map { |s| [ s.titleize, s ] }, {}, class: field %>
+    </div>
+    <div>
+      <%= f.label :transport_mode, class: label %>
+      <%= f.select :transport_mode, Trip::TRANSPORT_MODES.map { |m| [ m.titleize, m ] }, {}, class: field %>
+    </div>
+  </div>
+
+  <div class="grid sm:grid-cols-4 gap-5">
+    <div><%= f.label :distance_label, "Distance", class: label %><%= f.text_field :distance_label, class: field %></div>
+    <div><%= f.label :drive_time_label, "Drive time", class: label %><%= f.text_field :drive_time_label, class: field %></div>
+    <div><%= f.label :suggested_days, "Days", class: label %><%= f.number_field :suggested_days, class: field %></div>
+    <div><%= f.label :position, "Sort", class: label %><%= f.number_field :position, class: field %></div>
+  </div>
+
+  <div>
+    <%= f.label :best_season, class: label %>
+    <%= f.text_field :best_season, class: field %>
+  </div>
+
+  <div class="grid sm:grid-cols-2 gap-5">
+    <div><%= f.label :destination_lat, "Destination lat (for weather)", class: label %><%= f.text_field :destination_lat, class: field %></div>
+    <div><%= f.label :destination_lng, "Destination lng (for weather)", class: label %><%= f.text_field :destination_lng, class: field %></div>
+  </div>
+
+  <div>
+    <%= f.label :hero_image_url, "Hero image URL", class: label %>
+    <%= f.url_field :hero_image_url, placeholder: "https://…", class: field %>
+  </div>
+
+  <div>
+    <%= f.label :intro, "Intro (Markdown)", class: label %>
+    <%= f.text_area :intro, rows: 6, class: mono %>
+  </div>
+
+  <div>
+    <%= f.label :seo_description, "SEO description", class: label %>
+    <%= f.text_field :seo_description, class: field %>
+  </div>
+
+  <hr class="border-slate-800">
+  <p class="text-xs text-slate-400">The three fields below are JSON arrays. Edit carefully — invalid JSON is rejected with an error.</p>
+
+  <div>
+    <%= f.label :stops, "Stops — JSON array of { name, blurb, tag, image_url }", class: label %>
+    <%= f.text_area :stops, value: JSON.pretty_generate(road_trip.stops), rows: 12, class: mono %>
+  </div>
+
+  <div>
+    <%= f.label :itinerary, "Itinerary — JSON array of { day, title, summary }", class: label %>
+    <%= f.text_area :itinerary, value: JSON.pretty_generate(road_trip.itinerary), rows: 8, class: mono %>
+  </div>
+
+  <div>
+    <%= f.label :faqs, "FAQs — JSON array of { q, a }", class: label %>
+    <%= f.text_area :faqs, value: JSON.pretty_generate(road_trip.faqs), rows: 8, class: mono %>
+  </div>
+
+  <div class="flex items-center gap-3 pt-2">
+    <%= f.submit road_trip.persisted? ? "Save route" : "Create route", class: "px-4 py-2 rounded-lg bg-amber-500 text-slate-950 text-sm font-semibold hover:bg-amber-400 cursor-pointer" %>
+    <%= link_to "Cancel", admin_road_trips_path, class: "text-sm text-slate-400 hover:text-white" %>
+    <% if road_trip.persisted? && road_trip.published? %>
+      <%= link_to "View on site ↗", road_trip_path(road_trip), target: "_blank", rel: "noopener", class: "text-sm text-amber-300 hover:text-amber-200 ml-auto" %>
+    <% end %>
+  </div>
+<% end %>

@@ -34,3 +34,4 @@ Disallow: /invitations/
 
 Sitemap: https://wanderply.com/sitemap.xml
 Sitemap: https://wanderply.com/places-sitemap.xml
+Sitemap: https://wanderply.com/road-trips-sitemap.xml

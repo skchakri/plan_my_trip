@@ -52,6 +52,10 @@ class AppSetting < ApplicationRecord
     Definition.new(key: "POSTHOG_HOST", label: "PostHog host", category: "Analytics", secret: false,
       description: "PostHog ingestion host. US cloud is https://us.i.posthog.com; EU cloud is https://eu.i.posthog.com. Must stay a *.posthog.com origin — the CSP only allow-lists that.", placeholder: nil, default: "https://us.i.posthog.com"),
 
+    # ── Search & SEO ──
+    Definition.new(key: "GOOGLE_SITE_VERIFICATION", label: "Google Search Console verification", category: "Search & SEO", secret: false,
+      description: "Verify wanderply.com in Google Search Console with the HTML-tag method: create the property, choose the \"HTML tag\" method, and paste ONLY the content token here (the part inside content=\"…\", not the whole tag). It renders a <meta name=\"google-site-verification\"> on every public page. Then hit Verify in GSC and submit /sitemap.xml. Blank → no tag rendered.", placeholder: "e.g. AbC123…xyz"),
+
     # ── Usage limits ──
     Definition.new(key: "TRIP_BUILD_DAILY_LIMIT", label: "Trip builds per account per day", category: "Usage limits", secret: false,
       description: "Max AI-built plans one account can start in a rolling 24h (BuildQuota). Each build costs real AI spend, so this is the account-side companion to the Rack::Attack IP throttles. Admins are exempt. 0 or blank disables the cap.", placeholder: nil, default: BuildQuota::DAILY_DEFAULT),

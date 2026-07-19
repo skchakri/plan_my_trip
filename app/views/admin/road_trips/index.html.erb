@@ -1,0 +1,51 @@
+<% content_for :title, "Road trips" %>
+
+<div class="flex items-center justify-between mb-4">
+  <h1 class="font-display text-2xl font-semibold">Road trips</h1>
+  <%= link_to "+ New route", new_admin_road_trip_path, class: "text-sm px-3 py-1.5 rounded-md bg-amber-500 text-slate-950 font-semibold hover:bg-amber-400" %>
+</div>
+
+<p class="text-sm text-slate-400 mb-4">Curated SEO guides at <%= link_to "/road-trips", road_trips_path, class: "text-amber-300" %>. Published routes are crawlable and in the sitemap; drafts stay private.</p>
+
+<% if @road_trips.empty? %>
+  <div class="rounded-xl border border-dashed border-slate-700 bg-slate-900/30 p-12 text-center text-slate-400">
+    No routes yet. <%= link_to "Add the first one", new_admin_road_trip_path, class: "text-amber-300" %>.
+  </div>
+<% else %>
+  <div class="rounded-xl border border-slate-800 overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-slate-900/60 text-[10px] uppercase tracking-widest text-slate-400">
+        <tr>
+          <th class="text-left px-3 py-2">Route</th>
+          <th class="text-left px-3 py-2">Status</th>
+          <th class="text-left px-3 py-2">Stops</th>
+          <th class="text-right px-3 py-2">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-800/60">
+        <% @road_trips.each do |rt| %>
+          <tr class="hover:bg-slate-900/40">
+            <td class="px-3 py-2">
+              <%= link_to rt.title, edit_admin_road_trip_path(rt), class: "text-amber-300 hover:text-amber-200 font-medium" %>
+              <div class="text-xs text-slate-500"><code><%= rt.slug %></code></div>
+            </td>
+            <td class="px-3 py-2">
+              <% badge = { "published" => "bg-emerald-500/15 text-emerald-300", "draft" => "bg-slate-700 text-slate-300", "archived" => "bg-amber-500/15 text-amber-300" }[rt.status] %>
+              <span class="text-[10px] px-1.5 py-0.5 rounded font-semibold uppercase <%= badge %>"><%= rt.status %></span>
+            </td>
+            <td class="px-3 py-2 text-slate-400"><%= rt.stops.size %></td>
+            <td class="px-3 py-2 text-right whitespace-nowrap">
+              <%= link_to "Edit", edit_admin_road_trip_path(rt), class: "text-xs text-slate-300 hover:text-white px-2" %>
+              <% if rt.published? %>
+                <%= button_to "Unpublish", unpublish_admin_road_trip_path(rt), class: "inline text-xs text-slate-300 hover:text-white px-2" %>
+              <% else %>
+                <%= button_to "Publish", publish_admin_road_trip_path(rt), class: "inline text-xs text-emerald-300 hover:text-emerald-200 px-2" %>
+              <% end %>
+              <%= button_to "Delete", admin_road_trip_path(rt), method: :delete, form: { data: { turbo_confirm: "Remove this route?" } }, class: "inline text-xs text-rose-300 hover:text-rose-200 px-2" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>

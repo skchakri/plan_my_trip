@@ -364,6 +364,9 @@ puts "Trivia questions: #{TriviaQuestion.where(trip_id: nil).count} " \
 puts "\nImporting blog posts…"
 load Rails.root.join("db/seeds/blog.rb").to_s
 
+puts "\nSeeding road-trip guides…"
+load Rails.root.join("db/seeds/road_trips.rb").to_s
+
 puts "\nSeeding AI prompts…"
 load Rails.root.join("db/seed_ai_prompts.rb").to_s
 

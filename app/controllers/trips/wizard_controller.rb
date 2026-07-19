@@ -338,11 +338,20 @@ module Trips
     end
 
     def defaults_for_destination
-      {
+      defaults = {
         "start_date" => @draft["start_date"].presence || Date.current.to_s,
         "end_date"   => @draft["end_date"].presence   || (Date.current + 3).to_s,
         "traveler_count" => @draft["traveler_count"].presence || 2
       }
+      # Pre-fill origin/destination/transport from a road-trip page's "Build your
+      # own" deep-link (?origin=&destination=&transport_mode=), but never clobber
+      # an in-progress draft.
+      defaults["origin"]      = params[:origin]      if @draft["origin"].blank?      && params[:origin].present?
+      defaults["destination"] = params[:destination] if @draft["destination"].blank? && params[:destination].present?
+      if @draft["transport_mode"].blank? && Trip::TRANSPORT_MODES.include?(params[:transport_mode])
+        defaults["transport_mode"] = params[:transport_mode]
+      end
+      defaults
     end
 
     def default_people(count)

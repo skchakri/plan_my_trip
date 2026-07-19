@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_19_120200) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_19_130000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -425,6 +425,36 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_19_120200) do
     t.index ["trip_id", "confirmation_number"], name: "index_reservations_on_trip_and_confirmation", unique: true, where: "((confirmation_number IS NOT NULL) AND (discarded_at IS NULL))"
     t.index ["trip_id", "kind"], name: "index_reservations_on_trip_id_and_kind"
     t.index ["trip_id"], name: "index_reservations_on_trip_id"
+  end
+
+  create_table "road_trips", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "best_season"
+    t.datetime "created_at", null: false
+    t.string "destination", null: false
+    t.decimal "destination_lat", precision: 9, scale: 6
+    t.decimal "destination_lng", precision: 9, scale: 6
+    t.datetime "discarded_at"
+    t.string "distance_label"
+    t.string "drive_time_label"
+    t.jsonb "faqs", default: [], null: false
+    t.string "hero_image_url"
+    t.text "intro"
+    t.jsonb "itinerary", default: [], null: false
+    t.string "origin", null: false
+    t.integer "position", default: 0, null: false
+    t.string "seo_description"
+    t.string "slug", null: false
+    t.string "status", default: "draft", null: false
+    t.jsonb "stops", default: [], null: false
+    t.integer "suggested_days"
+    t.string "tagline"
+    t.string "title", null: false
+    t.string "transport_mode", default: "own_car", null: false
+    t.datetime "updated_at", null: false
+    t.index ["discarded_at"], name: "index_road_trips_on_discarded_at"
+    t.index ["position"], name: "index_road_trips_on_position"
+    t.index ["slug"], name: "index_road_trips_on_slug", unique: true
+    t.index ["status"], name: "index_road_trips_on_status"
   end
 
   create_table "route_landmarks", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|

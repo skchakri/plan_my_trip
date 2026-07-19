@@ -26,6 +26,20 @@
     <changefreq>monthly</changefreq>
   </url>
   <% end %>
+  <%# Curated road-trip guides — high-buyer-intent SEO landing pages. %>
+  <url>
+    <loc><%= road_trips_url %></loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <% @road_trips.each do |rt| %>
+  <url>
+    <loc><%= road_trip_url(rt.slug) %></loc>
+    <lastmod><%= rt.updated_at.utc.iso8601 %></lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <% end %>
   <%# The trivia decks are public and are the app's widest organic surface —
       people search "guess the flag quiz" far more than "AI trip planner". %>
   <url>

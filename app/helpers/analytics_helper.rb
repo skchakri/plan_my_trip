@@ -17,4 +17,10 @@ module AnalyticsHelper
   def analytics_host
     AppSetting.get("POSTHOG_HOST").presence || "https://us.i.posthog.com"
   end
+
+  # Google Search Console HTML-tag verification token, set at
+  # /admin/app_settings. Blank until the founder pastes it, so no tag renders.
+  def google_site_verification
+    AppSetting.get("GOOGLE_SITE_VERIFICATION").presence
+  end
 end

@@ -1,0 +1,248 @@
+<% content_for :title, "#{@road_trip.title} · Wanderply" %>
+<% content_for :description, (@road_trip.seo_description.presence || @road_trip.tagline) %>
+<% content_for :canonical, canonical_base_url + road_trip_path(@road_trip.slug) %>
+<% content_for :og_type, "article" %>
+<% content_for :og_image, @road_trip.hero_image_url if @road_trip.hero_image_url.present? %>
+
+<% content_for :head do %>
+  <%= render "shared/lp_styles" %>
+  <script type="application/ld+json">
+  <%= raw({
+    "@context" => "https://schema.org",
+    "@graph" => [
+      organization_ld,
+      {
+        "@type" => "TouristTrip",
+        "name"  => @road_trip.title,
+        "description" => (@road_trip.seo_description.presence || @road_trip.tagline),
+        "url"   => road_trip_url(@road_trip.slug),
+        "image" => @road_trip.hero_image_url,
+        "touristType" => "Road trip",
+        "itinerary" => {
+          "@type" => "ItemList",
+          "itemListElement" => @road_trip.stops.each_with_index.map do |stop, i|
+            { "@type" => "ListItem", "position" => i + 1,
+              "item" => { "@type" => "TouristAttraction", "name" => stop["name"], "description" => stop["blurb"] } }
+          end
+        }
+      },
+      ({
+        "@type" => "FAQPage",
+        "mainEntity" => @road_trip.faqs.map { |f|
+          { "@type" => "Question", "name" => f["q"],
+            "acceptedAnswer" => { "@type" => "Answer", "text" => f["a"] } }
+        }
+      } if @road_trip.faqs.any?)
+    ].compact
+  }.to_json) %>
+  </script>
+<% end %>
+
+<div data-controller="landing">
+
+<%# ═══ Hero — boarding pass ═══════════════════════════════════════ %>
+<section class="relative overflow-hidden">
+  <div class="absolute inset-0">
+    <% if @road_trip.hero_image_url.present? %>
+      <img src="<%= @road_trip.hero_image_url %>" alt="" loading="eager" class="absolute inset-0 w-full h-full object-cover opacity-30">
+    <% end %>
+    <div class="absolute inset-0 bg-gradient-to-b from-slate-950/70 via-slate-950/90 to-slate-950"></div>
+    <div class="aurora"></div>
+  </div>
+
+  <div class="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-14 sm:pt-40">
+    <p class="lp-mono text-[11px] uppercase text-amber-300">Road trip guide</p>
+
+    <%# Origin → destination ticker with the driving dot %>
+    <div class="relative mt-5 mb-6 max-w-xl">
+      <div class="flex items-center justify-between lp-mono text-sm sm:text-base text-slate-200 font-semibold">
+        <span><%= @road_trip.origin %></span>
+        <span class="text-amber-300" aria-hidden="true">✈</span>
+        <span><%= @road_trip.destination %></span>
+      </div>
+      <div class="relative mt-2 h-px bg-slate-700">
+        <span class="lp-drive-dot absolute -top-[3px] w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,.9)]"></span>
+      </div>
+    </div>
+
+    <h1 class="font-display text-4xl sm:text-6xl font-semibold tracking-tight leading-[1.05] text-slate-50"><%= @road_trip.title %></h1>
+    <% if @road_trip.tagline.present? %>
+      <p class="mt-5 text-lg sm:text-xl text-slate-300 max-w-2xl leading-relaxed"><%= @road_trip.tagline %></p>
+    <% end %>
+
+    <%# Stats strip %>
+    <dl class="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl">
+      <% [["Distance", @road_trip.distance_label], ["Drive time", @road_trip.drive_time_label], ["Suggested", @road_trip.suggested_days&.then { |d| "#{d} days" }], ["Best season", @road_trip.best_season]].each do |label, value| %>
+        <% next if value.blank? %>
+        <div class="rounded-xl border border-slate-800 bg-slate-900/50 px-4 py-3">
+          <dt class="lp-mono text-[10px] uppercase text-slate-500"><%= label %></dt>
+          <dd class="mt-1 text-sm font-semibold text-slate-100"><%= value %></dd>
+        </div>
+      <% end %>
+    </dl>
+
+    <div class="mt-8 flex flex-wrap gap-3">
+      <%= link_to "Plan your own #{@road_trip.origin} → #{@road_trip.destination} trip",
+            wizard_destination_path(origin: @road_trip.origin, destination: @road_trip.destination, transport_mode: @road_trip.transport_mode),
+            class: "inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 text-slate-950 text-sm font-semibold hover:bg-amber-400 transition-colors" %>
+      <%= link_to "Browse all road trips", road_trips_path, class: "inline-flex items-center px-5 py-3 rounded-xl border border-slate-700 text-slate-200 text-sm hover:bg-white/5" %>
+    </div>
+  </div>
+</section>
+
+<%# ═══ Intro ═══════════════════════════════════════════════════════ %>
+<% if @road_trip.intro.present? %>
+  <section class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div class="prose-invert max-w-none text-lg leading-relaxed text-slate-300">
+      <%= render_markdown(@road_trip.intro) %>
+    </div>
+  </section>
+<% end %>
+
+<%# ═══ The stops — route spine ═════════════════════════════════════ %>
+<% if @road_trip.stops.any? %>
+  <section class="relative" data-landing-target="chapters">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+      <div class="max-w-2xl lp-reveal" data-landing-target="reveal">
+        <p class="lp-mono text-[11px] uppercase text-amber-300">The route</p>
+        <h2 class="font-display text-3xl sm:text-5xl font-semibold tracking-tight mt-3 text-slate-50">Stops along the way</h2>
+      </div>
+    </div>
+
+    <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:pr-8 lg:pl-32 pb-10">
+      <svg class="hidden lg:block absolute left-8 top-0 bottom-0 w-20 h-full" viewBox="0 0 80 1000" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="lp-route-gradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#fde68a"/>
+            <stop offset="1" stop-color="#f59e0b"/>
+          </linearGradient>
+        </defs>
+        <path class="lp-spine-road"  vector-effect="non-scaling-stroke" d="M40 0 C 18 140, 62 240, 40 380 C 22 500, 58 620, 40 760 C 26 870, 52 940, 40 1000"/>
+        <path class="lp-spine-drawn" vector-effect="non-scaling-stroke" data-landing-target="route" d="M40 0 C 18 140, 62 240, 40 380 C 22 500, 58 620, 40 760 C 26 870, 52 940, 40 1000"/>
+      </svg>
+
+      <% @road_trip.stops.each_with_index do |stop, i| %>
+        <article class="relative pt-10 sm:pt-12 lp-reveal" data-landing-target="reveal">
+          <span class="lp-stop-marker hidden lg:flex absolute -left-[5.05rem] top-11 w-12 h-12 rounded-full border-2 border-slate-700 bg-slate-950 items-center justify-center lp-mono text-xs text-slate-400 z-10"><%= format("%02d", i + 1) %></span>
+          <div class="rounded-2xl border border-slate-800 bg-slate-900/40 overflow-hidden sm:flex">
+            <% if stop["image_url"].present? %>
+              <div class="sm:w-48 shrink-0 bg-slate-800">
+                <img src="<%= stop["image_url"] %>" alt="" loading="lazy" class="w-full h-40 sm:h-full object-cover">
+              </div>
+            <% end %>
+            <div class="p-5 sm:p-6">
+              <div class="flex items-center gap-2 mb-1.5">
+                <span class="lg:hidden lp-mono text-[10px] text-amber-300"><%= format("%02d", i + 1) %></span>
+                <% if stop["tag"].present? %>
+                  <span class="lp-mono text-[10px] uppercase text-amber-200 border border-amber-500/30 rounded-full px-2 py-0.5"><%= stop["tag"] %></span>
+                <% end %>
+              </div>
+              <h3 class="font-display text-xl sm:text-2xl font-semibold tracking-tight text-slate-50"><%= stop["name"] %></h3>
+              <% if stop["blurb"].present? %>
+                <p class="mt-2 text-slate-400 leading-relaxed"><%= stop["blurb"] %></p>
+              <% end %>
+            </div>
+          </div>
+        </article>
+      <% end %>
+    </div>
+  </section>
+<% end %>
+
+<%# ═══ Day skeleton ════════════════════════════════════════════════ %>
+<% if @road_trip.itinerary.any? %>
+  <section class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div class="lp-reveal" data-landing-target="reveal">
+      <p class="lp-mono text-[11px] uppercase text-amber-300">Suggested plan</p>
+      <h2 class="font-display text-3xl sm:text-4xl font-semibold tracking-tight mt-3 text-slate-50">A <%= @road_trip.suggested_days || @road_trip.itinerary.size %>-day skeleton</h2>
+    </div>
+    <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <% @road_trip.itinerary.each do |day| %>
+        <div class="lp-paper rounded-2xl p-5 lp-reveal" data-landing-target="reveal">
+          <p class="lp-mono text-[10px] uppercase text-slate-600">Day <%= day["day"] %></p>
+          <h3 class="font-display text-lg font-semibold mt-1 leading-snug"><%= day["title"] %></h3>
+          <% if day["summary"].present? %>
+            <p class="mt-2 text-sm text-slate-700 leading-relaxed"><%= day["summary"] %></p>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </section>
+<% end %>
+
+<%# ═══ Narration wedge ═════════════════════════════════════════════ %>
+<section class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+  <div class="rounded-3xl border border-amber-500/25 bg-gradient-to-br from-amber-500/10 to-slate-900/40 p-8 sm:p-10 lp-reveal" data-landing-target="reveal">
+    <div class="flex items-end gap-1 h-10 mb-5" aria-hidden="true">
+      <% [0.4, 0.7, 0.35, 0.9, 0.55, 0.8, 0.3, 0.65, 0.95, 0.5, 0.75, 0.4].each_with_index do |h, i| %>
+        <span class="lp-wave-bar w-1.5 rounded-full bg-amber-400/80" style="height: <%= (h * 100).round %>%; animation-delay: <%= i * 90 %>ms"></span>
+      <% end %>
+    </div>
+    <h2 class="font-display text-2xl sm:text-3xl font-semibold tracking-tight text-slate-50">Hear every stop, narrated for the drive.</h2>
+    <p class="mt-3 text-slate-300 max-w-2xl leading-relaxed">
+      Wanderply doesn't just plan the <%= @road_trip.origin %> → <%= @road_trip.destination %> route — it narrates every stop like a podcast you play in the car, with the history and the story of each place. And it all works offline, the whole way.
+    </p>
+    <%= link_to "Build this trip & hear it →", wizard_destination_path(origin: @road_trip.origin, destination: @road_trip.destination, transport_mode: @road_trip.transport_mode),
+          class: "inline-flex items-center gap-2 mt-6 px-5 py-3 rounded-xl bg-amber-500 text-slate-950 text-sm font-semibold hover:bg-amber-400" %>
+  </div>
+</section>
+
+<%# ═══ Weather (lazy) ══════════════════════════════════════════════ %>
+<section class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+  <%= turbo_frame_tag "road-trip-weather", src: road_trip_weather_path(@road_trip.slug), loading: "lazy" do %>
+    <p class="text-sm text-slate-500">Loading typical conditions in <%= @road_trip.destination %>…</p>
+  <% end %>
+</section>
+
+<%# ═══ FAQ ═════════════════════════════════════════════════════════ %>
+<% if @road_trip.faqs.any? %>
+  <section id="faq" class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <p class="lp-mono text-[11px] uppercase text-amber-300">Good to know</p>
+    <h2 class="font-display text-3xl sm:text-4xl font-semibold tracking-tight mt-3 mb-6 text-slate-50">Frequently asked</h2>
+    <div class="space-y-3">
+      <% @road_trip.faqs.each do |f| %>
+        <details class="group rounded-xl border border-slate-800 bg-slate-900/40 px-5 py-4">
+          <summary class="cursor-pointer list-none flex items-center justify-between gap-3 text-slate-100 font-medium">
+            <%= f["q"] %>
+            <span class="text-amber-300 group-open:rotate-45 transition-transform" aria-hidden="true">+</span>
+          </summary>
+          <p class="mt-3 text-slate-400 leading-relaxed"><%= f["a"] %></p>
+        </details>
+      <% end %>
+    </div>
+  </section>
+<% end %>
+
+<%# ═══ CTA + related ═══════════════════════════════════════════════ %>
+<section class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+  <div class="rounded-3xl bg-slate-900/60 border border-slate-800 p-8 sm:p-12 text-center">
+    <h2 class="font-display text-3xl sm:text-4xl font-semibold tracking-tight text-slate-50">Make it yours in two minutes.</h2>
+    <p class="mt-3 text-slate-400 max-w-xl mx-auto">Tell Wanderply your dates, pace, and who's coming — it builds a day-by-day plan around your must-dos and narrates the whole drive.</p>
+    <%= link_to "Plan your #{@road_trip.origin} → #{@road_trip.destination} trip",
+          wizard_destination_path(origin: @road_trip.origin, destination: @road_trip.destination, transport_mode: @road_trip.transport_mode),
+          class: "inline-flex items-center gap-2 mt-6 px-6 py-3 rounded-xl bg-amber-500 text-slate-950 text-sm font-semibold hover:bg-amber-400" %>
+  </div>
+
+  <% if @related.any? %>
+    <div class="mt-12">
+      <p class="lp-mono text-[11px] uppercase text-amber-300 mb-4">More road trips</p>
+      <div class="grid gap-4 sm:grid-cols-3">
+        <% @related.each do |rt| %>
+          <%= link_to road_trip_path(rt.slug), class: "group rounded-2xl overflow-hidden border border-slate-800 bg-slate-900/40 hover:border-amber-500/40 transition-colors" do %>
+            <div class="relative aspect-[16/9] bg-slate-800 overflow-hidden">
+              <% if rt.hero_image_url.present? %>
+                <img src="<%= rt.hero_image_url %>" alt="" loading="lazy" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+              <% end %>
+            </div>
+            <div class="p-4">
+              <p class="lp-mono text-[10px] uppercase text-amber-300"><%= rt.corridor %></p>
+              <h3 class="font-display text-base font-semibold tracking-tight mt-1 leading-snug text-slate-100 group-hover:text-amber-100"><%= rt.title %></h3>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</section>
+
+</div>

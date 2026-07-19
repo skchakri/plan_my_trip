@@ -10,6 +10,12 @@
     fires on the initial load — hence capture_pageview:false, or we'd double
     count). turbo:load is the right event over turbo:render because page
     refreshes morph the DOM (see turbo_refreshes_with in the layout). %>
+<%# Google Search Console site-verification tag — independent of analytics.
+    Rendered on every public page (this partial is in the <head> of all five
+    layouts) so GSC verification succeeds from the homepage. %>
+<% if (gsc_token = google_site_verification).present? %>
+  <meta name="google-site-verification" content="<%= gsc_token %>">
+<% end %>
 <% if analytics_enabled? %>
   <% posthog_key = analytics_key %>
   <% posthog_host = analytics_host %>

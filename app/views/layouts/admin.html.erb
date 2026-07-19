@@ -51,6 +51,7 @@
             <%= link_to "Landmarks", admin_landmarks_path,  class: "px-2.5 py-1.5 rounded-md text-slate-300 hover:bg-white/5 #{'bg-white/5 text-white' if controller_name == 'landmarks'}" %>
             <%= link_to "Trivia",    admin_trivia_path,     class: "px-2.5 py-1.5 rounded-md text-slate-300 hover:bg-white/5 #{'bg-white/5 text-white' if controller_name == 'trivia'}" %>
             <%= link_to "Blog",      admin_blog_posts_path, class: "px-2.5 py-1.5 rounded-md text-slate-300 hover:bg-white/5 #{'bg-white/5 text-white' if controller_name == 'blog_posts'}" %>
+            <%= link_to "Routes",    admin_road_trips_path, class: "px-2.5 py-1.5 rounded-md text-slate-300 hover:bg-white/5 #{'bg-white/5 text-white' if controller_name == 'road_trips'}" %>
             <% escalated = SupportTicket.kept.where(status: "escalated").count %>
             <%= link_to admin_support_tickets_path, class: "px-2.5 py-1.5 rounded-md text-slate-300 hover:bg-white/5 #{'bg-white/5 text-white' if controller_name == 'support_tickets'}" do %>
               Support<% if escalated.positive? %> <span class="ml-0.5 text-[10px] px-1.5 py-0.5 rounded-full bg-rose-500 text-white font-bold"><%= escalated %></span><% end %>

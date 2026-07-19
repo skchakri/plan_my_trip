@@ -136,6 +136,13 @@ Rails.application.routes.draw do
   # Distinct from the auth-gated /places/:id used during trip planning.
   get "p/:slug", to: "public_places#show", as: :public_place, constraints: { slug: /[a-z0-9-]+/ }
   get "places-sitemap.xml", to: "public_places#sitemap", as: :places_sitemap, defaults: { format: :xml }
+
+  # SEO-indexed road-trip guides — public, crawlable, curated. Content is
+  # fully pre-stored so pages render with no per-request AI calls.
+  get "road-trips", to: "public_road_trips#index", as: :road_trips
+  get "road-trips-sitemap.xml", to: "public_road_trips#sitemap", as: :road_trips_sitemap, defaults: { format: :xml }
+  get "road-trips/:slug/weather", to: "public_road_trips#weather", as: :road_trip_weather, constraints: { slug: /[a-z0-9-]+/ }
+  get "road-trips/:slug", to: "public_road_trips#show", as: :road_trip, constraints: { slug: /[a-z0-9-]+/ }
   # Site-wide sitemap (marketing pages + blog); robots.txt lists both.
   get "sitemap.xml", to: "pages#sitemap", as: :sitemap, defaults: { format: :xml }
 
@@ -153,6 +160,12 @@ Rails.application.routes.draw do
     end
     resources :landmarks, only: [ :index, :show ]
     resources :blog_posts do
+      member do
+        post :publish
+        post :unpublish
+      end
+    end
+    resources :road_trips do
       member do
         post :publish
         post :unpublish
