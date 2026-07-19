@@ -152,6 +152,18 @@ Rails.application.routes.draw do
       member { post :verify }
     end
     resources :landmarks, only: [ :index, :show ]
+    resources :blog_posts do
+      member do
+        post :publish
+        post :unpublish
+      end
+    end
+    resources :support_tickets, only: [ :index, :show ] do
+      member do
+        post :reply
+        post :resolve
+      end
+    end
     resources :users, only: [ :index, :show, :edit, :update ]
     resources :trivia, only: [ :index, :show ], constraints: { id: /[^\/]+/ } do
       collection { post :generate_riddles }
@@ -174,6 +186,12 @@ Rails.application.routes.draw do
   resources :notifications, only: [ :index ] do
     member     { post :read }
     collection { post :read_all }
+  end
+
+  # Help & Support — users open tickets; an hourly AI job answers them and
+  # escalates to an admin when a ticket needs a human (SupportTicket).
+  resources :support_tickets, only: [ :index, :show, :new, :create ] do
+    member { post :reply }
   end
 
   # Travel Trivia — standalone general-knowledge quizzes (capitals, flags,

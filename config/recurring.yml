@@ -37,3 +37,10 @@ production:
   poll_flight_status:
     class: PollFlightStatusJob
     schedule: every hour
+
+  # Auto-answer open support tickets with the AI (support_answer.v1). Confident
+  # answers go straight to the user; anything needing a human is drafted and
+  # escalated to admins. PER_RUN_LIMIT in the job bounds paid AI spend.
+  answer_support_tickets:
+    class: AnswerSupportTicketsJob
+    schedule: every hour

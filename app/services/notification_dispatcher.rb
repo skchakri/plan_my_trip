@@ -49,6 +49,35 @@ class NotificationDispatcher
     end
   end
 
+  # Tell the ticket owner their support question got a reply — whether the AI
+  # answered it directly (`support_answered`) or an admin followed up
+  # (`support_reply`).
+  def self.support_answered(ticket, kind: "support_answered")
+    Notification.create!(
+      recipient_id: ticket.user_id,
+      subject:      ticket,
+      kind:         kind,
+      url:          Rails.application.routes.url_helpers.support_ticket_path(ticket),
+      body:         "We replied to your support request: #{ticket.subject}"
+    )
+  end
+
+  # Ping every admin that a ticket needs a human. A drafted reply is already
+  # waiting on the ticket (admin_draft) for them to review, edit, and send.
+  def self.support_escalated(ticket)
+    url = Rails.application.routes.url_helpers.admin_support_ticket_path(ticket)
+    User.where(admin: true).find_each do |admin|
+      Notification.create!(
+        recipient_id: admin.id,
+        actor_id:     ticket.user_id,
+        subject:      ticket,
+        kind:         "support_escalated",
+        url:          url,
+        body:         "Support ticket needs you: #{ticket.subject} (#{ticket.escalation_reason.presence || 'flagged by AI'})"
+      )
+    end
+  end
+
   # Notify the trip owner when someone accepts a share invitation.
   def self.trip_share_accepted(membership)
     return if membership.user_id == membership.trip.owner_id

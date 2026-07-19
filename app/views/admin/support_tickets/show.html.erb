@@ -1,0 +1,57 @@
+<% content_for :title, @ticket.subject %>
+
+<%= link_to admin_support_tickets_path, class: "inline-flex items-center gap-1 text-sm text-slate-400 hover:text-amber-300 mb-4" do %>
+  ← All tickets
+<% end %>
+
+<div class="flex items-start justify-between gap-3 mb-1">
+  <h1 class="font-display text-2xl font-semibold min-w-0"><%= @ticket.subject %></h1>
+  <%= support_status_badge(@ticket.status) %>
+</div>
+<p class="text-sm text-slate-400 mb-6">
+  From <span class="text-slate-200"><%= @ticket.user.display_name %></span>
+  &lt;<%= @ticket.user.email %>&gt; · opened <%= @ticket.created_at.strftime("%b %-d, %Y") %>
+  · <%= pluralize(@ticket.ai_attempts, "AI attempt") %>
+</p>
+
+<div class="grid lg:grid-cols-5 gap-6">
+  <%# Thread %>
+  <div class="lg:col-span-3 space-y-3">
+    <% @messages.each do |message| %>
+      <% label, bubble = support_message_meta(message, admin: true) %>
+      <div class="rounded-xl border <%= bubble %> px-4 py-3">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-xs font-semibold text-slate-300"><%= label %></span>
+          <span class="text-[11px] text-slate-500"><%= message.created_at.strftime("%b %-d, %-l:%M %p") %></span>
+        </div>
+        <div class="text-slate-200 text-sm leading-relaxed"><%= simple_format(message.body) %></div>
+      </div>
+    <% end %>
+  </div>
+
+  <%# Reply / draft panel %>
+  <div class="lg:col-span-2">
+    <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-4 sticky top-20">
+      <% if @ticket.status == "escalated" %>
+        <p class="text-xs uppercase tracking-widest text-rose-300 font-semibold mb-2">Needs your review</p>
+        <% if @ticket.escalation_reason.present? %>
+          <p class="text-sm text-slate-300 mb-3">Reason: <%= @ticket.escalation_reason %></p>
+        <% end %>
+        <p class="text-xs text-slate-400 mb-2">The AI drafted this reply — edit it and send, or write your own.</p>
+      <% else %>
+        <p class="text-xs uppercase tracking-widest text-slate-400 font-semibold mb-2">Reply to customer</p>
+      <% end %>
+
+      <%= form_with url: reply_admin_support_ticket_path(@ticket), method: :post, class: "space-y-3" do |f| %>
+        <%= f.text_area "support_message[body]", rows: 9, value: @ticket.admin_draft,
+              class: "w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm text-slate-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500" %>
+        <%= f.submit "Send reply", class: "w-full px-4 py-2 rounded-lg bg-amber-500 text-slate-950 text-sm font-semibold hover:bg-amber-400 cursor-pointer" %>
+      <% end %>
+
+      <% unless @ticket.status.in?(%w[resolved closed]) %>
+        <%= button_to "Mark resolved", resolve_admin_support_ticket_path(@ticket),
+              class: "w-full mt-2 px-4 py-2 rounded-lg border border-slate-700 text-slate-300 text-sm hover:bg-white/5" %>
+      <% end %>
+    </div>
+  </div>
+</div>

@@ -15,7 +15,7 @@ class PagesController < ApplicationController
   # have their own (larger) sitemap at /places-sitemap.xml; robots.txt
   # lists both.
   def sitemap
-    @posts = BlogPost.all
+    @posts = BlogPost.published.recent
     @quiz_keys = QuizCatalog.keys
     respond_to do |format|
       format.xml { render layout: false }

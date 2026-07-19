@@ -1,0 +1,53 @@
+<% content_for :title, "Blog" %>
+
+<div class="flex items-center justify-between mb-4">
+  <h1 class="font-display text-2xl font-semibold">Blog</h1>
+  <%= link_to "+ New post", new_admin_blog_post_path, class: "text-sm px-3 py-1.5 rounded-md bg-amber-500 text-slate-950 font-semibold hover:bg-amber-400" %>
+</div>
+
+<p class="text-sm text-slate-400 mb-4">Posts are Markdown. Published posts appear at <%= link_to "/blog", blog_index_path, class: "text-amber-300" %>; drafts stay private.</p>
+
+<% if @posts.empty? %>
+  <div class="rounded-xl border border-dashed border-slate-700 bg-slate-900/30 p-12 text-center text-slate-400">
+    No posts yet. <%= link_to "Write the first one", new_admin_blog_post_path, class: "text-amber-300" %>.
+  </div>
+<% else %>
+  <div class="rounded-xl border border-slate-800 overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-slate-900/60 text-[10px] uppercase tracking-widest text-slate-400">
+        <tr>
+          <th class="text-left px-3 py-2">Title</th>
+          <th class="text-left px-3 py-2">Status</th>
+          <th class="text-left px-3 py-2">Published</th>
+          <th class="text-left px-3 py-2">Tags</th>
+          <th class="text-right px-3 py-2">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-800/60">
+        <% @posts.each do |post| %>
+          <tr class="hover:bg-slate-900/40">
+            <td class="px-3 py-2">
+              <%= link_to post.title, edit_admin_blog_post_path(post), class: "text-amber-300 hover:text-amber-200 font-medium" %>
+              <div class="text-xs text-slate-500"><code><%= post.slug %></code></div>
+            </td>
+            <td class="px-3 py-2">
+              <% badge = { "published" => "bg-emerald-500/15 text-emerald-300", "draft" => "bg-slate-700 text-slate-300", "archived" => "bg-amber-500/15 text-amber-300" }[post.status] %>
+              <span class="text-[10px] px-1.5 py-0.5 rounded font-semibold uppercase <%= badge %>"><%= post.status %></span>
+            </td>
+            <td class="px-3 py-2 text-slate-400"><%= post.published_at&.strftime("%b %-d, %Y") || "—" %></td>
+            <td class="px-3 py-2 text-slate-400 text-xs"><%= post.tags.join(", ").presence || "—" %></td>
+            <td class="px-3 py-2 text-right whitespace-nowrap">
+              <%= link_to "Edit", edit_admin_blog_post_path(post), class: "text-xs text-slate-300 hover:text-white px-2" %>
+              <% if post.published? %>
+                <%= button_to "Unpublish", unpublish_admin_blog_post_path(post), class: "inline text-xs text-slate-300 hover:text-white px-2" %>
+              <% else %>
+                <%= button_to "Publish", publish_admin_blog_post_path(post), class: "inline text-xs text-emerald-300 hover:text-emerald-200 px-2" %>
+              <% end %>
+              <%= button_to "Delete", admin_blog_post_path(post), method: :delete, form: { data: { turbo_confirm: "Remove this post?" } }, class: "inline text-xs text-rose-300 hover:text-rose-200 px-2" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>

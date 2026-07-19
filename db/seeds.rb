@@ -361,6 +361,9 @@ Rake::Task["trivia:seed_chains"].invoke
 puts "Trivia questions: #{TriviaQuestion.where(trip_id: nil).count} " \
      "(#{TriviaQuestion.where(trip_id: nil).where.not(chain_intro: nil).count} chains)"
 
+puts "\nImporting blog posts…"
+load Rails.root.join("db/seeds/blog.rb").to_s
+
 puts "\nSeeding AI prompts…"
 load Rails.root.join("db/seed_ai_prompts.rb").to_s
 

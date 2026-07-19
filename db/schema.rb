@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_18_140000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_19_120200) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -154,6 +154,28 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_18_140000) do
     t.string "key", null: false
     t.datetime "updated_at", null: false
     t.index ["key"], name: "index_app_settings_on_key", unique: true
+  end
+
+  create_table "blog_posts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "author_name"
+    t.text "body", null: false
+    t.string "cover_image_url"
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.text "excerpt"
+    t.datetime "published_at"
+    t.integer "reading_minutes"
+    t.string "seo_description"
+    t.string "slug", null: false
+    t.string "status", default: "draft", null: false
+    t.string "tags", default: [], null: false, array: true
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.index ["discarded_at"], name: "index_blog_posts_on_discarded_at"
+    t.index ["published_at"], name: "index_blog_posts_on_published_at"
+    t.index ["slug"], name: "index_blog_posts_on_slug", unique: true
+    t.index ["status"], name: "index_blog_posts_on_status"
+    t.index ["tags"], name: "index_blog_posts_on_tags", using: :gin
   end
 
   create_table "booking_claims", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -450,6 +472,36 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_18_140000) do
     t.index ["trip_day_id"], name: "index_suggestions_on_trip_day_id"
   end
 
+  create_table "support_messages", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "author_id"
+    t.text "body", null: false
+    t.datetime "created_at", null: false
+    t.string "role", null: false
+    t.uuid "support_ticket_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["author_id"], name: "index_support_messages_on_author_id"
+    t.index ["support_ticket_id", "created_at"], name: "index_support_messages_on_support_ticket_id_and_created_at"
+    t.index ["support_ticket_id"], name: "index_support_messages_on_support_ticket_id"
+  end
+
+  create_table "support_tickets", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.text "admin_draft"
+    t.integer "ai_attempts", default: 0, null: false
+    t.string "category"
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.string "escalation_reason"
+    t.datetime "last_activity_at"
+    t.string "status", default: "open", null: false
+    t.string "subject", null: false
+    t.datetime "updated_at", null: false
+    t.uuid "user_id", null: false
+    t.index ["discarded_at"], name: "index_support_tickets_on_discarded_at"
+    t.index ["status", "last_activity_at"], name: "index_support_tickets_on_status_and_last_activity_at"
+    t.index ["status"], name: "index_support_tickets_on_status"
+    t.index ["user_id"], name: "index_support_tickets_on_user_id"
+  end
+
   create_table "trails", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "alltrails_url"
     t.datetime "created_at", null: false
@@ -653,6 +705,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_18_140000) do
   add_foreign_key "suggestion_votes", "users"
   add_foreign_key "suggestions", "trip_days"
   add_foreign_key "suggestions", "users", column: "author_id"
+  add_foreign_key "support_messages", "support_tickets"
+  add_foreign_key "support_messages", "users", column: "author_id"
+  add_foreign_key "support_tickets", "users"
   add_foreign_key "trails", "trips"
   add_foreign_key "trip_days", "trips"
   add_foreign_key "trip_invitations", "trips"

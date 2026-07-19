@@ -1,0 +1,76 @@
+<%= form_with model: [ :admin, post ], class: "space-y-5 max-w-3xl" do |f| %>
+  <% if post.errors.any? %>
+    <div class="rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-100 px-3 py-2 text-sm">
+      <%= post.errors.full_messages.to_sentence %>
+    </div>
+  <% end %>
+
+  <% field = "w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm text-slate-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500" %>
+  <% label = "block text-xs uppercase tracking-widest text-slate-400 font-semibold mb-1" %>
+
+  <div>
+    <%= f.label :title, class: label %>
+    <%= f.text_field :title, class: field %>
+  </div>
+
+  <div class="grid sm:grid-cols-2 gap-5">
+    <div>
+      <%= f.label :slug, "Slug (blank = auto from title)", class: label %>
+      <%= f.text_field :slug, placeholder: "auto-generated", class: field %>
+    </div>
+    <div>
+      <%= f.label :status, class: label %>
+      <%= f.select :status, BlogPost::STATUSES.map { |s| [ s.titleize, s ] }, {}, class: field %>
+    </div>
+  </div>
+
+  <div>
+    <%= f.label :excerpt, "Excerpt (index + meta description)", class: label %>
+    <%= f.text_area :excerpt, rows: 2, class: field %>
+  </div>
+
+  <div>
+    <%= f.label :body, "Body (Markdown)", class: label %>
+    <%= f.text_area :body, rows: 20, class: "#{field} font-mono" %>
+  </div>
+
+  <div class="grid sm:grid-cols-2 gap-5">
+    <div>
+      <%= f.label :author_name, "Author byline", class: label %>
+      <%= f.text_field :author_name, class: field %>
+    </div>
+    <div>
+      <%= f.label :published_at, "Publish date/time", class: label %>
+      <%= f.datetime_local_field :published_at, value: post.published_at&.strftime("%Y-%m-%dT%H:%M"), class: field %>
+    </div>
+  </div>
+
+  <div class="grid sm:grid-cols-2 gap-5">
+    <div>
+      <%= f.label :tags, "Tags (comma-separated)", class: label %>
+      <%= f.text_field :tags, value: post.tags.join(", "), class: field %>
+    </div>
+    <div>
+      <%= f.label :reading_minutes, "Reading minutes (blank = auto)", class: label %>
+      <%= f.number_field :reading_minutes, class: field %>
+    </div>
+  </div>
+
+  <div>
+    <%= f.label :cover_image_url, "Cover image URL", class: label %>
+    <%= f.url_field :cover_image_url, placeholder: "https://…", class: field %>
+  </div>
+
+  <div>
+    <%= f.label :seo_description, "SEO description (optional override)", class: label %>
+    <%= f.text_field :seo_description, class: field %>
+  </div>
+
+  <div class="flex items-center gap-3 pt-2">
+    <%= f.submit post.persisted? ? "Save post" : "Create post", class: "px-4 py-2 rounded-lg bg-amber-500 text-slate-950 text-sm font-semibold hover:bg-amber-400 cursor-pointer" %>
+    <%= link_to "Cancel", admin_blog_posts_path, class: "text-sm text-slate-400 hover:text-white" %>
+    <% if post.persisted? && post.published? %>
+      <%= link_to "View on site ↗", blog_path(post), target: "_blank", rel: "noopener", class: "text-sm text-amber-300 hover:text-amber-200 ml-auto" %>
+    <% end %>
+  </div>
+<% end %>

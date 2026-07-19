@@ -36,13 +36,17 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     assert_select "#faq details summary", minimum: 4
   end
 
-  test "sitemap lists marketing pages and blog posts" do
+  test "sitemap lists marketing pages and published blog posts" do
+    post = BlogPost.create!(title: "Sitemap Post", body: "b", status: "published", published_at: 1.day.ago)
+    draft = BlogPost.create!(title: "Draft Post", body: "b", status: "draft")
+
     get sitemap_path
     assert_response :success
     assert_equal "application/xml", response.media_type
     assert_includes response.body, root_url
     assert_includes response.body, blog_index_url
-    assert_includes response.body, blog_url(BlogPost.all.first.slug)
+    assert_includes response.body, blog_url(post.slug)
+    refute_includes response.body, blog_url(draft.slug), "drafts must not be in the sitemap"
   end
 
   test "sitemap lists every public quiz deck" do

@@ -1,0 +1,48 @@
+<% content_for :title, "Support" %>
+
+<div class="flex items-center justify-between mb-4">
+  <h1 class="font-display text-2xl font-semibold">Support tickets</h1>
+</div>
+
+<div class="flex items-center gap-2 mb-4 text-xs flex-wrap">
+  <%= link_to "All", admin_support_tickets_path,
+        class: "px-2.5 py-1 rounded-full border #{@status.nil? ? 'bg-white/10 text-white border-slate-600' : 'text-slate-400 border-slate-700 hover:bg-white/5'}" %>
+  <% SupportTicket::STATUSES.each do |s| %>
+    <%= link_to admin_support_tickets_path(status: s),
+          class: "px-2.5 py-1 rounded-full border #{@status == s ? 'bg-white/10 text-white border-slate-600' : 'text-slate-400 border-slate-700 hover:bg-white/5'}" do %>
+      <%= support_admin_status_label(s) %> <span class="text-slate-500">(<%= @counts[s] || 0 %>)</span>
+    <% end %>
+  <% end %>
+</div>
+
+<% if @tickets.empty? %>
+  <div class="rounded-xl border border-dashed border-slate-700 bg-slate-900/30 p-12 text-center text-slate-400">No tickets here.</div>
+<% else %>
+  <div class="rounded-xl border border-slate-800 overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-slate-900/60 text-[10px] uppercase tracking-widest text-slate-400">
+        <tr>
+          <th class="text-left px-3 py-2">Subject</th>
+          <th class="text-left px-3 py-2">From</th>
+          <th class="text-left px-3 py-2">Status</th>
+          <th class="text-left px-3 py-2">Updated</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-800/60">
+        <% @tickets.each do |ticket| %>
+          <tr class="hover:bg-slate-900/40 <%= 'bg-rose-500/5' if ticket.status == 'escalated' %>">
+            <td class="px-3 py-2">
+              <%= link_to ticket.subject, admin_support_ticket_path(ticket), class: "text-amber-300 hover:text-amber-200 font-medium" %>
+              <% if ticket.status == "escalated" && ticket.escalation_reason.present? %>
+                <div class="text-xs text-rose-300 mt-0.5"><%= ticket.escalation_reason %></div>
+              <% end %>
+            </td>
+            <td class="px-3 py-2 text-slate-300"><%= ticket.user.display_name %></td>
+            <td class="px-3 py-2"><%= support_status_badge(ticket.status) %></td>
+            <td class="px-3 py-2 text-slate-400 text-xs whitespace-nowrap"><%= time_ago_in_words(ticket.last_activity_at || ticket.updated_at) %> ago</td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>
