@@ -31,6 +31,43 @@
   </p>
 </header>
 
+<%# ── Product bridge (guests only) ──────────────────────────────
+    The quiz index is the app's widest organic-search landing page — most
+    visitors arrive knowing only "flag quiz", not that Wanderply is a trip
+    planner. This is the one spot to say what the product is and offer a
+    single CTA before they browse (or bounce) without ever finishing a round.
+    "Plan a free trip" → the wizard, which bounces guests through sign-up and
+    (via after_sign_in_path_for's no-trips rule) lands them right back in it.
+    Hidden for signed-in users — they came to play, and the nav already has
+    "New trip". %>
+<% unless user_signed_in? %>
+  <section class="relative overflow-hidden rounded-2xl border border-amber-500/25 bg-gradient-to-br from-amber-500/10 via-slate-900/50 to-slate-900/60 p-5 sm:p-7 mb-7">
+    <div aria-hidden="true" class="pointer-events-none absolute -top-20 -right-16 w-56 h-56 rounded-full bg-gradient-to-br from-amber-500/20 to-transparent blur-3xl"></div>
+    <div class="relative max-w-xl">
+      <p class="text-[11px] uppercase tracking-[0.2em] text-amber-300/90 font-medium flex items-center gap-1.5">
+        <%= icon :sparkles, class: "w-3.5 h-3.5" %> Wanderply · AI trip planner
+      </p>
+      <h2 class="font-display text-2xl sm:text-3xl font-semibold text-slate-50 mt-2 leading-tight">
+        You know the places. Now go see them.
+      </h2>
+      <p class="text-sm text-slate-300 mt-2.5 leading-relaxed">
+        Wanderply turns any destination into a day-by-day itinerary in minutes — routed,
+        weather-checked, and narrated stop by stop like your own travel podcast.
+      </p>
+      <div class="mt-5 flex flex-col sm:flex-row sm:items-center gap-3">
+        <%= link_to wizard_destination_path,
+              class: "inline-flex items-center justify-center gap-1.5 px-5 py-3 rounded-lg bg-amber-500 text-slate-950 font-semibold shadow-lg shadow-amber-500/20 hover:bg-amber-400 transition-all" do %>
+          <%= icon :map_pin, class: "w-4 h-4" %> Plan a free trip
+        <% end %>
+        <span class="inline-flex items-center gap-1.5 text-xs text-slate-400">
+          <%= icon :check, class: "w-3.5 h-3.5 text-emerald-400 shrink-0" %>
+          Free to start · no credit card · your trivia scores save too
+        </span>
+      </div>
+    </div>
+  </section>
+<% end %>
+
 <%
   total_plays = @plays.values.sum
   played_categories = @plays.keys.size

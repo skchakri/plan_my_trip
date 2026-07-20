@@ -82,6 +82,23 @@ class QuizzesControllerTest < ActionDispatch::IntegrationTest
     QuizCatalog.all.each { |c| assert_includes response.body, c.title }
   end
 
+  # The index is the widest organic-search landing page, so guests must meet a
+  # product bridge + a single CTA into trip planning before they've played a
+  # round — that's the whole point of quiz→signup conversion.
+  test "a guest sees the trip-planner product bridge on the index" do
+    get quizzes_path
+    assert_response :success
+    assert_includes response.body, "Plan a free trip"
+    assert_select "a[href=?]", wizard_destination_path
+  end
+
+  test "a signed-in user is not shown the guest product bridge" do
+    sign_in_as(@user)
+    get quizzes_path
+    assert_response :success
+    assert_not_includes response.body, "Plan a free trip"
+  end
+
   test "show renders a playable deck with embedded questions" do
     sign_in_as(@user)
     get quiz_path("countries_capitals")
