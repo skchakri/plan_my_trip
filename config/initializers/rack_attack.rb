@@ -16,6 +16,25 @@ if Rails.env.production?
       %w[127.0.0.1 ::1].include?(req.ip)
     end
 
+    ### Admin-managed IP blocklist (/admin/app_settings → BLOCKED_IPS) ###
+    # Safelists always win over blocklists in Rack::Attack, so localhost above
+    # can never lock itself out.
+    blocklist("blocked ips") do |req|
+      IpBlocklist.blocked?(req.ip)
+    end
+
+    ### Auto-ban IPs hammering the login endpoint ###
+    # The logins/ip throttle below slows a brute-forcer to 10/min; this bans an
+    # IP outright for an hour once it has made 20 login POSTs inside 10 minutes
+    # (counted at the middleware layer, so "attempts", not "failures").
+    blocklist("fail2ban/logins") do |req|
+      Rack::Attack::Fail2Ban.filter(
+        "login-ban-#{req.ip}", maxretry: 20, findtime: 10.minutes, bantime: 1.hour
+      ) do
+        req.path == "/users/sign_in" && req.post?
+      end
+    end
+
     ### Public share links — token routes are guessable-resistant but bots crawl ###
     throttle("public_trip/ip", limit: 60, period: 1.minute) do |req|
       req.ip if req.path.start_with?("/s/")
@@ -67,11 +86,27 @@ if Rails.env.production?
       ]
     end
 
+    self.blocklisted_responder = lambda do |_request|
+      [
+        403,
+        { "Content-Type" => "text/plain" },
+        [ "Forbidden.\n" ]
+      ]
+    end
+
     ### Log throttled requests ###
     ActiveSupport::Notifications.subscribe("throttle.rack_attack") do |_name, _start, _finish, _id, payload|
       req = payload[:request]
       Rails.logger.warn(
         "[rack-attack] throttled ip=#{req.ip} path=#{req.path} matched=#{req.env['rack.attack.matched']}"
+      )
+    end
+
+    ### Log blocked requests ###
+    ActiveSupport::Notifications.subscribe("blocklist.rack_attack") do |_name, _start, _finish, _id, payload|
+      req = payload[:request]
+      Rails.logger.warn(
+        "[rack-attack] blocked ip=#{req.ip} path=#{req.path} matched=#{req.env['rack.attack.matched']}"
       )
     end
   end

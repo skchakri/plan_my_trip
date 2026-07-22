@@ -366,6 +366,14 @@ an executable path, so a web-editable value would be an RCE vector.
 `GOOGLE_PLACES_API_KEY` is set (better POI matching, no 1-req/sec cap) and falls
 back to free Nominatim otherwise.
 
+**IP blocking** (`BLOCKED_IPS`, category "Security"): comma/space-separated IPs
+or CIDR ranges denied with a 403 at the Rack::Attack layer (production only)
+via `IpBlocklist` (`app/services/ip_blocklist.rb`) — parsed ranges are memoized
+against the raw setting value, so admin edits apply live with no redeploy. A
+Fail2Ban rule in `config/initializers/rack_attack.rb` also auto-bans any IP for
+1h after 20 login POSTs in 10 min. The localhost safelist always wins over
+blocklists, so you can't lock yourself out locally.
+
 ## Cost control (`BuildQuota`)
 
 Every trip build fans out paid AI calls (`trip_structure.v1` + one
