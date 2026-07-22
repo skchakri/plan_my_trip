@@ -29,6 +29,14 @@ module Trips
         return render :destination, status: :unprocessable_entity
       end
 
+      # The step-1 form pre-fills the title field, so a title we auto-derived
+      # on an earlier pass comes back as if the user typed it — and would stick
+      # even after they change the destination or dates. If the submitted title
+      # matches what we'd derive from the pre-edit draft, it's ours: blank it
+      # so it re-derives from the new values. A user-typed title never matches
+      # and is preserved.
+      attrs[:title] = "" if attrs[:title].to_s.strip == derived_title(@draft)
+
       @draft.merge!(attrs.to_h)
       @draft["title"] = derived_title(@draft) if @draft["title"].to_s.strip.blank?
       persist_draft!
