@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { speak, cancelSpeech, isSpeaking, canSpeak, UNSUPPORTED_SPEAK } from "speech"
 
 // Drive Co-Pilot — opt-in, geolocation-driven landmark narration.
 //
@@ -44,7 +45,6 @@ export default class extends Controller {
     this._played = new Set()
     this._watchId = null
     this._lastPollAt = 0
-    this._currentUtter = null
     this._lastFix = null
     this._renderStatus("Tap Enable to start. We'll narrate landmarks within ~" + this.proximityMiValue + " miles as you drive.")
   }
@@ -62,8 +62,8 @@ export default class extends Controller {
       this._renderStatus("No location on this device — use “Next landmark” to narrate stops by hand.", "warn")
       return
     }
-    if (!("speechSynthesis" in window)) {
-      this._renderStatus("This browser doesn't support speech synthesis.", "error")
+    if (!canSpeak()) {
+      this._renderStatus(UNSUPPORTED_SPEAK, "error")
       return
     }
     if (!this.stopsValue || this.stopsValue.length === 0) {
@@ -101,8 +101,8 @@ export default class extends Controller {
   // to drive the tour by hand. Loops back to the start once all are played.
   playNext(event) {
     event?.preventDefault()
-    if (!("speechSynthesis" in window)) {
-      this._renderStatus("This browser doesn't support speech synthesis.", "error")
+    if (!canSpeak()) {
+      this._renderStatus(UNSUPPORTED_SPEAK, "error")
       return
     }
     const stops = (this.stopsValue || []).filter((s) => s.script)
@@ -132,7 +132,7 @@ export default class extends Controller {
     this._lastFix = { lat, lng, accuracy: pos.coords.accuracy }
 
     // If we're already speaking, skip — don't interrupt narration with a new one.
-    if (window.speechSynthesis.speaking) {
+    if (isSpeaking()) {
       this._renderStatus(`Narrating · last fix ±${Math.round(pos.coords.accuracy)}m`)
       return
     }
@@ -180,16 +180,12 @@ export default class extends Controller {
     this._renderStatus(`Narrating: ${stop.name}`, "playing")
     this._showNarratingCard(stop)
 
-    const utter = new SpeechSynthesisUtterance(stop.script)
-    utter.rate = 1.0
-    utter.pitch = 1.0
-    utter.onend = utter.onerror = () => {
-      this._hideNarratingCard()
-      this._renderStatus("Listening for the next landmark…")
-    }
-    this._currentUtter = utter
-    window.speechSynthesis.cancel()
-    window.speechSynthesis.speak(utter)
+    speak(stop.script, {
+      onEnd: () => {
+        this._hideNarratingCard()
+        this._renderStatus("Listening for the next landmark…")
+      }
+    })
   }
 
   _showNarratingCard(stop) {
@@ -225,9 +221,8 @@ export default class extends Controller {
   }
 
   _stopSpeaking() {
-    if ("speechSynthesis" in window) window.speechSynthesis.cancel()
+    cancelSpeech()
     this._hideNarratingCard()
-    this._currentUtter = null
   }
 
   _teardownWatch() {

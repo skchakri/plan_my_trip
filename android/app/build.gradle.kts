@@ -4,6 +4,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("androidx.navigation.safeargs.kotlin")
+    id("org.jetbrains.kotlin.plugin.serialization")
 }
 
 // Play upload key — lives outside the repo; release builds are signed when the
@@ -21,8 +22,8 @@ android {
         applicationId = "com.wanderply.app"
         minSdk = 28
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1"
     }
 
     signingConfigs {
@@ -65,6 +66,9 @@ android {
 
 dependencies {
     implementation("dev.hotwire:core:1.1.3")
+    // Bridge message payloads (SpeechComponent) are @Serializable — hotwire
+    // uses this internally but doesn't expose it on our compile classpath.
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     implementation("dev.hotwire:navigation-fragments:1.1.3")
 
     implementation("androidx.core:core-ktx:1.13.1")

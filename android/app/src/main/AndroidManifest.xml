@@ -2,6 +2,22 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Voice input (concierge mic, day-trip search). The WebView has no
+         SpeechRecognition, so SpeechComponent uses Android's recognizer. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- Optional: the phone is still fully usable without a mic. -->
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
+
+    <!-- Android 11+ package visibility: without these the app cannot see the
+         speech-recognition or text-to-speech services at all. -->
+    <queries>
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
+    </queries>
 
     <application
         android:name=".MainApplication"

@@ -89,3 +89,6 @@ android/.idea/
 android/captures/
 android/.cxx/
 *.iml
+
+# Kotlin compiler session cache (Gradle 8.7 / Kotlin 2.0)
+android/.kotlin/

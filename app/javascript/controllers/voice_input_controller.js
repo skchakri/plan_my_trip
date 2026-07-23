@@ -1,8 +1,9 @@
 import { Controller } from "@hotwired/stimulus"
+import { listen, canListen } from "speech"
 
-// Voice-to-text for a paired text input. Uses the browser-native
-// SpeechRecognition (Web Speech API) — no API key, no server roundtrip,
-// works offline once the browser model has cached the language pack.
+// Voice-to-text for a paired text input, through the speech façade: the Web
+// Speech API where it exists, Android's SpeechRecognizer via the native bridge
+// where it doesn't.
 //
 // Markup:
 //   <div data-controller="voice-input">
@@ -12,102 +13,91 @@ import { Controller } from "@hotwired/stimulus"
 //     <span data-voice-input-target="status" hidden></span>
 //   </div>
 //
-// On supported browsers (Chrome, Edge, Safari 14.1+) clicking the mic
-// starts continuous recognition with interim results piped into the input.
-// Pressing again, or 1.5s of silence after a final result, stops capture
-// and auto-submits the form if `data-voice-input-submit-on-end-value="true"`.
+// Clicking the mic starts recognition with interim results piped into the
+// input. Pressing again, or 1.5s of silence after a final result, stops
+// capture and auto-submits the form if
+// `data-voice-input-submit-on-end-value="true"`.
 export default class extends Controller {
   static targets = ["input", "button", "status"]
   static values = { submitOnEnd: { type: Boolean, default: false } }
 
   connect() {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition
-    if (!SR) {
-      // Browser doesn't support the API — hide the mic so the UI doesn't
-      // imply a feature that won't work. Text input still functions.
-      if (this.hasButtonTarget) this.buttonTarget.hidden = true
-      return
-    }
-    this.recognition = new SR()
-    this.recognition.lang = navigator.language || "en-US"
-    this.recognition.continuous = false
-    this.recognition.interimResults = true
-
-    this.recognition.addEventListener("result", (e) => this._onResult(e))
-    this.recognition.addEventListener("end",    ()  => this._onEnd())
-    this.recognition.addEventListener("error",  (e) => this._onError(e))
-
     this.listening = false
+    this.session = null
     this._setIdle()
+    // The bridge controller on <body> may connect after this one, so don't
+    // latch "unsupported" — re-check when the button is actually pressed.
+    if (this.hasButtonTarget) this.buttonTarget.hidden = false
   }
 
   disconnect() {
-    if (this.recognition && this.listening) {
-      try { this.recognition.abort() } catch (_) {}
-    }
+    clearTimeout(this._idleTimer)
+    this.session?.abort()
+    this.listening = false
   }
 
   toggle(event) {
     event?.preventDefault?.()
-    if (!this.recognition) return
     if (this.listening) {
-      try { this.recognition.stop() } catch (_) {}
-    } else {
-      this._baseline = this.inputTarget.value
-      try {
-        this.recognition.start()
-        this.listening = true
-        this._setListening()
-      } catch (err) {
-        // start() throws if invoked twice rapidly — recover silently.
-        this._setIdle()
-      }
+      this.session?.stop()
+      return
     }
+    if (!canListen()) {
+      this._flashStatus("Voice input isn't available on this device")
+      if (this.hasButtonTarget) this.buttonTarget.hidden = true
+      return
+    }
+
+    this._baseline = this.inputTarget.value
+    this.listening = true
+    this._setListening()
+    this.session = listen({
+      onResult: (transcript, isFinal) => this._onResult(transcript, isFinal),
+      onEnd: () => this._onEnd(),
+      onError: (code) => this._onError(code)
+    })
   }
 
-  _onResult(event) {
-    let interim = ""
-    let finalTxt = ""
-    for (let i = event.resultIndex; i < event.results.length; i++) {
-      const res = event.results[i]
-      if (res.isFinal) finalTxt += res[0].transcript
-      else interim += res[0].transcript
-    }
+  _onResult(transcript, isFinal) {
     const base = (this._baseline || "").trim()
-    const combined = [base, (finalTxt + interim).trim()].filter(Boolean).join(" ").trim()
-    this.inputTarget.value = combined
+    this.inputTarget.value = [ base, transcript.trim() ].filter(Boolean).join(" ").trim()
     this.inputTarget.dispatchEvent(new Event("input", { bubbles: true }))
 
-    if (finalTxt) {
-      // After a final result, schedule a soft stop so the user can pause
-      // mid-thought without losing the mic — 1.5s of follow-up silence
-      // ends capture cleanly.
-      clearTimeout(this._idleTimer)
-      this._idleTimer = setTimeout(() => {
-        if (this.listening) {
-          try { this.recognition.stop() } catch (_) {}
-        }
-      }, 1500)
-    }
+    if (!isFinal) return
+    // After a final result, schedule a soft stop so the user can pause
+    // mid-thought without losing the mic — 1.5s of follow-up silence ends
+    // capture cleanly.
+    clearTimeout(this._idleTimer)
+    this._idleTimer = setTimeout(() => {
+      if (this.listening) this.session?.stop()
+    }, 1500)
   }
 
   _onEnd() {
+    clearTimeout(this._idleTimer)
     this.listening = false
     this._setIdle()
     if (this.submitOnEndValue && this.inputTarget.value.trim()) {
-      const form = this.inputTarget.form
-      if (form) form.requestSubmit()
+      this.inputTarget.form?.requestSubmit()
     }
   }
 
-  _onError(event) {
+  _onError(code) {
     this.listening = false
     this._setIdle()
-    if (this.hasStatusTarget) {
-      this.statusTarget.hidden = false
-      this.statusTarget.textContent = `Voice error: ${event.error || "unknown"}`
-      setTimeout(() => { this.statusTarget.hidden = true }, 3000)
-    }
+    this._flashStatus(
+      code === "not-allowed" || code === "service-not-allowed"
+        ? "Microphone blocked — allow mic access to talk"
+        : `Voice error: ${code || "unknown"}`
+    )
+  }
+
+  _flashStatus(message) {
+    if (!this.hasStatusTarget) return
+    this.statusTarget.hidden = false
+    this.statusTarget.textContent = message
+    clearTimeout(this._statusTimer)
+    this._statusTimer = setTimeout(() => { this.statusTarget.hidden = true }, 3000)
   }
 
   _setListening() {

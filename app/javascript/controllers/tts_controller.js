@@ -1,7 +1,8 @@
 import { Controller } from "@hotwired/stimulus"
-import { getSpeed } from "tts_settings"
+import { speak, cancelSpeech, canSpeak, UNSUPPORTED_SPEAK } from "speech"
 
-// Speaks text via the Web Speech API.
+// Speaks text through the speech façade (Web Speech API, or the native bridge
+// on Android where the WebView has no Web Speech API).
 // Usage in markup:
 //   <button data-controller="tts" data-tts-text-value="Hello world">▶ Read aloud</button>
 // or:
@@ -17,24 +18,20 @@ export default class extends Controller {
 
   connect() {
     this._speaking = false
-    if (!("speechSynthesis" in window)) {
-      this.element.disabled = true
-      this.element.title = "Your browser doesn't support speech synthesis."
-    } else {
-      // If something else cancels speech, repaint our button.
-      this._onEnd = () => this._setSpeaking(false)
-    }
+    // The bridge controller connects on <body>, which Stimulus may not have
+    // wired yet when a deep-in-the-page button connects. Re-check on click
+    // rather than latching "unsupported" here forever.
     this.element.addEventListener("click", this.toggle.bind(this))
   }
 
   disconnect() {
-    if (this._speaking) window.speechSynthesis.cancel()
+    if (this._speaking) cancelSpeech()
   }
 
   toggle(e) {
     e.preventDefault()
     if (this._speaking) {
-      window.speechSynthesis.cancel()
+      cancelSpeech()
       this._setSpeaking(false)
       return
     }
@@ -43,14 +40,17 @@ export default class extends Controller {
 
   speak() {
     const text = this._collectText()
-    if (!text || !("speechSynthesis" in window)) return
-    window.speechSynthesis.cancel() // stop anything else mid-speak
-    const utter = new SpeechSynthesisUtterance(text)
-    utter.rate  = this.rateValue * getSpeed()
-    utter.pitch = this.pitchValue
-    utter.onend = utter.onerror = () => this._setSpeaking(false)
+    if (!text) return
+    if (!canSpeak()) {
+      this.element.title = UNSUPPORTED_SPEAK
+      return
+    }
     this._setSpeaking(true)
-    window.speechSynthesis.speak(utter)
+    speak(text, {
+      rate: this.rateValue,
+      pitch: this.pitchValue,
+      onEnd: () => this._setSpeaking(false)
+    })
   }
 
   _collectText() {

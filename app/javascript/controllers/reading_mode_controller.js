@@ -1,5 +1,6 @@
 import { Controller } from "@hotwired/stimulus"
 import { getSpeed, setSpeed, nextSpeed, formatSpeed } from "tts_settings"
+import { speak, cancelSpeech, canSpeak, availableVoices, onVoicesChanged } from "speech"
 
 // Fullscreen "podcast mode" modal that walks through a trip's plan one
 // scene at a time. Each scene carries an array of dialogue lines spoken
@@ -40,9 +41,7 @@ export default class extends Controller {
 
     // Voices populate asynchronously in some browsers.
     this._loadVoices()
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.onvoiceschanged = () => this._loadVoices()
-    }
+    onVoicesChanged(() => this._loadVoices())
     this._renderSpeedLabel()
   }
 
@@ -69,7 +68,7 @@ export default class extends Controller {
     if (!this.scenesValue.length) return
     // No TTS (or offline with no voices)? Open anyway as a readable transcript —
     // the scene text + next/prev still work, just without audio narration.
-    this._ttsAvailable = ("speechSynthesis" in window)
+    this._ttsAvailable = canSpeak()
     this._sceneIdx = 0
     this._lineIdx  = 0
     this._paused = !this._ttsAvailable
@@ -139,13 +138,14 @@ export default class extends Controller {
       clearTimeout(this._pendingTimer)
       this._pendingTimer = null
     }
-    try { window.speechSynthesis.cancel() } catch (e) { /* noop */ }
+    cancelSpeech()
     this._utter = null
   }
 
   _loadVoices() {
-    if (!("speechSynthesis" in window)) return
-    const voices = window.speechSynthesis.getVoices() || []
+    // Empty on the native bridge path — Android speaks through its own engine
+    // and exposes no voice list, so host/guide are cast by pitch instead.
+    const voices = availableVoices()
     if (!voices.length) return
 
     const en = voices.filter(v => /^en[-_]/i.test(v.lang) || /^en$/i.test(v.lang))
@@ -243,37 +243,37 @@ export default class extends Controller {
 
     this._setSpeakerBadge(line.voice)
 
-    const u = new SpeechSynthesisUtterance(line.text || "")
-    const voice = (line.voice === "guide") ? this._guideVoice : this._hostVoice
-    if (voice) u.voice = voice
-    const baseRate = typeof line.rate  === "number" ? line.rate  : 1.0
-    u.rate  = baseRate * getSpeed()
-    u.pitch = typeof line.pitch === "number" ? line.pitch : 1.0
-    u.volume = 1.0
+    const isGuide = line.voice === "guide"
+    const voice = isGuide ? this._guideVoice : this._hostVoice
+    const basePitch = typeof line.pitch === "number" ? line.pitch : 1.0
+    // With no voice list (native bridge) the two speakers would sound
+    // identical, so drop the guide a little to keep them apart.
+    const pitch = voice ? basePitch : (isGuide ? basePitch * 0.85 : basePitch)
 
-    u.onend = () => {
-      if (this._utter !== u) return
-      if (this._paused) return
-      if (this.modalTarget.classList.contains("hidden")) return
-      this._lineIdx++
-      const basePause = typeof line.pause_after_ms === "number" ? line.pause_after_ms : 200
-      // Tighten the pause when the user picks a faster speed so the
-      // cadence between lines tracks the speech rate instead of dragging.
-      const pause = Math.max(80, Math.round(basePause / getSpeed()))
-      this._pendingTimer = setTimeout(() => {
-        this._pendingTimer = null
-        this._playFromCurrentLine()
-      }, pause)
-    }
-    u.onerror = () => {
-      if (this._utter !== u) return
-      // Skip past errored line so we don't get stuck.
-      this._lineIdx++
-      if (!this._paused) this._playFromCurrentLine()
-    }
+    // Token identifies "the utterance currently playing" — every callback
+    // bails if a newer line has started since.
+    const token = {}
+    this._utter = token
 
-    this._utter = u
-    try { window.speechSynthesis.speak(u) } catch (e) { /* noop */ }
+    speak(line.text || "", {
+      rate: typeof line.rate === "number" ? line.rate : 1.0,
+      pitch,
+      voice,
+      onEnd: () => {
+        if (this._utter !== token) return
+        if (this._paused) return
+        if (this.modalTarget.classList.contains("hidden")) return
+        this._lineIdx++
+        const basePause = typeof line.pause_after_ms === "number" ? line.pause_after_ms : 200
+        // Tighten the pause when the user picks a faster speed so the
+        // cadence between lines tracks the speech rate instead of dragging.
+        const pause = Math.max(80, Math.round(basePause / getSpeed()))
+        this._pendingTimer = setTimeout(() => {
+          this._pendingTimer = null
+          this._playFromCurrentLine()
+        }, pause)
+      }
+    })
   }
 
   _setSpeakerBadge(voice) {

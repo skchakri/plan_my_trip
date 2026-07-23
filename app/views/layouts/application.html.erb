@@ -84,7 +84,10 @@
     <%= render "layouts/analytics" %>
   </head>
 
-  <body class="bg-slate-950 text-slate-100 min-h-full antialiased <%= 'hotwire-native' if hotwire_native_app? %>">
+  <%# speech-bridge is a no-op on the web (BridgeComponent.shouldLoad is false
+      unless the native shell advertises the component). In the Android app it
+      supplies the Web Speech API the WebView doesn't have. %>
+  <body data-controller="speech-bridge" class="bg-slate-950 text-slate-100 min-h-full antialiased <%= 'hotwire-native' if hotwire_native_app? %>">
     <%= render "layouts/loading_overlay" %>
 
     <% unless hotwire_native_app? %>
