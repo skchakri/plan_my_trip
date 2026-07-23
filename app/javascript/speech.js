@@ -19,12 +19,25 @@ import { getSpeed } from "tts_settings"
 // Null everywhere else, which is the signal to use the Web Speech API.
 let bridge = null
 
+// Controllers that hide a mic/speak affordance when unsupported listen for
+// this, because the bridge can connect after they do — Stimulus generally
+// wires <body> before its descendants, but lazy controller loading makes that
+// an ordering assumption not worth betting a dead button on.
+export const SPEECH_CHANGED = "wanderply:speech-changed"
+
+function announce() {
+  document.dispatchEvent(new CustomEvent(SPEECH_CHANGED))
+}
+
 export function registerSpeechBridge(component) {
   bridge = component
+  announce()
 }
 
 export function unregisterSpeechBridge(component) {
-  if (bridge === component) bridge = null
+  if (bridge !== component) return
+  bridge = null
+  announce()
 }
 
 const nativeSpeech = () => bridge

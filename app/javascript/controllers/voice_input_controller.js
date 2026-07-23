@@ -1,5 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
-import { listen, canListen } from "speech"
+import { listen, canListen, SPEECH_CHANGED } from "speech"
 
 // Voice-to-text for a paired text input, through the speech façade: the Web
 // Speech API where it exists, Android's SpeechRecognizer via the native bridge
@@ -25,15 +25,23 @@ export default class extends Controller {
     this.listening = false
     this.session = null
     this._setIdle()
-    // The bridge controller on <body> may connect after this one, so don't
-    // latch "unsupported" — re-check when the button is actually pressed.
-    if (this.hasButtonTarget) this.buttonTarget.hidden = false
+    // The native bridge can register after this controller connects, so the
+    // mic's visibility tracks capability rather than being decided once.
+    this._syncAvailability = () => this._syncMic()
+    document.addEventListener(SPEECH_CHANGED, this._syncAvailability)
+    this._syncMic()
   }
 
   disconnect() {
+    document.removeEventListener(SPEECH_CHANGED, this._syncAvailability)
     clearTimeout(this._idleTimer)
+    clearTimeout(this._statusTimer)
     this.session?.abort()
     this.listening = false
+  }
+
+  _syncMic() {
+    if (this.hasButtonTarget) this.buttonTarget.hidden = !canListen()
   }
 
   toggle(event) {
@@ -43,8 +51,7 @@ export default class extends Controller {
       return
     }
     if (!canListen()) {
-      this._flashStatus("Voice input isn't available on this device")
-      if (this.hasButtonTarget) this.buttonTarget.hidden = true
+      this._syncMic()
       return
     }
 

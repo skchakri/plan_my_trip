@@ -1,5 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
-import { speak, cancelSpeech, listen, canSpeak, canListen } from "speech"
+import { speak, cancelSpeech, listen, canSpeak, canListen, SPEECH_CHANGED } from "speech"
 
 // Trip Concierge chat panel. The server owns the message log (turbo-stream
 // appends both the question and the answer), so this controller only handles
@@ -19,10 +19,13 @@ export default class extends Controller {
     this.awaitingReply = false
     this.silentRounds = 0
     this.session = null
-    // Don't latch "unsupported" here: on Android the bridge controller lives
-    // on <body> and may connect after this one. #voiceSupported re-checks at
-    // tap time, and the mic starts visible.
-    if (this.hasMicTarget) this.micTarget.hidden = false
+    // The native bridge can register after this controller connects, so the
+    // mic's visibility tracks capability rather than being decided once.
+    this.syncMic = () => {
+      if (this.hasMicTarget) this.micTarget.hidden = !this.#voiceSupported()
+    }
+    document.addEventListener(SPEECH_CHANGED, this.syncMic)
+    this.syncMic()
   }
 
   #voiceSupported() {
@@ -30,6 +33,7 @@ export default class extends Controller {
   }
 
   disconnect() {
+    document.removeEventListener(SPEECH_CHANGED, this.syncMic)
     this.#exitVoiceMode()
   }
 
@@ -99,9 +103,7 @@ export default class extends Controller {
   toggleVoice(event) {
     event?.preventDefault?.()
     if (!this.#voiceSupported()) {
-      this.#setVoiceStatus("Voice isn't available on this device")
-      setTimeout(() => this.#setVoiceStatus(null), 4000)
-      if (this.hasMicTarget) this.micTarget.hidden = true
+      this.syncMic()
       return
     }
     if (this.voiceMode) {
