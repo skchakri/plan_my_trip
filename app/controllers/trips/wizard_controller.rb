@@ -385,19 +385,11 @@ module Trips
     end
 
     def derived_title(draft)
-      dest = draft["destination"].to_s.strip
-      return "New trip" if dest.blank?
-      begin
-        s = Date.parse(draft["start_date"].to_s)
-        e = Date.parse(draft["end_date"].to_s)
-        if s.year == e.year && s.month == e.month
-          "#{dest} — #{s.strftime('%b %-d')}-#{e.strftime('%-d, %Y')}"
-        else
-          "#{dest} — #{s.strftime('%b %-d')} to #{e.strftime('%b %-d, %Y')}"
-        end
-      rescue ArgumentError
-        dest
-      end
+      Trip.derive_title(
+        destination: draft["destination"],
+        start_date: draft["start_date"],
+        end_date: draft["end_date"]
+      )
     end
 
     def traveler_count_or_people

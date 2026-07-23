@@ -226,21 +226,98 @@ class Trip < ApplicationRecord
     membership&.custom_title.presence || title
   end
 
-  # Cover image for the trip — first activity hero photo across all days,
-  # falling back to the first route landmark image, then nil. Iterating a
-  # collection of trips? Use `Trip.with_cover_data` to preload associations,
-  # otherwise this N+1s on activities + photos + places + landmarks.
+  # Cover image for the trip — a photo of where you're GOING.
+  #
+  # This used to grab the first activity's hero image across all days, but on
+  # a drive trip stop #1 is always "Depart <origin>", so every trip that left
+  # the same city wore that city's skyline — the dashboard showed four Salt
+  # Lake City covers for four different destinations. So instead of "first",
+  # pick the most destination-representative stop:
+  #   1. a sight (place.kind is a trail/attraction, not a drive leg, meal, or
+  #      hotel) — the marquee photo,
+  #   2. else any non-travel stop (a destination-area meal/hotel beats a
+  #      highway),
+  # and within a tier prefer stops whose location names the destination, then
+  # earliest in the itinerary. Origin/departure/highway stops are only used as
+  # a last resort so an all-transit trip still shows something. Falls back to a
+  # route-landmark image, then nil. Preload with `Trip.with_cover_data`.
   def cover_image_url
     @cover_image_url ||= begin
-      hit = trip_days.flat_map(&:activities).find { |a| a.hero_image_url.present? }
-      hit&.hero_image_url || route_landmarks.find { |l| l.image_url.present? }&.image_url
+      candidate = cover_activity
+      candidate&.hero_image_url ||
+        route_landmarks.find { |l| l.image_url.present? }&.image_url
     end
   end
+
+  private
+
+  def cover_activity
+    with_image = trip_days.flat_map(&:activities).select { |a| a.hero_image_url.present? }
+    return nil if with_image.empty?
+
+    origin_token = place_token(origin)
+    dest_token = place_token(destination)
+
+    ranked = with_image.each_with_index.map do |activity, order|
+      [ cover_tier(activity, origin_token), dest_match(activity, dest_token), -order, order ]
+    end
+    # Highest tier, then destination match, then earliest (−order desc keeps the
+    # first stop within a tie). Every stop has a tier, so this never returns nil.
+    best = ranked.max_by { |tier, dest, neg_order, _| [ tier, dest, neg_order ] }
+    with_image[best.last]
+  end
+
+  # 2 = a sight, 1 = a destination-area stop, 0 = travel/origin (last resort).
+  def cover_tier(activity, origin_token)
+    kind = activity.place&.kind.to_s
+    return 0 if kind == "drive_segment"
+    return 0 if activity.title.to_s.match?(/\A(depart|arrive|drive|fuel|rest stop|check ?out)/i)
+    return 0 if origin_token.present? && activity_location(activity).include?(origin_token)
+
+    %w[restaurant lodging meal hotel].include?(kind) ? 1 : 2
+  end
+
+  def dest_match(activity, dest_token)
+    dest_token.present? && activity_location(activity).include?(dest_token) ? 1 : 0
+  end
+
+  def activity_location(activity)
+    "#{activity.location_name} #{activity.place&.name}".downcase
+  end
+
+  # "Moab, Utah" → "moab"; "Salt Lake City, UT" → "salt lake city". The part
+  # before the first comma, so the state suffix doesn't cause false matches.
+  def place_token(value)
+    value.to_s.split(",").first.to_s.strip.downcase
+  end
+
+  public
 
   # Stable per-trip accent palette index for gradient fallbacks. Same trip
   # always renders the same colour — no jitter between dashboard refreshes.
   def cover_palette_index
     (id.to_s.bytes.sum % 7)
+  end
+
+  # The title we'd auto-generate from a destination + date range, e.g.
+  # "Los Angeles — Jul 24-29, 2026". The single source of truth for the
+  # wizard's pre-fill AND the edit form's re-derive, so a title the user never
+  # customized follows the destination instead of freezing at creation.
+  def self.derive_title(destination:, start_date:, end_date:)
+    dest = destination.to_s.strip
+    return "New trip" if dest.blank?
+    s = start_date.is_a?(Date) ? start_date : (Date.parse(start_date.to_s) rescue nil)
+    e = end_date.is_a?(Date) ? end_date : (Date.parse(end_date.to_s) rescue nil)
+    return dest unless s && e
+    if s.year == e.year && s.month == e.month
+      "#{dest} — #{s.strftime('%b %-d')}-#{e.strftime('%-d, %Y')}"
+    else
+      "#{dest} — #{s.strftime('%b %-d')} to #{e.strftime('%b %-d, %Y')}"
+    end
+  end
+
+  def derived_title
+    self.class.derive_title(destination: destination, start_date: start_date, end_date: end_date)
   end
 
   def nights

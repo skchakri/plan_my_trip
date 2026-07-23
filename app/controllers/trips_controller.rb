@@ -75,8 +75,23 @@ class TripsController < ApplicationController
     authorize @trip
     previous_start = @trip.start_date
     body_was = @trip.body
+    # The title we'd have auto-generated from the PRE-edit destination/dates.
+    # If the submitted title equals it, the user never customized it, so it
+    # should follow the new destination rather than freeze (a trip whose
+    # destination changed to LA but still titled "San Francisco").
+    auto_title_before = @trip.derived_title
 
-    if @trip.update(trip_params)
+    submitted_title = params.dig(:trip, :title).to_s.strip
+    attrs = trip_params
+    if submitted_title == auto_title_before
+      attrs = attrs.merge(title: Trip.derive_title(
+        destination: attrs[:destination] || @trip.destination,
+        start_date: attrs[:start_date] || @trip.start_date,
+        end_date: attrs[:end_date] || @trip.end_date
+      ))
+    end
+
+    if @trip.update(attrs)
       redirect_to @trip, notice: reconcile_plan_after_edit(previous_start, body_was)
     else
       @known_traveler_interests = Person.known_interests_for(current_user)
