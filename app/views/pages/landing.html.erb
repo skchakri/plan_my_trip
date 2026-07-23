@@ -560,7 +560,7 @@
       <div class="lp-perf relative p-7 sm:p-10 md:pl-9 flex md:flex-col items-center justify-center gap-6">
         <div class="lp-barcode h-14 w-32 md:w-full rounded-sm opacity-80" aria-hidden="true"></div>
         <% if user_signed_in? %>
-          <%= link_to new_trip_path, class: "inline-flex items-center justify-center gap-2 w-full px-5 py-3.5 rounded-xl bg-slate-950 text-amber-300 font-semibold shadow-xl hover:bg-slate-800 transition-colors" do %>
+          <%= link_to wizard_destination_path, class: "inline-flex items-center justify-center gap-2 w-full px-5 py-3.5 rounded-xl bg-slate-950 text-amber-300 font-semibold shadow-xl hover:bg-slate-800 transition-colors" do %>
             <%= icon :plus, class: "w-5 h-5" %> Start a new trip
           <% end %>
         <% else %>

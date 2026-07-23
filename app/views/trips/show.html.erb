@@ -153,6 +153,30 @@
   </div>
 </section>
 
+<%# The trip's details were edited after the plan was built, so the days below
+    still describe the old destination/style. Not dismissible — it's a
+    correctness warning, and the Rebuild button is the only way to clear it. %>
+<% if @trip.plan_stale? %>
+  <div class="mb-6 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4 sm:p-5 flex items-start gap-3" role="status">
+    <span class="shrink-0 mt-0.5 text-amber-300"><%= icon :alert_triangle, class: "w-5 h-5" %></span>
+    <div class="min-w-0 flex-1">
+      <p class="font-medium text-amber-100">This plan is out of date</p>
+      <p class="text-sm text-amber-200/80 mt-0.5">You changed the trip's details after the day-by-day plan was built, so the days below were written for the old ones. Rebuilding regenerates them — your checklist, expenses, and documents are kept.</p>
+      <% if policy(@trip).update? %>
+        <div class="mt-3">
+          <%= button_to rebuild_trip_path(@trip), method: :post,
+                form: { data: { turbo_confirm: "Rebuild the day-by-day plan from the current trip details? The existing days and activities are replaced." } },
+                class: "inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-amber-500 text-slate-950 font-semibold text-sm hover:bg-amber-400 transition-colors cursor-pointer" do %>
+            <%= icon :sparkles, class: "w-4 h-4" %> Rebuild the plan
+          <% end %>
+        </div>
+      <% else %>
+        <p class="text-xs text-amber-200/60 mt-2">Ask the trip owner to rebuild it.</p>
+      <% end %>
+    </div>
+  </div>
+<% end %>
+
 <%# First-share nudge — only for the owner of a still-solo trip, dismissible
     (remembered in localStorage so it won't nag). %>
 <% if is_owner && @trip.member_count == 1 && @trip.invitations.pending.none? %>

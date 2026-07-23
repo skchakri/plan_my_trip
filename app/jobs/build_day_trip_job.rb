@@ -17,7 +17,7 @@ class BuildDayTripJob < ApplicationJob
       depart_time: args["depart_time"],
       return_time: args["return_time"]
     )
-    trip.update!(build_status: "ready", build_error: nil)
+    trip.update!(build_status: "ready", build_error: nil, plan_stale_at: nil)
     BackfillTripNarrationsJob.perform_later(trip.id)
   rescue StandardError => e
     ErrorTracker.report(e, source: "BuildDayTripJob", context: { trip_id: trip_id })

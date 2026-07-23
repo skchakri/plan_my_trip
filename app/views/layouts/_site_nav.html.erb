@@ -12,8 +12,10 @@
     <%= link_to "Blog",  blog_index_path, class: "hidden sm:inline-block px-3 py-1.5 rounded-md text-slate-300 hover:text-white hover:bg-white/5 transition-colors" %>
     <%= link_to "About", about_path,      class: "hidden sm:inline-block px-3 py-1.5 rounded-md text-slate-300 hover:text-white hover:bg-white/5 transition-colors" %>
     <% if user_signed_in? %>
-      <%= link_to trips_path, class: "ml-1 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-semibold text-sm shadow-lg shadow-amber-500/20 hover:bg-amber-400 hover:shadow-amber-500/40 transition-all" do %>
-        <%= icon :list, class: "w-4 h-4" %> Open my trips
+      <%# Icon-only under `sm` — at 360-412px the full label wrapped to three
+          lines and the button grew tall enough to overlap the wordmark. %>
+      <%= link_to trips_path, title: "Open my trips", aria: { label: "Open my trips" }, class: "ml-1 inline-flex items-center justify-center gap-1.5 shrink-0 whitespace-nowrap w-9 h-9 sm:w-auto sm:h-auto sm:px-3.5 sm:py-1.5 rounded-lg bg-amber-500 text-slate-950 font-semibold text-sm shadow-lg shadow-amber-500/20 hover:bg-amber-400 hover:shadow-amber-500/40 transition-all" do %>
+        <%= icon :list, class: "w-4 h-4" %><span class="hidden sm:inline">Open my trips</span>
       <% end %>
       <%= render "notifications/bell" %>
       <details class="relative ml-1 group">
@@ -32,7 +34,7 @@
           <%= link_to trips_path, class: "flex items-center gap-2 px-3 py-2 text-sm text-slate-200 hover:bg-white/5" do %>
             <%= icon :list, class: "w-4 h-4 text-amber-400" %> My trips
           <% end %>
-          <%= link_to new_trip_path, class: "flex items-center gap-2 px-3 py-2 text-sm text-slate-200 hover:bg-white/5" do %>
+          <%= link_to wizard_destination_path, class: "flex items-center gap-2 px-3 py-2 text-sm text-slate-200 hover:bg-white/5" do %>
             <%= icon :plus, class: "w-4 h-4 text-amber-400" %> New multi-day trip
           <% end %>
           <%= link_to day_trips_new_path, class: "flex items-center gap-2 px-3 py-2 text-sm text-slate-200 hover:bg-white/5" do %>

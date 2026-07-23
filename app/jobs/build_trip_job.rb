@@ -13,7 +13,9 @@ class BuildTripJob < ApplicationJob
 
     selected_slugs = Array((trip.build_args || {})["selected_slugs"])
     Trips::Assembler.call(trip: trip, highlights: highlights_for(trip, selected_slugs))
-    trip.update!(build_status: "ready", build_error: nil)
+    # plan_stale_at cleared here, not in #rebuild — the plan only stops being
+    # stale once the new days actually exist.
+    trip.update!(build_status: "ready", build_error: nil, plan_stale_at: nil)
     # Narrations + route landmarks are generated separately so the plan is
     # viewable fast — they backfill into the podcast + Drive Co-Pilot over the
     # next minute (route landmarks run on the slow web-search provider).

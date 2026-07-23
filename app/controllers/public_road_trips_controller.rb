@@ -30,7 +30,8 @@ class PublicRoadTripsController < ApplicationController
       lat:         @road_trip.destination_lat,
       lng:         @road_trip.destination_lng
     )
-    render partial: "trips/weather", locals: { report: report, frame_id: "road-trip-weather" }
+    render partial: "trips/weather",
+           locals: { report: report, frame_id: "road-trip-weather", place: @road_trip.destination }
   rescue StandardError
     render partial: "trips/weather", locals: { report: nil, frame_id: "road-trip-weather" }
   end

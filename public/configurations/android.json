@@ -12,7 +12,8 @@
       }
     },
     {
-      "patterns": ["/trips/new$", "/trips/[0-9a-f-]+/edit$", "/trips/[0-9a-f-]+/shares/new$", "/users/edit$"],
+      "_comment": "/trips/new is deliberately NOT here: it 302s into the 4-step wizard (/trip_wizard/destination), and a modal that immediately redirects out of its own rule fails to load in the native shell. Multi-step flows push like any other page.",
+      "patterns": ["/trips/[0-9a-f-]+/edit$", "/trips/[0-9a-f-]+/shares/new$", "/users/edit$"],
       "properties": {
         "context": "modal",
         "uri": "hotwire://fragment/web/modal"

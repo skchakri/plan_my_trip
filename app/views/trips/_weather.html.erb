@@ -6,6 +6,10 @@
     such, never passed off as a forecast. %>
 <% frame_id = local_assigns.fetch(:frame_id, "trip-weather") %>
 <% margin = local_assigns.fetch(:margin, "mb-6") %>
+<%# `place` names the location the forecast is FOR — always the destination,
+    never the origin. Without it a road trip that starts in Salt Lake and ends
+    in Moab reads ambiguously, which is exactly how it was misread. %>
+<% place = local_assigns.fetch(:place, nil).presence %>
 <%= turbo_frame_tag frame_id do %>
   <% if report&.days&.any? %>
     <%
@@ -22,8 +26,9 @@
     %>
     <section class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 sm:p-6 <%= margin %>">
       <div class="flex items-center justify-between gap-3 flex-wrap mb-3.5">
-        <p class="text-[11px] uppercase tracking-[0.18em] text-amber-400 font-medium inline-flex items-center gap-2">
-          <%= icon :sun, class: "w-3.5 h-3.5" %> Weather
+        <p class="text-[11px] uppercase tracking-[0.18em] text-amber-400 font-medium inline-flex items-center gap-2 min-w-0">
+          <%= icon :sun, class: "w-3.5 h-3.5 shrink-0" %>
+          <span class="truncate">Weather<% if place %> in <%= place %><% end %></span>
         </p>
         <span class="text-[10px] uppercase tracking-widest px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700"><%= badge %></span>
       </div>
@@ -53,6 +58,7 @@
         <% else %>
           Live forecast, refreshed every few hours.
         <% end %>
+        <% if place %>At the destination (<%= place %>), not your origin.<% end %>
         Temperatures in °F · data by Open-Meteo.
         <% if report.truncated_days.positive? %>
           Showing the first <%= WeatherReport::MAX_DAYS %> days (<%= report.truncated_days %> more not shown).

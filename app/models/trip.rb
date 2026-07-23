@@ -257,6 +257,52 @@ class Trip < ApplicationRecord
     trip_memberships.count
   end
 
+  # ---- Plan freshness -------------------------------------------------
+  #
+  # The day-by-day plan (TripDay/Activity rows) is generated ONCE from the
+  # trip's details. Editing those details afterwards used to change only the
+  # header — the days still described the old destination/style, so a trip
+  # retitled "San Francisco" kept an itinerary full of Disneyland. There's no
+  # cheap way to patch the days in place (it's an AI build), so instead we mark
+  # the plan stale and surface a Rebuild prompt. Cleared whenever a build lands.
+  #
+  # Dates are the exception: moving a trip is deterministic, so #shift_plan_dates!
+  # slides the days along and the plan stays fresh.
+  PLAN_INPUT_ATTRIBUTES = %w[
+    destination origin traveler_count pace budget transport_mode preferences must_includes
+  ].freeze
+
+  # A plan exists to go stale in the first place (hand-written trips have none).
+  def built_plan?
+    trip_days.exists?
+  end
+
+  def plan_stale?
+    plan_stale_at.present? && built_plan?
+  end
+
+  def mark_plan_stale!
+    update_column(:plan_stale_at, Time.current)
+  end
+
+  def mark_plan_fresh!
+    update_column(:plan_stale_at, nil)
+  end
+
+  # The built days no longer span the trip's date range — extending or
+  # shortening a trip leaves days missing or orphaned at the end.
+  def plan_day_count_mismatch?
+    built_plan? && days.present? && trip_days.count != days
+  end
+
+  # Slide every dated day by `delta` days. Returns the number of days moved.
+  def shift_plan_dates!(delta)
+    return 0 if delta.zero?
+    dated = trip_days.where.not(date: nil)
+    dated.find_each { |day| day.update_column(:date, day.date + delta) }
+    dated.size
+  end
+
   # Global landmarks (shared catalog) sitting within `radius_m` meters of
   # any activity or trip-scoped landmark on this trip. Drops globals
   # whose name already overlaps an activity or trip-scoped landmark to

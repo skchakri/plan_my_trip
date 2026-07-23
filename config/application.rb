@@ -38,5 +38,9 @@ module PlanMyTrip
 
     # Don't generate system test files.
     config.generators.system_tests = nil
+
+    # Route `deliver_later` through our own job so failed sends are reported
+    # (see app/jobs/mail_delivery_job.rb) instead of dying quietly in the queue.
+    config.action_mailer.delivery_job = "MailDeliveryJob"
   end
 end

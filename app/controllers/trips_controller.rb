@@ -73,8 +73,11 @@ class TripsController < ApplicationController
 
   def update
     authorize @trip
+    previous_start = @trip.start_date
+    body_was = @trip.body
+
     if @trip.update(trip_params)
-      redirect_to @trip, notice: "Trip updated."
+      redirect_to @trip, notice: reconcile_plan_after_edit(previous_start, body_was)
     else
       @known_traveler_interests = Person.known_interests_for(current_user)
       render :edit, status: :unprocessable_entity
@@ -197,7 +200,9 @@ class TripsController < ApplicationController
         Rails.logger.warn("[TripsController#weather] trip=#{@trip.id}: #{e.class}: #{e.message}")
         nil
       end
-    render partial: "trips/weather", locals: { report: report }, layout: false
+    render partial: "trips/weather",
+           locals: { report: report, place: @trip.destination },
+           layout: false
   end
 
   # GET /trips/:id/day_weather/:day_id — lazy day-header chip: ONE day's
@@ -418,6 +423,38 @@ class TripsController < ApplicationController
   # still finds archived rows, and non-owners get a 404 rather than access.
   def set_owned_trip
     @trip = current_user.owned_trips.find(params[:id])
+  end
+
+  # After a successful #update, bring the built plan back in line with the
+  # edited trip — or, when it can't be, say so instead of silently leaving a
+  # plan that describes a different trip.
+  #
+  #   • Dates moved  → slide every TripDay by the same delta (deterministic,
+  #                    free) and re-derive the markdown body from the rows.
+  #   • Destination / travelers / style changed, or the day count no longer
+  #     spans the range → flag the plan stale; trips/show then offers Rebuild.
+  #
+  # Returns the flash notice.
+  def reconcile_plan_after_edit(previous_start, body_was)
+    return "Trip updated." unless @trip.built_plan?
+
+    parts = [ "Trip updated." ]
+
+    delta = previous_start && @trip.start_date ? (@trip.start_date - previous_start).to_i : 0
+    if delta != 0 && @trip.shift_plan_dates!(delta).positive?
+      # Skip when the edit also rewrote the markdown by hand — BodySync
+      # regenerates `body` from the rows and would throw that away.
+      Trips::BodySync.call(@trip) if @trip.body == body_was
+      parts << "Moved the day-by-day plan #{helpers.pluralize(delta.abs, 'day')} #{delta.positive? ? 'later' : 'earlier'}."
+    end
+
+    changed = @trip.previous_changes.keys & Trip::PLAN_INPUT_ATTRIBUTES
+    if changed.any? || @trip.plan_day_count_mismatch?
+      @trip.mark_plan_stale!
+      parts << "The day-by-day plan was built for the old details — rebuild it to regenerate."
+    end
+
+    parts.join(" ")
   end
 
   def trip_params

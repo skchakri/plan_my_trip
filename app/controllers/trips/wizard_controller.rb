@@ -182,7 +182,8 @@ module Trips
           nil
         end
       render partial: "trips/weather",
-             locals: { report: report, frame_id: "wizard-weather", margin: "" },
+             locals: { report: report, frame_id: "wizard-weather", margin: "",
+                       place: @draft["destination"] },
              layout: false
     end
 

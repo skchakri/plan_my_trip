@@ -53,6 +53,18 @@ class Trips::WeatherFrameTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "live forecast"
   end
 
+  # The strip is always the DESTINATION's weather, never the origin's — naming
+  # the place is the only thing that makes that readable on a road trip.
+  test "trip weather frame names the destination it is forecasting" do
+    @trip.update!(origin: "Salt Lake City, UT")
+    with_fake_weather(sample_report) do
+      get weather_trip_path(@trip)
+    end
+    assert_includes response.body, "Weather in Las Vegas, NV"
+    assert_includes response.body, "not your origin"
+    refute_includes response.body, "Salt Lake City"
+  end
+
   test "trip weather frame collapses to an empty frame when the report is nil" do
     with_fake_weather(nil) do
       get weather_trip_path(@trip)

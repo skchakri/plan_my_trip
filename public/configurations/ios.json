@@ -12,9 +12,10 @@
       }
     },
     {
-      "patterns": ["/trips/new$"],
+      "_comment": "/trips/new 302s into the 4-step wizard (/trip_wizard/destination). A modal that immediately redirects out of its own rule fails to load in the native shell, so the whole wizard pushes like any other page.",
+      "patterns": ["/trips/new$", "/trip_wizard/.*"],
       "properties": {
-        "context": "modal",
+        "context": "default",
         "title": "New trip"
       }
     },

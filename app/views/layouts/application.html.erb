@@ -113,7 +113,7 @@
           <%= link_to trips_path, aria: { current: (controller_name == 'trips' && action_name == 'index') ? "page" : nil }, class: "flex flex-col items-center gap-0.5 py-1.5 rounded-md #{(controller_name == 'trips' && action_name == 'index') ? 'text-amber-300' : 'text-slate-400 hover:text-white'}" do %>
             <%= icon :list, class: "w-5 h-5" %><span class="text-[10px] font-medium">Trips</span>
           <% end %>
-          <%= link_to new_trip_path, aria: { current: action_name == 'new' ? "page" : nil }, class: "flex flex-col items-center gap-0.5 py-1.5 rounded-md #{action_name == 'new' ? 'text-amber-300' : 'text-slate-400 hover:text-white'}" do %>
+          <%= link_to wizard_destination_path, aria: { current: action_name == 'new' ? "page" : nil }, class: "flex flex-col items-center gap-0.5 py-1.5 rounded-md #{action_name == 'new' ? 'text-amber-300' : 'text-slate-400 hover:text-white'}" do %>
             <%= icon :plus, class: "w-5 h-5" %><span class="text-[10px] font-medium">New</span>
           <% end %>
           <%= link_to edit_user_registration_path, aria: { current: controller_name == 'registrations' ? "page" : nil }, class: "flex flex-col items-center gap-0.5 py-1.5 rounded-md #{controller_name == 'registrations' ? 'text-amber-300' : 'text-slate-400 hover:text-white'}" do %>

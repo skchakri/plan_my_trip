@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_19_130000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_23_165955) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -618,6 +618,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_19_130000) do
     t.string "origin"
     t.uuid "owner_id", null: false
     t.string "pace"
+    t.datetime "plan_stale_at"
     t.text "preferences"
     t.string "pwa_packing_url"
     t.string "pwa_plan_url"

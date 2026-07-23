@@ -15,7 +15,7 @@
     <%= link_to day_trips_new_path, class: "inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-emerald-500/40 bg-emerald-500/10 text-emerald-200 font-semibold hover:bg-emerald-500/20 hover:border-emerald-500/60 transition-all text-sm" do %>
       <%= icon :sun, class: "w-4 h-4" %> Day trip
     <% end %>
-    <%= link_to new_trip_path, class: "inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-500 text-slate-950 font-semibold shadow-lg shadow-amber-500/20 hover:bg-amber-400 hover:shadow-amber-500/40 transition-all text-sm" do %>
+    <%= link_to wizard_destination_path, class: "inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-500 text-slate-950 font-semibold shadow-lg shadow-amber-500/20 hover:bg-amber-400 hover:shadow-amber-500/40 transition-all text-sm" do %>
       <%= icon :plus, class: "w-4 h-4" %> Multi-day trip
     <% end %>
   </div>
@@ -32,7 +32,7 @@
       <%= link_to day_trips_new_path, class: "inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-emerald-500/40 bg-emerald-500/10 text-emerald-200 font-semibold hover:bg-emerald-500/20 transition-all" do %>
         <%= icon :sun, class: "w-4 h-4" %> Plan a day trip
       <% end %>
-      <%= link_to new_trip_path, class: "inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-500 text-slate-950 font-semibold shadow-lg shadow-amber-500/20 hover:bg-amber-400 transition-all" do %>
+      <%= link_to wizard_destination_path, class: "inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-500 text-slate-950 font-semibold shadow-lg shadow-amber-500/20 hover:bg-amber-400 transition-all" do %>
         <%= icon :plus, class: "w-4 h-4" %> Plan a multi-day trip
       <% end %>
     </div>
@@ -78,8 +78,15 @@
   <style>
     @keyframes tripCardIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
     @media (prefers-reduced-motion: no-preference) {
-      .trip-card { animation: tripCardIn .5s cubic-bezier(.2,.7,.2,1) both; }
+      /* `backwards`, NOT `both`: a forwards-filling transform animation keeps
+         the card a permanent stacking context, which trapped the "•••" menu
+         panel inside it — later cards then painted over the open panel and
+         swallowed the Archive tap. `backwards` still hides the card during
+         its stagger delay but stops filling once the animation ends. */
+      .trip-card { animation: tripCardIn .5s cubic-bezier(.2,.7,.2,1) backwards; }
     }
+    /* Belt and braces: while its menu is open the card outranks its siblings. */
+    .trip-card:has([data-menu-target="panel"]:not([hidden])) { z-index: 40; }
   </style>
   <% gradients = [
        "from-amber-500/40 to-rose-500/15",
