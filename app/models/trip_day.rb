@@ -18,15 +18,26 @@ class TripDay < ApplicationRecord
   # (that's where the evening is spent), else the middle located activity —
   # on a driving day the midpoint beats the departure city. nil when no
   # activity has coordinates (callers fall back to the trip destination).
-  def representative_coords
+  def weather_anchor
     located = activities.select { |a| a.latitude.present? && a.longitude.present? }
     return nil if located.empty?
 
-    lodging = located.find do |a|
+    located.find do |a|
       a.group_label.to_s.strip.casecmp("lodging").zero? || a.title.to_s.match?(/check[- ]?in/i)
-    end
-    pick = lodging || located[located.size / 2]
-    [ pick.latitude.to_f, pick.longitude.to_f ]
+    end || located[located.size / 2]
+  end
+
+  def representative_coords
+    anchor = weather_anchor
+    anchor && [ anchor.latitude.to_f, anchor.longitude.to_f ]
+  end
+
+  # Human label for the anchor, so a multi-city trip's weather strip can say
+  # which place each day's forecast belongs to.
+  def representative_place
+    anchor = weather_anchor
+    return nil unless anchor
+    (anchor.location_name.presence || anchor.title.to_s).strip.presence
   end
 
   def packed_count

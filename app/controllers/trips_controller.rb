@@ -183,25 +183,23 @@ class TripsController < ApplicationController
            layout: false
   end
 
-  # GET /trips/:id/weather — lazy turbo-frame target: per-day weather strip
-  # for the trip's dates (WeatherReport / Open-Meteo, cached). Loaded off the
-  # trip page so geocode + API latency never blocks it; a nil report renders
-  # an empty frame. Guarded like the other lazy frames — never a 500.
+  # GET /trips/:id/weather — lazy turbo-frame target: per-day weather strip.
+  # TripWeather forecasts each plan day at *that day's* location, so a trip
+  # that spends two days in LA and four in SF shows each city's own weather
+  # (one API call per stay, not per day). Loaded off the trip page so geocode
+  # + API latency never blocks it; a nil report renders an empty frame.
+  # Guarded like the other lazy frames — never a 500.
   def weather
     authorize @trip, :show?
     report =
       begin
-        WeatherReport.call(
-          destination: @trip.destination,
-          start_date: @trip.start_date,
-          end_date: @trip.end_date
-        )
+        TripWeather.call(@trip)
       rescue StandardError => e
         Rails.logger.warn("[TripsController#weather] trip=#{@trip.id}: #{e.class}: #{e.message}")
         nil
       end
     render partial: "trips/weather",
-           locals: { report: report, place: @trip.destination },
+           locals: { report: report, places: report&.places || [ @trip.destination ] },
            layout: false
   end
 

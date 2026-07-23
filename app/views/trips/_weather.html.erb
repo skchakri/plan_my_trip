@@ -6,10 +6,14 @@
     such, never passed off as a forecast. %>
 <% frame_id = local_assigns.fetch(:frame_id, "trip-weather") %>
 <% margin = local_assigns.fetch(:margin, "mb-6") %>
-<%# `place` names the location the forecast is FOR — always the destination,
-    never the origin. Without it a road trip that starts in Salt Lake and ends
-    in Moab reads ambiguously, which is exactly how it was misread. %>
-<% place = local_assigns.fetch(:place, nil).presence %>
+<%# `place` names the location the forecast is FOR — never the origin. A
+    TripWeather report carries a place per day and follows the itinerary, so
+    two LA days then four SF days read as LA then SF; `places` lists them in
+    order. A plain WeatherReport (wizard review, road-trip guide) has no days
+    yet, so the caller passes a single `place`. %>
+<% places = local_assigns.fetch(:places, nil).presence || Array(local_assigns[:place]).compact_blank %>
+<% place = places.first %>
+<% multi_place = places.size > 1 %>
 <%= turbo_frame_tag frame_id do %>
   <% if report&.days&.any? %>
     <%
@@ -28,14 +32,25 @@
       <div class="flex items-center justify-between gap-3 flex-wrap mb-3.5">
         <p class="text-[11px] uppercase tracking-[0.18em] text-amber-400 font-medium inline-flex items-center gap-2 min-w-0">
           <%= icon :sun, class: "w-3.5 h-3.5 shrink-0" %>
-          <span class="truncate">Weather<% if place %> in <%= place %><% end %></span>
+          <span class="truncate">Weather<% if multi_place %> along the way<% elsif place %> in <%= place %><% end %></span>
         </p>
         <span class="text-[10px] uppercase tracking-widest px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700"><%= badge %></span>
       </div>
 
       <div class="flex gap-2 overflow-x-auto pb-1.5 -mx-1 px-1">
+        <% previous_place = nil %>
         <% report.days.each do |day| %>
-          <div class="shrink-0 w-[96px] rounded-xl bg-slate-800/40 border border-slate-700/50 px-2 py-3 text-center">
+          <% day_place = day.respond_to?(:place) ? day.place : nil %>
+          <%# Only label the card where the place CHANGES — repeating "Los
+              Angeles" on four consecutive cards is noise; the change is the
+              signal. Always label the first card on a multi-city trip. %>
+          <% show_place = multi_place && day_place.present? && day_place != previous_place %>
+          <% previous_place = day_place %>
+          <div class="shrink-0 w-[96px] rounded-xl bg-slate-800/40 border <%= show_place ? "border-amber-500/40" : "border-slate-700/50" %> px-2 py-3 text-center">
+            <% if multi_place %>
+              <p class="text-[10px] leading-tight mb-1 truncate <%= show_place ? "text-amber-300 font-semibold" : "text-slate-600" %>"
+                 title="<%= day_place %>"><%= show_place ? day_place : "·" %></p>
+            <% end %>
             <p class="text-[11px] uppercase tracking-widest text-slate-400 font-semibold"><%= day.date.strftime("%a") %></p>
             <p class="text-xs text-slate-400 mt-0.5 tabular-nums"><%= day.date.strftime("%b %-d") %></p>
             <p class="text-2xl leading-none my-2"><span role="img" aria-label="<%= day.label %>"><%= day.emoji %></span></p>
@@ -58,7 +73,11 @@
         <% else %>
           Live forecast, refreshed every few hours.
         <% end %>
-        <% if place %>At the destination (<%= place %>), not your origin.<% end %>
+        <% if multi_place %>
+          Each day is forecast where the plan puts you that day — <%= places.to_sentence %> — not at one destination.
+        <% elsif place %>
+          At the destination (<%= place %>), not your origin.
+        <% end %>
         Temperatures in °F · data by Open-Meteo.
         <% if report.truncated_days.positive? %>
           Showing the first <%= WeatherReport::MAX_DAYS %> days (<%= report.truncated_days %> more not shown).
