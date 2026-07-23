@@ -449,7 +449,11 @@ class TripsController < ApplicationController
     end
 
     changed = @trip.previous_changes.keys & Trip::PLAN_INPUT_ATTRIBUTES
-    if changed.any? || @trip.plan_day_count_mismatch?
+    # A day-count mismatch only counts when *this* edit moved the range — a
+    # build that produced fewer days than the range shouldn't make every later
+    # title tweak flag the plan.
+    dates_changed = (@trip.previous_changes.keys & %w[start_date end_date]).any?
+    if changed.any? || (dates_changed && @trip.plan_day_count_mismatch?)
       @trip.mark_plan_stale!
       parts << "The day-by-day plan was built for the old details — rebuild it to regenerate."
     end
