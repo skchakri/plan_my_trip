@@ -71,12 +71,29 @@ All routing comes from `public/configurations/ios.json` on the Rails side.
 Edit that file to change which screens open as modals vs. pushes — the app
 re-fetches it on each launch, so no rebuild is needed for navigation tweaks.
 
+## Speech bridge (`SpeechComponent.swift`)
+
+WKWebView implements `speechSynthesis` but **not** `SpeechRecognition`, so on
+iOS the podcast / Read aloud / Drive Co-Pilot already speak through the Web
+Speech API, but voice **input** (the concierge and day-trip mic) had nothing to
+fall back to. `SpeechComponent` supplies it via `SFSpeechRecognizer` +
+`AVAudioEngine`, exposed to the web through the `speech` bridge component
+(registered in `AppDelegate`, which is what advertises it in the user agent).
+The shared web façade `app/javascript/speech.js` prefers the Web Speech API and
+only calls the bridge for what the browser lacks — so `speak` is implemented
+for parity but isn't normally exercised on iOS.
+
+Requires the two usage strings in `Info.plist`
+(`NSMicrophoneUsageDescription`, `NSSpeechRecognitionUsageDescription`) — the
+app is rejected without them. The Android counterpart is
+`android/.../SpeechComponent.kt`.
+
 ## Going beyond a pure web wrapper
 
-- **Native bridge components** — register them in `SceneDelegate` via
-  `Hotwire.config.registerBridgeComponent(...)`. Common candidates: a native
-  share sheet for "Open in AllTrails", a native date-picker for trip dates,
-  haptic feedback on form submit.
+- **Native bridge components** — register them in `AppDelegate` via
+  `Hotwire.registerBridgeComponents([...])` (see `SpeechComponent`). Other
+  candidates: a native share sheet for "Open in AllTrails", a native
+  date-picker for trip dates, haptic feedback on form submit.
 - **Push notifications** — wire up APNs in `AppDelegate` and POST the device
   token to a `/devices` endpoint on the Rails app.
 - **Offline auth** — Hotwire Native shares cookies with the underlying

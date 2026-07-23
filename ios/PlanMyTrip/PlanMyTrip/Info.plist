@@ -17,9 +17,9 @@
     <key>CFBundlePackageType</key>
     <string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0</string>
+    <string>1.1</string>
     <key>CFBundleVersion</key>
-    <string>2</string>
+    <string>3</string>
 
     <key>BASE_URL</key>
     <string>$(BASE_URL)</string>
@@ -28,6 +28,14 @@
          Connect skips the export-compliance prompt on each upload. -->
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
+
+    <!-- Voice input (concierge mic, day-trip search). WKWebView has no
+         SpeechRecognition, so SpeechComponent uses SFSpeechRecognizer +
+         AVAudioEngine — both prompts are required or the app is rejected. -->
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Wanderply uses the microphone so you can speak to the trip concierge and search by voice instead of typing.</string>
+    <key>NSSpeechRecognitionUsageDescription</key>
+    <string>Wanderply turns your speech into text so you can ask the concierge and search for trips hands-free.</string>
 
     <key>NSAppTransportSecurity</key>
     <dict>
