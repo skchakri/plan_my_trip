@@ -44,6 +44,26 @@ const nativeSpeech = () => bridge
 const webSynthesis = () => ("speechSynthesis" in window ? window.speechSynthesis : null)
 const WebRecognition = () => window.SpeechRecognition || window.webkitSpeechRecognition || null
 
+// Whether the Web Speech synthesis has at least one installed voice. The API
+// object can be present with no voices at all (desktop Linux Chrome without
+// speech-dispatcher voices), where speak() silently produces nothing.
+const hasWebVoices = (synth) => Boolean(synth && (synth.getVoices() || []).length)
+
+// Voices often populate asynchronously — wait one `voiceschanged` (capped) so a
+// capable-but-still-loading browser isn't wrongly reported as voiceless.
+function waitForWebVoices(synth, done) {
+  let settled = false
+  const finish = () => {
+    if (settled) return
+    settled = true
+    synth.removeEventListener?.("voiceschanged", finish)
+    clearTimeout(timer)
+    done()
+  }
+  synth.addEventListener?.("voiceschanged", finish)
+  const timer = setTimeout(finish, 600)
+}
+
 // ── Capability checks ────────────────────────────────────────────────
 // Call these instead of `"speechSynthesis" in window`.
 
@@ -90,21 +110,41 @@ export function speak(text, { rate = 1.0, pitch = 1.0, voice = null, onEnd, onEr
   const synth = webSynthesis()
 
   if (synth) {
-    synth.cancel()
-    const utterance = new SpeechSynthesisUtterance(body)
-    utterance.rate = rate * getSpeed()
-    utterance.pitch = pitch
-    if (voice) utterance.voice = voice
-    utterance.onend = finishOnce
-    utterance.onerror = (event) => {
-      // "interrupted"/"canceled" are our own cancel() landing — not failures.
-      if (event?.error && event.error !== "interrupted" && event.error !== "canceled") {
-        onError?.(event.error)
+    const startWebUtterance = () => {
+      synth.cancel()
+      const utterance = new SpeechSynthesisUtterance(body)
+      utterance.rate = rate * getSpeed()
+      utterance.pitch = pitch
+      if (voice) utterance.voice = voice
+      utterance.onend = finishOnce
+      utterance.onerror = (event) => {
+        // "interrupted"/"canceled" are our own cancel() landing — not failures.
+        if (event?.error && event.error !== "interrupted" && event.error !== "canceled") {
+          onError?.(event.error)
+        }
+        finishOnce()
       }
-      finishOnce()
+      activeWebUtterance = utterance
+      synth.speak(utterance)
     }
-    activeWebUtterance = utterance
-    synth.speak(utterance)
+
+    // The API can exist with ZERO installed voices — most often desktop Linux
+    // Chrome without speech-dispatcher voices — where synth.speak() is a silent
+    // no-op. Voices can also just be loading (browsers populate them async), so
+    // wait one `voiceschanged` (capped) before answering honestly rather than
+    // faking a read that produces no sound.
+    if (hasWebVoices(synth)) {
+      startWebUtterance()
+    } else {
+      waitForWebVoices(synth, () => {
+        if (hasWebVoices(synth)) {
+          startWebUtterance()
+        } else {
+          onError?.(UNSUPPORTED_SPEAK)
+          finishOnce()
+        }
+      })
+    }
     return
   }
 

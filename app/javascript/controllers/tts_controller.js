@@ -42,15 +42,28 @@ export default class extends Controller {
     const text = this._collectText()
     if (!text) return
     if (!canSpeak()) {
-      this.element.title = UNSUPPORTED_SPEAK
+      this._reportUnsupported(UNSUPPORTED_SPEAK)
       return
     }
     this._setSpeaking(true)
     speak(text, {
       rate: this.rateValue,
       pitch: this.pitchValue,
-      onEnd: () => this._setSpeaking(false)
+      onEnd: () => this._setSpeaking(false),
+      // A device whose Web Speech API exists but has no installed voices (e.g.
+      // desktop Linux Chrome) reports UNSUPPORTED_SPEAK here — surface it
+      // visibly instead of leaving a dead, silent button.
+      onError: (err) => {
+        this._setSpeaking(false)
+        this._reportUnsupported(err)
+      }
     })
+  }
+
+  _reportUnsupported(err) {
+    const message = !err || err === UNSUPPORTED_SPEAK ? UNSUPPORTED_SPEAK : "Couldn't read this aloud."
+    this.element.title = message
+    window.dispatchEvent(new CustomEvent("toast", { detail: { type: "alert", message } }))
   }
 
   _collectText() {
