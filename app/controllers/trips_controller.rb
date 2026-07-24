@@ -75,24 +75,12 @@ class TripsController < ApplicationController
     authorize @trip
     previous_start = @trip.start_date
     body_was = @trip.body
-    # The title we'd have auto-generated from the PRE-edit destination/dates.
-    # If the submitted title equals it, the user never customized it, so it
-    # should follow the new destination rather than freeze (a trip whose
-    # destination changed to LA but still titled "San Francisco").
-    auto_title_before = @trip.derived_title
 
-    submitted_title = params.dig(:trip, :title).to_s.strip
-    attrs = trip_params
-    if submitted_title == auto_title_before
-      attrs = attrs.merge(title: Trip.derive_title(
-        destination: attrs[:destination] || @trip.destination,
-        start_date: attrs[:start_date] || @trip.start_date,
-        end_date: attrs[:end_date] || @trip.end_date
-      ))
-    end
-
-    if @trip.update(attrs)
-      redirect_to @trip, notice: reconcile_plan_after_edit(previous_start, body_was)
+    if @trip.update(trip_params)
+      # Capture what the edit touched BEFORE Resync's derived-field writes
+      # (title/body/day dates) overwrite previous_changes.
+      changed_keys = @trip.previous_changes.keys
+      redirect_to @trip, notice: reconcile_plan_after_edit(previous_start, body_was, changed_keys)
     else
       @known_traveler_interests = Person.known_interests_for(current_user)
       render :edit, status: :unprocessable_entity
@@ -448,24 +436,28 @@ class TripsController < ApplicationController
   #     spans the range → flag the plan stale; trips/show then offers Rebuild.
   #
   # Returns the flash notice.
-  def reconcile_plan_after_edit(previous_start, body_was)
+  def reconcile_plan_after_edit(previous_start, body_was, changed_keys)
+    # Rewrite the complete trip + final plan from the edited details: refresh
+    # the auto-title, slide the day dates if the start moved, and regenerate
+    # the markdown body — unless the user hand-edited the body in this submit
+    # (then BodySync would throw their edit away).
+    hand_edited_body = @trip.body != body_was
+    Trips::Resync.call(@trip, previous_start: previous_start, regenerate_body: !hand_edited_body)
+
     return "Trip updated." unless @trip.built_plan?
 
     parts = [ "Trip updated." ]
 
     delta = previous_start && @trip.start_date ? (@trip.start_date - previous_start).to_i : 0
-    if delta != 0 && @trip.shift_plan_dates!(delta).positive?
-      # Skip when the edit also rewrote the markdown by hand — BodySync
-      # regenerates `body` from the rows and would throw that away.
-      Trips::BodySync.call(@trip) if @trip.body == body_was
+    if delta != 0
       parts << "Moved the day-by-day plan #{helpers.pluralize(delta.abs, 'day')} #{delta.positive? ? 'later' : 'earlier'}."
     end
 
-    changed = @trip.previous_changes.keys & Trip::PLAN_INPUT_ATTRIBUTES
+    changed = changed_keys & Trip::PLAN_INPUT_ATTRIBUTES
     # A day-count mismatch only counts when *this* edit moved the range — a
     # build that produced fewer days than the range shouldn't make every later
     # title tweak flag the plan.
-    dates_changed = (@trip.previous_changes.keys & %w[start_date end_date]).any?
+    dates_changed = (changed_keys & %w[start_date end_date]).any?
     if changed.any? || (dates_changed && @trip.plan_day_count_mismatch?)
       @trip.mark_plan_stale!
       parts << "The day-by-day plan was built for the old details — rebuild it to regenerate."

@@ -57,7 +57,7 @@ class TripDaysController < ApplicationController
   end
 
   def sync_and_redirect(notice)
-    Trips::BodySync.call(@trip)
+    Trips::Resync.call(@trip)
     redirect_to edit_plan_trip_path(@trip), notice: notice
   end
 end

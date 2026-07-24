@@ -320,6 +320,19 @@ class Trip < ApplicationRecord
     self.class.derive_title(destination: destination, start_date: start_date, end_date: end_date)
   end
 
+  # The date-suffix shape produced by .derive_title, e.g. " — Jul 24-29, 2026"
+  # or " — Jul 24 to Aug 2, 2026". Lets us recognise a title we generated —
+  # even a stale one whose dates/destination have since moved — without a
+  # persisted flag, so Trips::Resync can refresh it while leaving a genuinely
+  # custom title ("Our Big Family Roadtrip") untouched.
+  AUTO_TITLE_DATE_SUFFIX = / — [A-Z][a-z]{2} \d{1,2}(?:-\d{1,2}| to [A-Z][a-z]{2} \d{1,2}), \d{4}\z/
+
+  def auto_generated_title?
+    t = title.to_s.strip
+    return true if t.blank? || t == "New trip" || t == derived_title
+    t.match?(AUTO_TITLE_DATE_SUFFIX)
+  end
+
   def nights
     return nil if start_date.blank? || end_date.blank?
     (end_date - start_date).to_i

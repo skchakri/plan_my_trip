@@ -184,7 +184,7 @@ class TripEditor
   end
 
   def sync
-    Trips::BodySync.call(@trip)
+    Trips::Resync.call(@trip)
   end
 
   def success(summary)
