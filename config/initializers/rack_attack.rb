@@ -16,6 +16,14 @@ if Rails.env.production?
       %w[127.0.0.1 ::1].include?(req.ip)
     end
 
+    ### Operator/trusted IP allowlist (RACK_ATTACK_SAFELIST, comma/space-sep) ###
+    # Safelists win over every throttle and blocklist below, so a trusted IP
+    # (e.g. the operator) can never be locked out by the login fail2ban. Env so
+    # it can be changed/removed without a code edit.
+    safelist("trusted ip allowlist") do |req|
+      ENV["RACK_ATTACK_SAFELIST"].to_s.split(/[\s,]+/).reject(&:empty?).include?(req.ip)
+    end
+
     ### Admin-managed IP blocklist (/admin/app_settings → BLOCKED_IPS) ###
     # Safelists always win over blocklists in Rack::Attack, so localhost above
     # can never lock itself out.
