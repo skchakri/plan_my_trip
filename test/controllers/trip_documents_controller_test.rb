@@ -16,6 +16,15 @@ class TripDocumentsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 1, @trip.reload.documents.count
   end
 
+  test "redirects with an alert when the form is submitted with no file part" do
+    # The upload form runs turbo:false and posts straight to this URL; a submit
+    # with no `trip` key must not raise ParameterMissing -> a bare 400 page.
+    post trip_documents_path(@trip)
+    assert_redirected_to trip_path(@trip)
+    assert_match(/Pick at least one file/, flash[:alert])
+    assert_equal 0, @trip.reload.documents.count
+  end
+
   test "rejects html uploads before attaching anything" do
     html = Rack::Test::UploadedFile.new(StringIO.new("<script>alert(1)</script>"), "text/html", original_filename: "evil.html")
     post trip_documents_path(@trip), params: { trip: { documents: [ html ] } }

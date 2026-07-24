@@ -6,7 +6,10 @@ class ActivityPhotosController < ApplicationController
   # POST /trips/:trip_id/activities/:activity_id/photos
   def create
     authorize @trip, :show?
-    files = params.require(:activity).permit(photos: []).fetch(:photos, []).reject(&:blank?)
+    # Tolerate a missing `activity` key (form submitted with no file part, e.g.
+    # the Android WebView shell) instead of raising ParameterMissing -> 400.
+    files = params.fetch(:activity, ActionController::Parameters.new)
+                  .permit(photos: []).fetch(:photos, []).reject(&:blank?)
     if files.empty?
       redirect_to plan_trip_path(@trip, anchor: "day-#{@activity.trip_day_id}"),
                   alert: "Pick at least one image to upload." and return

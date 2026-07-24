@@ -4,7 +4,12 @@ class TripDocumentsController < ApplicationController
 
   def create
     authorize @trip, :show?
-    files = params.require(:trip).permit(documents: []).fetch(:documents, []).reject(&:blank?)
+    # Tolerate a missing `trip` key: submitting the upload form with no file
+    # part (e.g. the Android WebView shell) would otherwise raise
+    # ActionController::ParameterMissing -> a bare 400 page, since the form
+    # runs with turbo:false and navigates straight to this POST target.
+    files = params.fetch(:trip, ActionController::Parameters.new)
+                  .permit(documents: []).fetch(:documents, []).reject(&:blank?)
     if files.empty?
       redirect_to @trip, alert: "Pick at least one file." and return
     end
