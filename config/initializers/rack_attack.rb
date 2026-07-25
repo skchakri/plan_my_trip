@@ -31,16 +31,17 @@ if Rails.env.production?
       IpBlocklist.blocked?(req.ip)
     end
 
-    ### Auto-ban IPs hammering the login endpoint ###
-    # The logins/ip throttle below slows a brute-forcer to 10/min; this bans an
-    # IP outright for an hour once it has made 20 login POSTs inside 10 minutes
-    # (counted at the middleware layer, so "attempts", not "failures").
-    blocklist("fail2ban/logins") do |req|
-      Rack::Attack::Fail2Ban.filter(
-        "login-ban-#{req.ip}", maxretry: 20, findtime: 10.minutes, bantime: 1.hour
-      ) do
-        req.path == "/users/sign_in" && req.post?
-      end
+    ### Auto-ban IPs with too many FAILED logins ###
+    # Bans an IP only after repeated *authentication failures* (bad password /
+    # unknown email), counted by the Warden before_failure hook at the bottom of
+    # this file — NOT by raw request volume. A SUCCESSFUL sign-in never trips it,
+    # so a correct password always gets through no matter how many times the IP
+    # has hit /users/sign_in (this was the old fail2ban's fatal flaw: it counted
+    # every POST, locking out legit users on shared/rotating IPs). The logins/ip
+    # throttle below still caps raw attempt volume at 10/min.
+    blocklist("failed-logins") do |req|
+      req.path == "/users/sign_in" && req.post? &&
+        Rails.cache.read("failed-login-ban/#{req.ip}").present?
     end
 
     ### Public share links — token routes are guessable-resistant but bots crawl ###
@@ -116,6 +117,27 @@ if Rails.env.production?
       Rails.logger.warn(
         "[rack-attack] blocked ip=#{req.ip} path=#{req.path} matched=#{req.env['rack.attack.matched']}"
       )
+    end
+  end
+
+  # Count FAILED logins only, feeding the "failed-logins" blocklist above.
+  # Warden fires before_failure on every failed authentication (and only then —
+  # a correct password bypasses it entirely), so we tick a per-IP failure
+  # counter here and set a short ban once it crosses the limit. Uses plain
+  # Rails.cache keys (same store Rack::Attack reads) — no raw fail2ban internals.
+  FAILED_LOGIN_LIMIT = 15       # failures within the window before a ban
+  FAILED_LOGIN_WINDOW = 10.minutes
+  FAILED_LOGIN_BAN = 15.minutes
+
+  Warden::Manager.before_failure do |env, _opts|
+    req = ActionDispatch::Request.new(env)
+    next unless req.path == "/users/sign_in" && req.post?
+
+    key = "failed-login-count/#{req.ip}"
+    count = Rails.cache.read(key).to_i + 1
+    Rails.cache.write(key, count, expires_in: FAILED_LOGIN_WINDOW)
+    if count >= FAILED_LOGIN_LIMIT
+      Rails.cache.write("failed-login-ban/#{req.ip}", true, expires_in: FAILED_LOGIN_BAN)
     end
   end
 end

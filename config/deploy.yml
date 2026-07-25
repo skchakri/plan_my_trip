@@ -45,9 +45,9 @@ env:
     # Jobs run in a dedicated `job` role (above), not inside Puma.
     SOLID_QUEUE_IN_PUMA: false
     DB_HOST: wanderply-db.coniswuom7xx.us-east-1.rds.amazonaws.com
-    # Trusted IPs that bypass Rack::Attack (comma/space-separated). Operator IP
+    # Trusted IPs that bypass Rack::Attack (comma/space-separated). Operator IPs
     # so the login fail2ban can never lock the owner out. Safe to change/clear.
-    RACK_ATTACK_SAFELIST: 136.38.128.224
+    RACK_ATTACK_SAFELIST: 23.122.183.225 136.38.128.224
 
 aliases:
   console: app exec --interactive --reuse "bin/rails console"
