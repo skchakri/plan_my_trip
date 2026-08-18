@@ -40,17 +40,12 @@
   </head>
 
   <body class="bg-slate-950 text-slate-100 antialiased min-h-full">
-    <% if notice.present? %>
-      <div class="fixed top-4 inset-x-0 z-40 px-4 flex justify-center pointer-events-none">
-        <div role="status" class="pointer-events-auto rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-100 backdrop-blur px-4 py-2.5 text-sm shadow-xl"><%= notice %></div>
-      </div>
-    <% end %>
-    <% if alert.present? %>
-      <div class="fixed top-4 inset-x-0 z-40 px-4 flex justify-center pointer-events-none">
-        <div role="alert" class="pointer-events-auto rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-100 backdrop-blur px-4 py-2.5 text-sm shadow-xl"><%= alert %></div>
-      </div>
-    <% end %>
+    <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-amber-500 focus:text-slate-950 focus:font-semibold">Skip to content</a>
+    <div id="toast-stack" data-controller="toasts" data-action="toast@window->toasts#show"
+         class="fixed z-[60] bottom-6 inset-x-4 sm:inset-x-auto sm:right-6 flex flex-col gap-2 pointer-events-none" aria-live="polite">
+      <%= render "layouts/flash" %>
+    </div>
 
-    <%= yield %>
+    <main id="main"><%= yield %></main>
   </body>
 </html>

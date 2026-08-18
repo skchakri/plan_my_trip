@@ -339,6 +339,12 @@ Activity.find_each do |a|
 end
 
 puts "Seeded: #{demo.email} / password123"
+# Showcase trip: the public, no-signup "see a finished plan" on-ramp linked
+# from the landing hero, blog CTAs and quiz results. Idempotent: enables the
+# share link once and only claims the setting when it's blank.
+vegas_trip.enable_share_link! unless vegas_trip.share_link_active?
+AppSetting.set("SHOWCASE_TRIP_ID", vegas_trip.id) if AppSetting.get("SHOWCASE_TRIP_ID").blank?
+
 puts "Trips: #{Trip.count}, Trails: #{Trail.count}, Checklist items: #{ChecklistItem.count}, Days: #{TripDay.count}, Activities: #{Activity.count}, Travelers: #{Person.count}"
 
 puts "\nSeeding Travel Trivia reference data…"

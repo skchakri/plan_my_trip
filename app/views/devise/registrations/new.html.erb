@@ -50,7 +50,7 @@
       <h1 class="font-display text-3xl sm:text-4xl font-semibold tracking-tight mt-2">Create your account.</h1>
       <p class="text-sm text-slate-400 mt-2">Already a member? <%= link_to "Sign in", new_user_session_path, class: "text-amber-300 hover:text-amber-200 font-medium" %>.</p>
 
-      <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { class: "mt-8 space-y-5" }) do |f| %>
+      <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { class: "mt-8 space-y-5" }, data: { controller: "password-match" }) do |f| %>
         <% if resource.errors.any? %>
           <div role="alert" class="rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-200 px-3.5 py-2.5 text-sm">
             <p class="font-medium mb-1"><%= pluralize(resource.errors.count, "error") %> stopped sign up:</p>
@@ -72,7 +72,7 @@
 
         <div>
           <%= f.label :password, class: "block text-sm font-medium text-slate-200 mb-1.5" %>
-          <%= f.password_field :password, autocomplete: "new-password", required: true, placeholder: "Choose a strong password", class: "w-full rounded-lg bg-slate-900 border border-slate-700 px-3.5 py-2.5 text-slate-100 placeholder:text-slate-400 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/40 focus:outline-none transition-colors" %>
+          <%= f.password_field :password, autocomplete: "new-password", required: true, placeholder: "Choose a strong password", data: { password_match_target: "password", action: "input->password-match#check" }, class: "w-full rounded-lg bg-slate-900 border border-slate-700 px-3.5 py-2.5 text-slate-100 placeholder:text-slate-400 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/40 focus:outline-none transition-colors" %>
           <% if @minimum_password_length %>
             <p class="text-xs text-slate-400 mt-1.5"><%= @minimum_password_length %> characters minimum</p>
           <% end %>
@@ -80,10 +80,11 @@
 
         <div>
           <%= f.label :password_confirmation, "Confirm password", class: "block text-sm font-medium text-slate-200 mb-1.5" %>
-          <%= f.password_field :password_confirmation, autocomplete: "new-password", required: true, placeholder: "Type it again", class: "w-full rounded-lg bg-slate-900 border border-slate-700 px-3.5 py-2.5 text-slate-100 placeholder:text-slate-400 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/40 focus:outline-none transition-colors" %>
+          <%= f.password_field :password_confirmation, autocomplete: "new-password", required: true, placeholder: "Type it again", data: { password_match_target: "confirmation", action: "input->password-match#check blur->password-match#check" }, aria: { describedby: "pw-match-hint" }, class: "w-full rounded-lg bg-slate-900 border border-slate-700 px-3.5 py-2.5 text-slate-100 placeholder:text-slate-400 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/40 focus:outline-none transition-colors" %>
+          <p id="pw-match-hint" data-password-match-target="hint" hidden role="status" class="text-xs text-rose-300 mt-1.5">Passwords don't match yet.</p>
         </div>
 
-        <%= f.submit "Create account", class: "w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-lg font-semibold shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40 transition-all cursor-pointer" %>
+        <%= f.submit "Create account", class: "btn btn-lg btn-primary w-full shadow-lg shadow-amber-500/20" %>
 
         <p class="text-xs text-slate-400 text-center">By signing up, you're agreeing to be road-trip-ready. That's it. No fine print.</p>
       <% end %>

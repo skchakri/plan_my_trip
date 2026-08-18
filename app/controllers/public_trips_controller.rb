@@ -22,7 +22,11 @@ class PublicTripsController < ApplicationController
       redirect_to source, notice: "This is already your trip." and return
     end
     clone = TripDuplicator.new(source: source, owner: current_user, new_title: source.title).call
-    redirect_to clone, notice: "Saved to your trips — edit it freely; the original stays untouched."
+    credit = ReferralCredit.grant!(referrer: source.owner, referee: current_user, trip: source)
+    NotificationDispatcher.referral_credit(credit) if credit
+    notice = "Saved to your trips — edit it freely; the original stays untouched."
+    notice += " You and #{source.owner.display_name} each earned an extra AI build this month." if credit
+    redirect_to clone, notice: notice
   rescue ActiveRecord::RecordNotFound
     render :gone, status: :gone
   end

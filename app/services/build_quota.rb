@@ -43,8 +43,21 @@ class BuildQuota
   end
 
   def monthly_exceeded?
-    limit = self.class.limit(MONTHLY_KEY, MONTHLY_DEFAULT)
+    limit = monthly_limit
     limit.positive? && builds_since(30.days.ago) >= limit
+  end
+
+  # Monthly allowance = configured limit + referral bonus (give-one-get-one
+  # credits from ReferralCredit, capped). Daily stays flat: it's the spike guard.
+  def monthly_limit
+    base = self.class.limit(MONTHLY_KEY, MONTHLY_DEFAULT)
+    base.positive? ? base + bonus_builds : base
+  end
+
+  def bonus_builds
+    ReferralCredit.bonus_for(user)
+  rescue StandardError
+    0
   end
 
   # Copy for the flash when a build is refused. Names the window that actually
@@ -55,9 +68,10 @@ class BuildQuota
       "You've built #{limit} #{'plan'.pluralize(limit)} in the last 24 hours — that's the daily limit while " \
         "Wanderply is free. Your existing trips are untouched, and you can build again tomorrow."
     else
-      limit = self.class.limit(MONTHLY_KEY, MONTHLY_DEFAULT)
+      limit = monthly_limit
       "You've built #{limit} #{'plan'.pluralize(limit)} this month — that's the monthly limit while " \
-        "Wanderply is free. Your existing trips are untouched."
+        "Wanderply is free. Your existing trips are untouched. Tip: every friend who saves one of your " \
+        "shared trips earns you both an extra build a month."
     end
   end
 

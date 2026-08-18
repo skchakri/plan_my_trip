@@ -395,6 +395,35 @@ Yandex. Enabled only in production with `INDEXNOW_KEY` set at
 served at `/<key>.txt`. `rake seo:indexnow_all` submits every public URL. Google
 ignores IndexNow — it needs Search Console + `/sitemap.xml`.
 
+## Growth surfaces (Aug 2026)
+
+- **Sample narration** (`shared/_sample_narration`, `sample_narration_controller.js`):
+  a canned two-voice Delicate Arch script spoken client-side (Web Speech, $0)
+  at the landing hero, blog CTA and quiz results — guests hear the wedge before
+  the sign-up wall. Emits `sample_narration_played`.
+- **Showcase trip**: `SHOWCASE_TRIP_ID` AppSetting → `ShowcaseHelper#sample_plan_path`
+  (public `/s/:token` of a finished, share-enabled trip; falls back to
+  `/sample-trips.html`). Seeds enable the Vegas demo trip's share link and claim
+  the setting when blank.
+- **Landing intent box**: `GET /trip_wizard/destination?destination=…` — Devise
+  stores the location through sign-up so the answer survives the auth wall.
+- **Analytics events** (`track_controller.js`, `track()` helper): `$pageview`,
+  `signed_up` (flash `:track_event` beacon in `layouts/_flash`), `wizard_step_viewed`,
+  `trip_build_started`, `trip_built` (once per trip via localStorage),
+  `quiz_completed`, `sample_narration_played`. All no-op without PostHog.
+- **Contact** (`/contact`, `ContactsController` + `ContactMessage` form object +
+  `ContactMailer` → all admins, honeypot + Rack::Attack 5/h/IP). No inbound mail
+  exists for wanderply.com, so never link a `mailto:@wanderply.com`.
+- **Referral credits** (`ReferralCredit`): saving someone's shared trip
+  (`PublicTripsController#copy`) mints one credit per (sharer, saver) pair; both
+  get +1 monthly build in `BuildQuota#monthly_limit` (cap `MAX_PER_USER`=10).
+- **Embed widget**: `GET /embed/road-trips/:slug` (`layouts/embed`, frame-ancestors
+  `*` for that action only) + copy-embed panel and Pinterest save link on the
+  guide page. **Pins**: `bin/rails pins:export | bin/generate-pins` renders
+  1000×1500 JPGs into `public/pins/` (Pillow, dev-side; commit the files).
+- Nav shows Road trips + Quizzes for everyone; layouts have a skip-link and share
+  the `#toast-stack`. Demo credentials on the sign-in page render only in development.
+
 ## Cost control (`BuildQuota`)
 
 Every trip build fans out paid AI calls (`trip_structure.v1` + one

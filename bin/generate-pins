@@ -1,0 +1,89 @@
+#!/usr/bin/env python3
+"""Generate 1000x1500 Pinterest pin cards for every published road-trip guide.
+
+Dev-side tool (Pillow + system fonts) — outputs static PNGs to public/pins/
+which ship with the app, so production needs no image libs or fonts.
+Usage: bin/rails pins:export > /tmp/road_trips.json && bin/generate-pins /tmp/road_trips.json
+"""
+import io, json, sys, textwrap, urllib.request
+from pathlib import Path
+from PIL import Image, ImageDraw, ImageFont, ImageFilter
+
+W, H = 1000, 1500
+OUT = Path(__file__).resolve().parent.parent / "public" / "pins"
+FONT_CANDIDATES = [
+    "/usr/share/fonts/truetype/noto/NotoSans-Bold.ttf",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+]
+MONO_CANDIDATES = [
+    "/usr/share/fonts/truetype/noto/NotoSansMono-Regular.ttf",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
+]
+
+def font(cands, size):
+    for c in cands:
+        if Path(c).exists():
+            return ImageFont.truetype(c, size)
+    return ImageFont.load_default()
+
+def fetch(url):
+    req = urllib.request.Request(url, headers={"User-Agent": "Wanderply pin generator"})
+    with urllib.request.urlopen(req, timeout=30) as r:
+        return Image.open(io.BytesIO(r.read())).convert("RGB")
+
+def cover(img, w, h):
+    s = max(w / img.width, h / img.height)
+    img = img.resize((round(img.width * s), round(img.height * s)), Image.LANCZOS)
+    x, y = (img.width - w) // 2, (img.height - h) // 2
+    return img.crop((x, y, x + w, y + h))
+
+def draw_pin(rt):
+    hero = cover(fetch(rt["hero_image_url"]), W, H) if rt.get("hero_image_url") else Image.new("RGB", (W, H), (10, 14, 26))
+    # dark gradient bottom 55%
+    grad = Image.new("L", (1, H))
+    for y in range(H):
+        t = max(0.0, (y - H * 0.35) / (H * 0.65))
+        grad.putpixel((0, y), int(235 * (t ** 1.4)))
+    overlay = Image.new("RGB", (W, H), (10, 14, 26))
+    hero = Image.composite(overlay, hero, grad.resize((W, H)))
+    d = ImageDraw.Draw(hero)
+    amber = (251, 191, 36)
+    # eyebrow
+    d.text((72, 900), "ROAD TRIP GUIDE", font=font(MONO_CANDIDATES, 30), fill=amber)
+    # title
+    title_font = font(FONT_CANDIDATES, 88)
+    lines = textwrap.wrap(rt["title"].replace(" Road Trip", ""), width=16)[:3]
+    y = 950
+    for ln in lines:
+        d.text((72, y), ln, font=title_font, fill=(255, 255, 255))
+        y += 100
+    # meta
+    meta = " · ".join([m for m in [rt.get("distance_label"), rt.get("drive_time_label"), (f"{rt['suggested_days']} days" if rt.get("suggested_days") else None)] if m])
+    d.text((72, y + 10), meta, font=font(FONT_CANDIDATES, 34), fill=(203, 213, 225))
+    # stops strip
+    stops = [s.get("name") for s in rt.get("stops", []) if s.get("name")][:4]
+    if stops:
+        sy = y + 70
+        for ln in textwrap.wrap("Stops: " + ", ".join(stops), width=52)[:2]:
+            d.text((72, sy), ln, font=font(FONT_CANDIDATES, 28), fill=(148, 163, 184))
+            sy += 36
+    # badge
+    bx, by = 72, H - 130
+    d.rounded_rectangle((bx, by, bx + 520, by + 72), radius=36, fill=amber)
+    d.text((bx + 28, by + 16), "Plan it free · hear it narrated", font=font(FONT_CANDIDATES, 30), fill=(10, 14, 26))
+    d.text((W - 300, by + 20), "wanderply.com", font=font(MONO_CANDIDATES, 28), fill=(203, 213, 225))
+    return hero
+
+def main(path):
+    OUT.mkdir(parents=True, exist_ok=True)
+    for rt in json.load(open(path)):
+        try:
+            img = draw_pin(rt)
+            out = OUT / f"{rt['slug']}.jpg"
+            img.save(out, "JPEG", quality=82, optimize=True, progressive=True)
+            print("wrote", out)
+        except Exception as e:
+            print("FAILED", rt.get("slug"), e, file=sys.stderr)
+
+if __name__ == "__main__":
+    main(sys.argv[1])

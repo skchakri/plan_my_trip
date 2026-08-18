@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title><%= content_for(:title) || "Wanderply" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="robots" content="noindex,follow">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+  </head>
+  <body class="<%= @embed_theme == 'light' ? 'bg-white text-slate-900' : 'bg-slate-950 text-slate-100' %> antialiased m-0">
+    <%= yield %>
+  </body>
+</html>

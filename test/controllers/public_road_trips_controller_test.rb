@@ -71,4 +71,21 @@ class PublicRoadTripsControllerTest < ActionDispatch::IntegrationTest
       remove_method :__real_call
     end
   end
+
+  test "embed widget renders framable, minimal markup with a backlink" do
+    get embed_road_trip_path(@rt.slug)
+    assert_response :success
+    assert_nil response.headers["X-Frame-Options"]
+    assert_match(/frame-ancestors \*/, response.headers["Content-Security-Policy"].to_s)
+    assert_includes response.body, "Powered by Wanderply"
+    assert_includes response.body, "Barstow"
+    refute_includes response.body, "site_nav" # no chrome
+  end
+
+  test "show offers embed code, a Pinterest save link and .btn CTAs" do
+    get road_trip_path(@rt.slug)
+    assert_includes response.body, "&lt;iframe src=&quot;#{embed_road_trip_url(@rt.slug)}&quot;"
+    assert_includes response.body, "pinterest.com/pin/create/button"
+    assert_includes response.body, "btn btn-lg btn-primary"
+  end
 end

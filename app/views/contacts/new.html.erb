@@ -1,0 +1,34 @@
+<% content_for :title, "Contact Wanderply" %>
+<% content_for :description, "Questions, press, partnerships, or a bug — send us a note and a human will reply by email." %>
+<section class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-20">
+  <p class="text-[11px] uppercase tracking-[0.18em] text-amber-300 font-semibold mb-3">Contact</p>
+  <h1 class="font-display text-3xl sm:text-5xl font-semibold tracking-tight">Talk to a human</h1>
+  <p class="mt-4 text-slate-300 leading-relaxed">Questions before you sign up, press, partnerships, a bug, or a route you want us to write up — send it here. We reply by email, usually within a day.<% if user_signed_in? %> Signed-in travelers can also open a ticket under <%= link_to "Help &amp; support".html_safe, support_tickets_path, class: "text-amber-300 hover:text-amber-200" %>.<% end %></p>
+
+  <%= form_with model: @contact, url: contact_path, class: "mt-8 space-y-5" do |f| %>
+    <% if @contact.errors.any? %>
+      <div role="alert" class="rounded-lg border border-rose-500/40 bg-rose-500/10 text-rose-100 px-4 py-3 text-sm">
+        <ul class="list-disc pl-5 space-y-0.5"><% @contact.errors.full_messages.each do |m| %><li><%= m %></li><% end %></ul>
+      </div>
+    <% end %>
+    <div class="grid gap-5 sm:grid-cols-2">
+      <div>
+        <%= f.label :name, "Your name", class: "block text-sm font-medium text-slate-200 mb-1.5" %>
+        <%= f.text_field :name, autocomplete: "name", class: "w-full rounded-lg bg-slate-900 border border-slate-700 px-3.5 py-2.5 text-slate-100 placeholder-slate-500 focus:border-amber-400 focus:ring-2 focus:ring-amber-500/30" %>
+      </div>
+      <div>
+        <%= f.label :email, "Email", class: "block text-sm font-medium text-slate-200 mb-1.5" %>
+        <%= f.email_field :email, required: true, autocomplete: "email", class: "w-full rounded-lg bg-slate-900 border border-slate-700 px-3.5 py-2.5 text-slate-100 placeholder-slate-500 focus:border-amber-400 focus:ring-2 focus:ring-amber-500/30" %>
+      </div>
+    </div>
+    <div>
+      <%= f.label :body, "Message", class: "block text-sm font-medium text-slate-200 mb-1.5" %>
+      <%= f.text_area :body, rows: 6, required: true, minlength: 10, class: "w-full rounded-lg bg-slate-900 border border-slate-700 px-3.5 py-2.5 text-slate-100 placeholder-slate-500 focus:border-amber-400 focus:ring-2 focus:ring-amber-500/30" %>
+    </div>
+    <div class="hidden" aria-hidden="true">
+      <%= f.label :honeypot, "Leave this empty" %>
+      <%= f.text_field :honeypot, tabindex: -1, autocomplete: "off" %>
+    </div>
+    <%= f.submit "Send message", class: "btn btn-lg btn-primary cursor-pointer" %>
+  <% end %>
+</section>

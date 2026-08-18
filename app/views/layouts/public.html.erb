@@ -48,6 +48,7 @@
   </head>
 
   <body class="bg-slate-950 text-slate-100 antialiased min-h-full flex flex-col">
+    <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-amber-500 focus:text-slate-950 focus:font-semibold">Skip to content</a>
     <%# Conversion banner — every public viewer is a potential signup. %>
     <div class="sticky top-0 z-30 bg-slate-900/90 backdrop-blur border-b border-slate-800 no-print">
       <div class="max-w-5xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3 text-sm">
@@ -61,7 +62,7 @@
       </div>
     </div>
 
-    <main class="flex-1"><%= yield %></main>
+    <main id="main" class="flex-1"><%= yield %></main>
 
     <footer class="mt-16 border-t border-slate-800 bg-slate-950">
       <div class="max-w-5xl mx-auto px-4 sm:px-6 py-8 text-sm text-slate-400 flex flex-wrap items-center justify-between gap-3">

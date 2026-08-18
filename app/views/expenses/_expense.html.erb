@@ -12,7 +12,7 @@
     <%= button_to trip_expense_path(@trip, expense),
           method: :delete,
           form: { data: { turbo_confirm: "Remove this expense?" }, class: "inline shrink-0" },
-          class: "text-slate-500 hover:text-rose-300 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity",
+          class: "text-slate-400 hover:text-rose-300 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity",
           aria: { label: "Remove #{expense.description}" } do %>
       <%= icon :trash, class: "w-4 h-4" %>
     <% end %>

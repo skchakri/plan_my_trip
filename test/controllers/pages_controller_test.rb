@@ -71,4 +71,30 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
   ensure
     AppSetting.set("INDEXNOW_KEY", nil)
   end
+
+  test "the landing page links the organic surfaces, the intent box, and a sample narration for guests" do
+    get root_path
+    assert_response :success
+    assert_select "nav a[href=?]", quizzes_path
+    assert_select "nav a[href=?]", road_trips_path
+    assert_select "footer a[href=?]", contact_path
+    assert_select "form[action=?] input[name=destination]", wizard_destination_path
+    assert_select "[data-controller='sample-narration']"
+    assert_select "a.sr-only[href='#main']"
+    assert_select "main#main"
+  end
+
+  test "sample plan CTA falls back to the static page without a showcase trip, and uses the public trip when set" do
+    get root_path
+    assert_select "a[href='/sample-trips.html']", text: /finished plan/
+
+    owner = User.create!(email: "show@example.com", password: "password123", name: "Show")
+    trip = owner.owned_trips.create!(title: "Showcase", destination: "Moab", start_date: Date.current, end_date: Date.current + 1, body: "x", build_status: "ready")
+    trip.enable_share_link!
+    AppSetting.set("SHOWCASE_TRIP_ID", trip.id)
+    get root_path
+    assert_select "a[href=?]", public_trip_path(trip.share_token), text: /finished plan/
+  ensure
+    AppSetting.set("SHOWCASE_TRIP_ID", nil)
+  end
 end

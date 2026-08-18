@@ -27,7 +27,7 @@
           <tr class="hover:bg-slate-900/40">
             <td class="px-3 py-2">
               <%= link_to rt.title, edit_admin_road_trip_path(rt), class: "text-amber-300 hover:text-amber-200 font-medium" %>
-              <div class="text-xs text-slate-500"><code><%= rt.slug %></code></div>
+              <div class="text-xs text-slate-400"><code><%= rt.slug %></code></div>
             </td>
             <td class="px-3 py-2">
               <% badge = { "published" => "bg-emerald-500/15 text-emerald-300", "draft" => "bg-slate-700 text-slate-300", "archived" => "bg-amber-500/15 text-amber-300" }[rt.status] %>

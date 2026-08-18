@@ -1,4 +1,5 @@
 <% content_for :title, "Plan a trip — review" %>
+<span hidden data-controller="track" data-track-event-value="wizard_step_viewed" data-track-props-value='{"step":"review"}'></span>
 <% people = Array(@draft["people"]) %>
 <% highlights = Array(@selected_highlights) %>
 <% start_d = (Date.parse(@draft["start_date"]) rescue nil) %>

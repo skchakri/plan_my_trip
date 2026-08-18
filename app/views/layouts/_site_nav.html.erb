@@ -9,8 +9,12 @@
   <% end %>
 
   <nav class="flex items-center gap-1 text-sm">
-    <%= link_to "Blog",  blog_index_path, class: "hidden sm:inline-block px-3 py-1.5 rounded-md text-slate-300 hover:text-white hover:bg-white/5 transition-colors" %>
-    <%= link_to "About", about_path,      class: "hidden sm:inline-block px-3 py-1.5 rounded-md text-slate-300 hover:text-white hover:bg-white/5 transition-colors" %>
+    <%# Road trips + Quizzes are the two biggest organic surfaces — they must be
+        one click from every public page, not buried in a footer/dropdown. %>
+    <%= link_to "Road trips", road_trips_path, class: "hidden md:inline-block px-3 py-2 rounded-md text-slate-300 hover:text-white hover:bg-white/5 transition-colors" %>
+    <%= link_to "Quizzes",    quizzes_path,    class: "hidden sm:inline-block px-3 py-2 rounded-md text-slate-300 hover:text-white hover:bg-white/5 transition-colors" %>
+    <%= link_to "Blog",  blog_index_path, class: "hidden sm:inline-block px-3 py-2 rounded-md text-slate-300 hover:text-white hover:bg-white/5 transition-colors" %>
+    <%= link_to "About", about_path,      class: "hidden lg:inline-block px-3 py-2 rounded-md text-slate-300 hover:text-white hover:bg-white/5 transition-colors" %>
     <% if user_signed_in? %>
       <%# Icon-only under `sm` — at 360-412px the full label wrapped to three
           lines and the button grew tall enough to overlap the wordmark. %>
@@ -70,8 +74,10 @@
         </div>
       </details>
     <% else %>
-      <%= link_to "Sign in", new_user_session_path, class: "px-3 py-1.5 rounded-md text-slate-300 hover:text-white hover:bg-white/5 transition-colors" %>
-      <%= link_to new_user_registration_path, class: "ml-1 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-semibold text-sm shadow-lg shadow-amber-500/20 hover:bg-amber-400 hover:shadow-amber-500/40 transition-all" do %>
+      <%= link_to "Sign in", new_user_session_path, class: "px-3 py-2 min-h-10 inline-flex items-center rounded-md text-slate-300 hover:text-white hover:bg-white/5 transition-colors" %>
+      <%# min-h-10 = the design system's 40px touch minimum (.btn-md) — this is
+          the most-tapped control on every public page. %>
+      <%= link_to new_user_registration_path, class: "ml-1 inline-flex items-center gap-1.5 px-3.5 py-2 min-h-10 rounded-lg bg-amber-500 text-slate-950 font-semibold text-sm shadow-lg shadow-amber-500/20 hover:bg-amber-400 hover:shadow-amber-500/40 transition-all" do %>
         Start free <%= icon :arrow_right, class: "w-4 h-4" %>
       <% end %>
     <% end %>

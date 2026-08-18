@@ -140,6 +140,7 @@ Rails.application.routes.draw do
   # SEO-indexed road-trip guides — public, crawlable, curated. Content is
   # fully pre-stored so pages render with no per-request AI calls.
   get "road-trips", to: "public_road_trips#index", as: :road_trips
+  get "embed/road-trips/:slug", to: "public_road_trips#embed", as: :embed_road_trip, constraints: { slug: /[a-z0-9-]+/ }
   get "road-trips-sitemap.xml", to: "public_road_trips#sitemap", as: :road_trips_sitemap, defaults: { format: :xml }
   get "road-trips/:slug/weather", to: "public_road_trips#weather", as: :road_trip_weather, constraints: { slug: /[a-z0-9-]+/ }
   get "road-trips/:slug", to: "public_road_trips#show", as: :road_trip, constraints: { slug: /[a-z0-9-]+/ }
@@ -239,6 +240,9 @@ Rails.application.routes.draw do
   # Marketing site
   get  "about", to: "pages#about", as: :about
   get  "privacy", to: "pages#privacy", as: :privacy
+  # Public contact form (guests + members). Mails admins; nothing stored.
+  get  "contact", to: "contacts#new",    as: :contact
+  post "contact", to: "contacts#create"
   get  "blog",  to: "blog#index", as: :blog_index
   # RSS feed — declared before blog/:slug so "feed.xml" isn't read as a slug.
   # Free syndication surface (readers, aggregators, Zapier/IFTTT → socials).

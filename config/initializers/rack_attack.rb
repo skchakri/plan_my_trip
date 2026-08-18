@@ -79,6 +79,10 @@ if Rails.env.production?
       req.ip if req.path == "/users" && req.post?
     end
 
+    throttle("contact/ip", limit: 5, period: 1.hour) do |req|
+      req.ip if req.path == "/contact" && req.post?
+    end
+
     ### Global fall-through for hot crawlers ###
     throttle("req/ip", limit: 300, period: 1.minute) do |req|
       req.ip unless req.path.start_with?("/assets", "/packs", "/rails/active_storage")

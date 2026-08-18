@@ -54,7 +54,7 @@
               <% g.balances.each do |b| %>
                 <li class="flex items-center gap-3 text-sm">
                   <span class="text-slate-200 min-w-0 truncate"><%= b.person.name %></span>
-                  <span class="text-slate-500 text-xs">paid <%= money(b.paid_cents, g.currency) %> · share <%= money(b.share_cents, g.currency) %></span>
+                  <span class="text-slate-400 text-xs">paid <%= money(b.paid_cents, g.currency) %> · share <%= money(b.share_cents, g.currency) %></span>
                   <span class="ml-auto font-medium <%= b.net_cents.negative? ? 'text-rose-300' : (b.net_cents.positive? ? 'text-emerald-300' : 'text-slate-400') %>">
                     <%= b.net_cents.zero? ? "even" : (b.net_cents.positive? ? "+#{money(b.net_cents, g.currency)}" : "−#{money(-b.net_cents, g.currency)}") %>
                   </span>
@@ -91,7 +91,7 @@
       </div>
 
       <fieldset>
-        <legend class="text-xs text-slate-400 mb-1.5">Split between <span class="text-slate-500">(none checked = everyone)</span></legend>
+        <legend class="text-xs text-slate-400 mb-1.5">Split between <span class="text-slate-400">(none checked = everyone)</span></legend>
         <div class="flex flex-wrap gap-2">
           <% @people.each do |p| %>
             <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800/60 text-sm cursor-pointer hover:border-amber-500/50 has-[:checked]:border-amber-500 has-[:checked]:bg-amber-500/10">

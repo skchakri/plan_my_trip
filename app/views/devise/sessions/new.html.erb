@@ -58,10 +58,12 @@
           </label>
         <% end %>
 
-        <%= f.submit "Sign in", class: "w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-lg font-semibold shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40 transition-all cursor-pointer" %>
+        <%= f.submit "Sign in", class: "btn btn-lg btn-primary w-full shadow-lg shadow-amber-500/20" %>
       <% end %>
 
-      <p class="mt-8 text-xs text-slate-400 text-center">Demo account: <code class="text-slate-300 font-mono">demo@example.com</code> / <code class="text-slate-300 font-mono">password123</code></p>
+      <% if Rails.env.development? %>
+        <p class="mt-8 text-xs text-slate-400 text-center">Demo account: <code class="text-slate-300 font-mono">demo@example.com</code> / <code class="text-slate-300 font-mono">password123</code></p>
+      <% end %>
     </div>
   </div>
 </div>

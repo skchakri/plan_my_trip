@@ -16,7 +16,7 @@
     ["What is the podcast-style narration?",
      "Every stop on your itinerary gets a short spoken segment with two voices — a warm host and a steady guide — covering what the place is famous for. Played in the car, the whole plan becomes a podcast about the very road you're on."],
     ["Is there an iPhone or Android app?",
-     "Both. Wanderply has native iOS and Android apps, and the website itself installs to your home screen as a progressive web app from any modern browser."]
+     "Both. The website installs to your home screen as a progressive web app from any modern browser, and native iOS and Android apps are on their way to the stores."]
   ]
 %>
 <% content_for :head do %>
@@ -107,11 +107,30 @@
             <%= link_to new_user_registration_path, class: "inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-amber-500 text-slate-950 font-semibold shadow-xl shadow-amber-500/30 hover:bg-amber-400 hover:shadow-amber-500/50 transition-all" do %>
               Start free <%= icon :arrow_right, class: "w-5 h-5" %>
             <% end %>
-            <a href="/sample-trips.html" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl border border-white/15 bg-white/5 backdrop-blur text-slate-100 font-medium hover:bg-white/10 transition-colors">
-              <%= icon :play, class: "w-5 h-5 text-amber-300" %> See a sample plan
-            </a>
+            <%= link_to sample_plan_path, class: "inline-flex items-center gap-2 px-6 py-3.5 rounded-xl border border-white/15 bg-white/5 backdrop-blur text-slate-100 font-medium hover:bg-white/10 transition-colors" do %>
+              <%= icon :play, class: "w-5 h-5 text-amber-300" %> See a finished plan
+            <% end %>
           <% end %>
         </div>
+
+        <% unless user_signed_in? %>
+          <%# Capture intent BEFORE the auth wall: the destination rides through
+              Devise's stored location into the wizard (defaults_for_destination). %>
+          <%= form_with url: wizard_destination_path, method: :get, local: true, class: "mt-6 max-w-xl", data: { turbo: false } do |f| %>
+            <label for="lp-intent" class="lp-mono text-[11px] uppercase text-amber-300">Where do you want to go?</label>
+            <div class="mt-2 flex gap-2">
+              <%= f.text_field :destination, id: "lp-intent", placeholder: "e.g. Yellowstone, Utah Mighty 5, Vegas from LA", autocomplete: "off", required: true, minlength: 2,
+                    class: "flex-1 min-w-0 rounded-xl bg-slate-900/70 border border-slate-700 px-4 py-3 text-slate-100 placeholder-slate-500 focus:border-amber-400 focus:ring-2 focus:ring-amber-500/30" %>
+              <%= f.hidden_field :transport_mode, value: "own_car" %>
+              <button type="submit" class="btn btn-lg btn-primary shrink-0">Plan it &rarr;</button>
+            </div>
+            <p class="mt-2 text-xs text-slate-400">Free account at the end — your answer is kept.</p>
+          <% end %>
+
+          <div class="mt-6 max-w-xl">
+            <%= render "shared/sample_narration", placement: "landing_hero", compact: true %>
+          </div>
+        <% end %>
 
         <%# Spec row — true numbers, set like a ticket footer %>
         <dl class="mt-10 flex flex-wrap gap-x-8 gap-y-4">
@@ -403,12 +422,13 @@
 
     <div class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
       <%# Travel Trivia — feature tile, spans 2 %>
-      <article class="sm:col-span-2 rounded-2xl border border-slate-800 bg-slate-900/40 p-6 hover:border-slate-700 transition-colors lp-reveal" data-landing-target="reveal">
+      <%= link_to quizzes_path, class: "sm:col-span-2 block rounded-2xl border border-slate-800 bg-slate-900/40 p-6 hover:border-amber-500/40 transition-colors lp-reveal group", data: { landing_target: "reveal" }, aria: { label: "Play travel trivia — 16 free decks" } do %>
         <div class="flex items-start justify-between gap-4">
           <div>
             <div class="inline-flex items-center justify-center w-11 h-11 rounded-xl border bg-amber-500/10 border-amber-500/20 text-amber-300 mb-4"><%= icon :trophy, class: "w-5 h-5" %></div>
-            <h3 class="font-display text-xl font-semibold text-slate-50">Travel Trivia &mdash; 16 decks</h3>
+            <h3 class="font-display text-xl font-semibold text-slate-50 group-hover:text-amber-100 transition-colors">Travel Trivia &mdash; 16 decks</h3>
             <p class="mt-2 text-sm text-slate-400 leading-relaxed">Capitals, flags, leaders, landmarks, car and airline logos &mdash; ten-question rounds with personal bests. Save every deck for airplane mode.</p>
+            <p class="mt-3 text-sm font-semibold text-amber-300">Play free — no account needed &rarr;</p>
           </div>
           <div class="hidden sm:grid grid-cols-3 gap-1.5 shrink-0 mt-1" aria-hidden="true">
             <% %w[us jp br it ke nz].each do |cc| %>
@@ -416,7 +436,7 @@
             <% end %>
           </div>
         </div>
-      </article>
+      <% end %>
 
       <article class="rounded-2xl border border-slate-800 bg-slate-900/40 p-6 hover:border-slate-700 transition-colors lp-reveal" data-landing-target="reveal" style="--lp-d: 80ms">
         <div class="inline-flex items-center justify-center w-11 h-11 rounded-xl border bg-amber-500/10 border-amber-500/20 text-amber-300 mb-4"><%= icon :globe, class: "w-5 h-5" %></div>
@@ -447,7 +467,7 @@
           <div>
             <div class="inline-flex items-center justify-center w-11 h-11 rounded-xl border bg-amber-500/10 border-amber-500/20 text-amber-300 mb-4"><%= icon :phone, class: "w-5 h-5" %></div>
             <h3 class="font-display text-xl font-semibold text-slate-50">On the home screen, off the grid</h3>
-            <p class="mt-2 text-sm text-slate-400 leading-relaxed">Install from the browser or the native iOS and Android apps. Visited pages, maps, and trivia decks stay usable in tunnels, canyons, and airplane mode.</p>
+            <p class="mt-2 text-sm text-slate-400 leading-relaxed">Install from the browser (native iOS and Android apps coming to the stores). Visited pages, maps, and trivia decks stay usable in tunnels, canyons, and airplane mode.</p>
           </div>
           <span class="lp-mono hidden sm:inline-flex text-[10px] uppercase text-slate-400 border border-slate-700 rounded-full px-3 py-1.5 shrink-0 mt-1">PWA + iOS + Android</span>
         </div>

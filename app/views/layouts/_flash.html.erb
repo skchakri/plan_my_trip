@@ -13,3 +13,7 @@
     </button>
   </div>
 <% end %>
+<% if (ev = flash[:track_event]).present? %>
+  <%# One-shot product-analytics beacon set by a controller (e.g. signed_up). %>
+  <span hidden data-controller="track" data-track-event-value="<%= ev %>"></span>
+<% end %>

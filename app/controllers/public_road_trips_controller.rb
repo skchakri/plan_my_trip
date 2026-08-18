@@ -16,6 +16,18 @@ class PublicRoadTripsController < ApplicationController
     @related = RoadTrip.published.ordered.where.not(id: @road_trip.id).limit(3)
   end
 
+  # GET /embed/road-trips/:slug — iframe-safe widget for bloggers (the
+  # Wanderlog "embed our map" backlink loop). Minimal layout, no site chrome,
+  # framing allowed from anywhere (CSP frame-ancestors relaxed for this action
+  # only), branded footer link back to the full guide.
+  def embed
+    @road_trip = RoadTrip.published.find_by!(slug: params[:slug])
+    @embed_theme = params[:theme] == "light" ? "light" : "dark"
+    response.headers.delete("X-Frame-Options")
+    request.content_security_policy = request.content_security_policy.clone.tap { |p| p.frame_ancestors "*" }
+    render layout: "embed"
+  end
+
   # Lazy turbo-frame: "typical conditions" weather for the destination. Undated
   # guide, so we ask WeatherReport for a representative near-term window (it
   # returns climatology beyond the 16-day forecast horizon). Always rescues to a

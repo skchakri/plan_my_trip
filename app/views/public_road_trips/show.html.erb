@@ -75,7 +75,7 @@
       <% [["Distance", @road_trip.distance_label], ["Drive time", @road_trip.drive_time_label], ["Suggested", @road_trip.suggested_days&.then { |d| "#{d} days" }], ["Best season", @road_trip.best_season]].each do |label, value| %>
         <% next if value.blank? %>
         <div class="rounded-xl border border-slate-800 bg-slate-900/50 px-4 py-3">
-          <dt class="lp-mono text-[10px] uppercase text-slate-500"><%= label %></dt>
+          <dt class="lp-mono text-[10px] uppercase text-slate-400"><%= label %></dt>
           <dd class="mt-1 text-sm font-semibold text-slate-100"><%= value %></dd>
         </div>
       <% end %>
@@ -84,9 +84,30 @@
     <div class="mt-8 flex flex-wrap gap-3">
       <%= link_to "Plan your own #{@road_trip.origin} → #{@road_trip.destination} trip",
             wizard_destination_path(origin: @road_trip.origin, destination: @road_trip.destination, transport_mode: @road_trip.transport_mode),
-            class: "inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 text-slate-950 text-sm font-semibold hover:bg-amber-400 transition-colors" %>
-      <%= link_to "Browse all road trips", road_trips_path, class: "inline-flex items-center px-5 py-3 rounded-xl border border-slate-700 text-slate-200 text-sm hover:bg-white/5" %>
+            class: "btn btn-lg btn-primary" %>
+      <%= link_to "Browse all road trips", road_trips_path, class: "btn btn-lg btn-secondary" %>
     </div>
+
+    <%# Share / embed / pin — the free distribution loops. %>
+    <details class="mt-6 group" data-controller="copy-embed">
+      <summary class="cursor-pointer list-none inline-flex items-center gap-2 text-sm text-slate-300 hover:text-amber-300">
+        <%= icon :share, class: "w-4 h-4" %> Share, embed on your blog, or pin it
+        <%= icon :chevron_down, class: "w-3.5 h-3.5 group-open:rotate-180 transition-transform" %>
+      </summary>
+      <div class="mt-3 grid gap-3 sm:grid-cols-[1fr_auto]">
+        <div>
+          <label for="embed-code-<%= @road_trip.slug %>" class="lp-mono text-[10px] uppercase text-slate-400">Embed code (paste into your post)</label>
+          <% embed_snippet = %(<iframe src="#{embed_road_trip_url(@road_trip.slug)}" width="100%" height="420" style="border:0;border-radius:12px;max-width:640px" loading="lazy" title="#{@road_trip.title} — Wanderply"></iframe>) %>
+          <textarea id="embed-code-<%= @road_trip.slug %>" readonly rows="3" data-copy-embed-target="source" data-action="click->copy-embed#select"
+            class="mt-1 w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-xs font-mono text-slate-300"><%= embed_snippet %></textarea>
+        </div>
+        <div class="flex sm:flex-col gap-2 sm:pt-5">
+          <button type="button" data-action="copy-embed#copy" class="btn btn-md btn-secondary"><span data-copy-embed-target="label">Copy code</span></button>
+          <a href="https://www.pinterest.com/pin/create/button/?url=<%= CGI.escape(road_trip_url(@road_trip.slug)) %>&media=<%= CGI.escape(road_trip_pin_url(@road_trip)) %>&description=<%= CGI.escape("#{@road_trip.title} — stops, day-by-day plan and typical weather. Plan it free on Wanderply.") %>"
+             target="_blank" rel="noopener" class="btn btn-md btn-secondary">Save to Pinterest</a>
+        </div>
+      </div>
+    </details>
   </div>
 </section>
 
@@ -190,7 +211,7 @@
 <%# ═══ Weather (lazy) ══════════════════════════════════════════════ %>
 <section class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
   <%= turbo_frame_tag "road-trip-weather", src: road_trip_weather_path(@road_trip.slug), loading: "lazy" do %>
-    <p class="text-sm text-slate-500">Loading typical conditions in <%= @road_trip.destination %>…</p>
+    <p class="text-sm text-slate-400">Loading typical conditions in <%= @road_trip.destination %>…</p>
   <% end %>
 </section>
 
@@ -220,7 +241,7 @@
     <p class="mt-3 text-slate-400 max-w-xl mx-auto">Tell Wanderply your dates, pace, and who's coming — it builds a day-by-day plan around your must-dos and narrates the whole drive.</p>
     <%= link_to "Plan your #{@road_trip.origin} → #{@road_trip.destination} trip",
           wizard_destination_path(origin: @road_trip.origin, destination: @road_trip.destination, transport_mode: @road_trip.transport_mode),
-          class: "inline-flex items-center gap-2 mt-6 px-6 py-3 rounded-xl bg-amber-500 text-slate-950 text-sm font-semibold hover:bg-amber-400" %>
+          class: "btn btn-lg btn-primary mt-6" %>
   </div>
 
   <% if @related.any? %>

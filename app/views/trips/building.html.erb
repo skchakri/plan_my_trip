@@ -4,6 +4,7 @@
     when the plan is ready (or failed), which reloads this page into the real
     trip view. %>
 <%= turbo_stream_from @trip %>
+<span hidden data-controller="track" data-track-event-value="trip_build_started" data-track-once-value="trip:<%= @trip.id %>:started" data-track-props-value='<%= { day_trip: @trip.day_trip?, transport_mode: @trip.transport_mode }.to_json %>'></span>
 
 <div class="mb-5">
   <%= link_to trips_path, class: "inline-flex items-center gap-1 text-sm text-slate-400 hover:text-amber-300 transition-colors" do %>

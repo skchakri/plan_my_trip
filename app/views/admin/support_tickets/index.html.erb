@@ -10,7 +10,7 @@
   <% SupportTicket::STATUSES.each do |s| %>
     <%= link_to admin_support_tickets_path(status: s),
           class: "px-2.5 py-1 rounded-full border #{@status == s ? 'bg-white/10 text-white border-slate-600' : 'text-slate-400 border-slate-700 hover:bg-white/5'}" do %>
-      <%= support_admin_status_label(s) %> <span class="text-slate-500">(<%= @counts[s] || 0 %>)</span>
+      <%= support_admin_status_label(s) %> <span class="text-slate-400">(<%= @counts[s] || 0 %>)</span>
     <% end %>
   <% end %>
 </div>

@@ -1,0 +1,33 @@
+<%# "Hear a stop" — the product's wedge, playable before sign-up. Canned
+    script (no AI, no cost), spoken client-side by sample_narration_controller.
+    `placement:` tags the analytics event; `compact:` drops the transcript. %>
+<% placement ||= "unknown" %>
+<% compact ||= false %>
+<% lines = [
+  { voice: "host",  text: "Okay — pull in here. This is Delicate Arch, and yes, it's the one on the Utah license plate.", rate: 1.08, pitch: 1.05, pause: 250 },
+  { voice: "guide", text: "It's a freestanding sandstone arch, about fifty-two feet tall, carved by nothing but wind, water, and roughly a hundred thousand winters of ice.", rate: 0.96, pause: 300 },
+  { voice: "host",  text: "The trail's a mile and a half each way over slickrock, no shade — so this is a water bottle moment.", rate: 1.08, pause: 250 },
+  { voice: "guide", text: "Time it for the last hour before sunset. The rock goes from orange to ember, and the La Sal Mountains light up behind it.", rate: 0.96, pause: 300 },
+  { voice: "host",  text: "That's why we scheduled it here. Grab the camera — next stop after this is dinner in Moab.", rate: 1.1, pitch: 1.05, pause: 0 }
+] %>
+<div data-controller="sample-narration" data-sample-narration-lines-value="<%= lines.to_json %>" data-sample-narration-label-value="<%= placement %>"
+     class="rounded-2xl border border-amber-500/25 bg-slate-900/60 backdrop-blur p-4 sm:p-5">
+  <div class="flex items-center gap-3">
+    <button type="button" data-sample-narration-target="button" data-action="sample-narration#toggle"
+            class="btn btn-md btn-primary shrink-0" aria-label="Play a sample stop narration">
+      <%= icon :play, class: "w-4 h-4" %> <span data-sample-narration-target="buttonLabel">Hear a stop</span>
+    </button>
+    <div class="min-w-0">
+      <p class="text-sm font-semibold text-slate-100">Delicate Arch, Arches National Park</p>
+      <p class="text-xs text-slate-400">30-second sample of how every stop is narrated on the drive — offline, no account.</p>
+    </div>
+  </div>
+  <p data-sample-narration-target="unsupported" hidden class="mt-3 text-xs text-slate-400">This device can't read text aloud — here's what you'd hear:</p>
+  <% unless compact %>
+    <ol class="mt-4 space-y-1.5 text-sm leading-relaxed" aria-label="Transcript">
+      <% lines.each do |l| %>
+        <li data-sample-narration-target="line" class="text-slate-400 transition-colors"><span class="lp-mono text-[10px] uppercase tracking-widest text-amber-300/80 mr-2"><%= l[:voice] == "host" ? "Host" : "Guide" %></span><%= l[:text] %></li>
+      <% end %>
+    </ol>
+  <% end %>
+</div>

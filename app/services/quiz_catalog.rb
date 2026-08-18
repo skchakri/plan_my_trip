@@ -12,7 +12,7 @@ module QuizCatalog
 
   # When leader_name was last hand-verified. Surfaced in the UI so "current
   # leader" answers stay honest as governments change.
-  LEADERS_AS_OF = "January 2026"
+  LEADERS_AS_OF = "August 2026"
 
   CATEGORIES = [
     Category.new(

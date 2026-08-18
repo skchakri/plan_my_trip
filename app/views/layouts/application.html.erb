@@ -88,6 +88,7 @@
       unless the native shell advertises the component). In the Android app it
       supplies the Web Speech API the WebView doesn't have. %>
   <body data-controller="speech-bridge" class="bg-slate-950 text-slate-100 min-h-full antialiased <%= 'hotwire-native' if hotwire_native_app? %>">
+    <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-amber-500 focus:text-slate-950 focus:font-semibold">Skip to content</a>
     <%= render "layouts/loading_overlay" %>
 
     <% unless hotwire_native_app? %>
@@ -106,7 +107,7 @@
       <%= render "layouts/flash" %>
     </div>
 
-    <main class="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10 pb-24 sm:pb-12">
+    <main id="main" class="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10 pb-24 sm:pb-12">
       <%= yield %>
     </main>
 

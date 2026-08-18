@@ -32,6 +32,7 @@
   data-quiz-questions-value="<%= @questions.to_json %>"
   data-quiz-record-url-value="<%= quiz_attempts_path(@category.key) %>"
   data-quiz-best-value="<%= @best.to_i %>"
+  data-quiz-category-value="<%= @category.key %>"
   class="max-w-2xl mx-auto"
 >
   <%# Visually-hidden live region: announces correct/incorrect and the final
@@ -124,15 +125,27 @@
         <%= QuizCatalog.keys.size %> decks — and let Wanderply plan a road trip
         to the places you just aced, narrated stop by stop.
       </p>
+      <div class="mb-4 text-left">
+        <%= render "shared/sample_narration", placement: "quiz_results", compact: true %>
+      </div>
       <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5">
         <%= link_to new_user_registration_path, class: "inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-lg bg-amber-500 text-slate-950 font-semibold shadow-lg shadow-amber-500/20 hover:bg-amber-400 transition-all" do %>
           <%= icon :sparkles, class: "w-4 h-4" %> Create a free account
+        <% end %>
+        <% if showcase_trip %>
+          <%= link_to sample_plan_path, class: "inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-lg border border-slate-700 text-slate-200 font-semibold hover:bg-white/5 transition-all" do %>
+            <%= icon :play, class: "w-4 h-4 text-amber-300" %> See a finished plan
+          <% end %>
         <% end %>
         <%= link_to new_user_session_path, class: "inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-lg border border-slate-700 text-slate-200 font-semibold hover:bg-white/5 transition-all" do %>
           Sign in
         <% end %>
       </div>
     </div>
+
+    <% unless user_signed_in? %>
+      <div class="text-left mb-6"><%= render "public_road_trips/teasers", heading: "Turn the trivia into a trip" %></div>
+    <% end %>
 
     <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5">
       <button type="button" data-action="quiz#playAgain" data-quiz-target="playAgainButton"

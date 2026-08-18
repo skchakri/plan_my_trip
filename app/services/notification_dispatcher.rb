@@ -91,4 +91,13 @@ class NotificationDispatcher
       body:         "#{membership.user.display_name} accepted your invite to #{membership.trip.title}"
     )
   end
+
+  # Tell the sharer that someone saved their trip and both earned a bonus build.
+  def self.referral_credit(credit)
+    return unless credit
+    Notification.find_or_create_by!(recipient_id: credit.referrer_id, actor_id: credit.referee_id, subject: credit, kind: "referral_credit") do |n|
+      n.url  = Rails.application.routes.url_helpers.trips_path
+      n.body = "#{credit.referee.display_name} saved your shared trip#{credit.trip ? " “#{credit.trip.title}”" : ""} — you both earned an extra AI build this month."
+    end
+  end
 end

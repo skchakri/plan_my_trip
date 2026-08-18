@@ -5,13 +5,16 @@
     <p class="text-[11px] uppercase tracking-[0.18em] text-amber-300 font-semibold mb-2">Plan it, don't just read it</p>
     <h2 id="blog-cta-heading" class="font-display text-2xl sm:text-3xl font-semibold tracking-tight">Turn this into a real plan in about five minutes</h2>
     <p class="mt-3 text-slate-300 leading-relaxed">Tell Wanderply where, when, who, and your must-dos. It builds the day-by-day itinerary with real coordinates, writes the packing list, checks typical weather for your dates — and narrates every stop out loud on the drive, offline.</p>
+    <div class="mt-5">
+      <%= render "shared/sample_narration", placement: "blog_cta", compact: true %>
+    </div>
     <div class="mt-6 flex flex-wrap gap-3">
-      <%= link_to "Plan a trip — free →", wizard_destination_path,
-            class: "inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 text-slate-950 text-sm font-semibold hover:bg-amber-400 transition-colors" %>
-      <%= link_to "Browse road-trip guides", road_trips_path,
-            class: "inline-flex items-center px-5 py-3 rounded-xl border border-slate-700 text-slate-200 text-sm hover:bg-white/5 transition-colors" %>
-      <%= link_to "Play travel trivia", quizzes_path,
-            class: "inline-flex items-center px-5 py-3 rounded-xl border border-slate-700 text-slate-200 text-sm hover:bg-white/5 transition-colors" %>
+      <%= link_to "Plan a trip — free →", wizard_destination_path, class: "btn btn-lg btn-primary" %>
+      <% if showcase_trip %>
+        <%= link_to "See a finished plan", sample_plan_path, class: "btn btn-lg btn-secondary" %>
+      <% end %>
+      <%= link_to "Browse road-trip guides", road_trips_path, class: "btn btn-lg btn-secondary" %>
+      <%= link_to "Play travel trivia", quizzes_path, class: "btn btn-lg btn-secondary" %>
     </div>
   </div>
 </section>

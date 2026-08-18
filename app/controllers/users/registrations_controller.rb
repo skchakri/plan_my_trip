@@ -10,6 +10,7 @@ class Users::RegistrationsController < Devise::RegistrationsController
   end
 
   def after_sign_up_path_for(resource)
+    flash[:track_event] = "signed_up" # one-shot analytics beacon, rendered by layouts/_flash
     if (token = session.delete(:invitation_token))
       session.delete(:invitation_email)
       invitation_path(token)

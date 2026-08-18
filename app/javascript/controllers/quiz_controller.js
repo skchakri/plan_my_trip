@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { track } from "controllers/track_controller"
 
 // Travel Trivia player. Questions (with their answer keys) are embedded by the
 // server and graded client-side for a snappy, no-round-trip feel — acceptable
@@ -24,7 +25,7 @@ const CHECK = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke
 const CROSS = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>`
 
 export default class extends Controller {
-  static values = { questions: Array, recordUrl: String, best: Number }
+  static values = { questions: Array, recordUrl: String, best: Number, category: String }
   static targets = [
     "question", "results", "prompt", "media", "options", "progressBar",
     "counter", "score", "streak", "nextWrap", "nextButton", "nextLabel",
@@ -180,6 +181,7 @@ export default class extends Controller {
 
   finish() {
     const pct = Math.round((this.correct / this.total) * 100)
+    track("quiz_completed", { category: this.categoryValue || null, score: this.correct, total: this.total, pct })
     this.progressBarTarget.style.width = "100%"
     this.questionTarget.hidden = true
     this.resultsTarget.hidden = false

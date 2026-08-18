@@ -6,11 +6,16 @@ Rails.application.configure do
   # gem (Rails 8.1 dropped the built-in one). Raw mail is pulled from the
   # inbound S3 bucket via the EC2 instance role.
   #
-  # TODO: create the SNS topic + S3 bucket + SES receipt rule for
-  # inbound.wanderply.com, then fill in the real ARN below and uncomment.
-  # config.action_mailbox.ingress = :ses
-  # config.action_mailbox.ses.subscribed_topic = "arn:aws:sns:us-east-1:727185666062:wanderply-inbound-mail"
-  # config.action_mailbox.ses.s3_client_options = { region: "us-east-1" }
+  # Provision with docs/ops/provision-inbound-mail.sh (S3 bucket + SNS topic +
+  # SES receipt rule + MX for inbound.wanderply.com), then set
+  # SES_INBOUND_TOPIC_ARN in config/deploy.yml env.clear and redeploy. Until
+  # the ARN is present the ingress stays off and the UI panel is hidden by
+  # the INBOUND_MAIL_ENABLED AppSetting.
+  if (inbound_topic = ENV["SES_INBOUND_TOPIC_ARN"]).present?
+    config.action_mailbox.ingress = :ses
+    config.action_mailbox.ses.subscribed_topic = inbound_topic
+    config.action_mailbox.ses.s3_client_options = { region: "us-east-1" }
+  end
 
   # Settings specified here will take precedence over those in config/application.rb.
 

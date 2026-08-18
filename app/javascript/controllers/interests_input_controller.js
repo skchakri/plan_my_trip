@@ -17,14 +17,16 @@ import { Controller } from "@hotwired/stimulus"
 // Each chip carries its own hidden <input name="...[interests][]">, so the
 // Rails form params reflect exactly the visible chips.
 export default class extends Controller {
-  static targets = ["chips", "chip", "newInput", "nameField", "emptyMarker"]
+  static targets = ["chips", "chip", "newInput", "nameField", "emptyMarker", "limitHint"]
   static values = {
     name: String,       // hidden-input name to use for each chip
-    known: { type: Object, default: {} } // { lowercase-name => [interests] }
+    known: { type: Object, default: {} }, // { lowercase-name => [interests] }
+    max: { type: Number, default: 0 }     // 0 = unlimited; else cap + "n/max" hint
   }
 
   connect() {
     this._lastPrefilledFor = this._nameKey()
+    this._renderLimit()
   }
 
   // ENTER or COMMA in the new-tag input → commit it as a chip
@@ -51,6 +53,25 @@ export default class extends Controller {
     event.preventDefault()
     const chip = event.currentTarget.closest("[data-interests-input-target='chip']")
     if (chip) chip.remove()
+    this._renderLimit()
+  }
+
+  // Server-side the list is capped (Trip::MUST_INCLUDES_MAX) — silently. Mirror
+  // the cap here so the 13th favourite is refused with a visible reason instead
+  // of vanishing after the build.
+  _atLimit() { return this.maxValue > 0 && this.chipTargets.length >= this.maxValue }
+
+  _renderLimit() {
+    if (!this.maxValue) return
+    const n = this.chipTargets.length
+    if (this.hasLimitHintTarget) {
+      this.limitHintTarget.textContent = this._atLimit() ? `${n}/${this.maxValue} — that's the max; remove one to add another` : `${n}/${this.maxValue}`
+      this.limitHintTarget.classList.toggle("text-amber-300", this._atLimit())
+    }
+    if (this.hasNewInputTarget) {
+      this.newInputTarget.disabled = this._atLimit()
+      this.newInputTarget.placeholder = this._atLimit() ? "Max reached" : (this.newInputTarget.dataset.placeholder || this.newInputTarget.placeholder)
+    }
   }
 
   // When traveler name changes, if interests are empty for this row and we
@@ -75,6 +96,7 @@ export default class extends Controller {
   _addChip(value) {
     const v = value.toString().trim()
     if (!v) return
+    if (this._atLimit()) { this._renderLimit(); return }
     const existing = this.chipTargets.map(c => c.dataset.value.toLowerCase())
     if (existing.includes(v.toLowerCase())) return
 
@@ -94,7 +116,7 @@ export default class extends Controller {
 
     const btn = document.createElement("button")
     btn.type = "button"
-    btn.className = "text-amber-200/70 hover:text-rose-300 ml-0.5 cursor-pointer leading-none"
+    btn.className = "inline-flex items-center justify-center w-6 h-6 -mr-1 rounded-full text-amber-200/70 hover:text-rose-300 hover:bg-rose-500/10 cursor-pointer leading-none"
     btn.setAttribute("aria-label", `Remove ${v}`)
     btn.setAttribute("data-action", "interests-input#removeChip")
     btn.textContent = "×"
@@ -107,5 +129,6 @@ export default class extends Controller {
     } else {
       this.chipsTarget.appendChild(chip)
     }
+    this._renderLimit()
   }
 }

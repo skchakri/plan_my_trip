@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_23_165955) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_18_215110) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -393,6 +393,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_23_165955) do
     t.index ["category"], name: "index_quiz_questions_on_category"
   end
 
+  create_table "referral_credits", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.uuid "referee_id", null: false
+    t.uuid "referrer_id", null: false
+    t.uuid "trip_id"
+    t.datetime "updated_at", null: false
+    t.index ["referee_id"], name: "index_referral_credits_on_referee_id"
+    t.index ["referrer_id", "referee_id"], name: "index_referral_credits_on_referrer_id_and_referee_id", unique: true
+    t.index ["referrer_id"], name: "index_referral_credits_on_referrer_id"
+    t.index ["trip_id"], name: "index_referral_credits_on_trip_id"
+  end
+
   create_table "reservations", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "address"
     t.string "carrier_code"
@@ -729,6 +741,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_23_165955) do
   add_foreign_key "place_reviews", "users", column: "author_id"
   add_foreign_key "places", "users", column: "contributed_by_id"
   add_foreign_key "quiz_attempts", "users"
+  add_foreign_key "referral_credits", "trips"
+  add_foreign_key "referral_credits", "users", column: "referee_id"
+  add_foreign_key "referral_credits", "users", column: "referrer_id"
   add_foreign_key "reservations", "trip_days"
   add_foreign_key "reservations", "trips"
   add_foreign_key "route_landmarks", "trips"

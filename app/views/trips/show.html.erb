@@ -9,6 +9,11 @@
     subscription (TripPolicy#show? requires membership), and the public share
     view renders a different template that never subscribes. %>
 <%= turbo_stream_from @trip %>
+<% if @trip.build_status == "ready" && @trip.build_args.present? %>
+  <%# Activation event: an AI-built plan reached the traveler. Arrives via a
+      Turbo Stream refresh (no navigation), so $pageview alone can't see it. %>
+  <span hidden data-controller="track" data-track-event-value="trip_built" data-track-once-value="trip:<%= @trip.id %>:built" data-track-props-value='<%= { day_trip: @trip.day_trip?, days: @trip.trip_days.size }.to_json %>'></span>
+<% end %>
 
 <div class="mb-5">
   <%= link_to trips_path, class: "inline-flex items-center gap-1 text-sm text-slate-400 hover:text-amber-300 transition-colors" do %>

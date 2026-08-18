@@ -1,0 +1,30 @@
+<%# Compact road-trip guide cards for cross-linking from other public surfaces
+    (quiz index/results). Pure internal linking — zero AI, cached data. %>
+<% road_trips ||= RoadTrip.published.ordered.limit(3) %>
+<% heading ||= "Turn the trivia into a trip" %>
+<% if road_trips.any? %>
+  <section class="mt-8" aria-labelledby="rt-teasers-heading">
+    <div class="flex items-end justify-between gap-4 mb-3">
+      <div>
+        <p class="text-[11px] uppercase tracking-[0.18em] text-amber-300 font-semibold">Road trip guides</p>
+        <h2 id="rt-teasers-heading" class="font-display text-xl font-semibold text-slate-50"><%= heading %></h2>
+      </div>
+      <%= link_to "All guides →", road_trips_path, class: "text-sm text-amber-300 hover:text-amber-200 shrink-0" %>
+    </div>
+    <div class="grid gap-3 sm:grid-cols-3">
+      <% road_trips.each do |rt| %>
+        <%= link_to road_trip_path(rt.slug), class: "group flex sm:block gap-3 rounded-xl overflow-hidden border border-slate-800 bg-slate-900/40 hover:border-amber-500/40 transition-colors" do %>
+          <div class="relative w-24 sm:w-full aspect-[16/9] shrink-0 bg-slate-800 overflow-hidden">
+            <% if rt.hero_image_url.present? %>
+              <img src="<%= rt.hero_image_url %>" alt="" loading="lazy" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+            <% end %>
+          </div>
+          <div class="p-3 min-w-0">
+            <p class="text-sm font-semibold text-slate-100 group-hover:text-amber-100 leading-snug"><%= rt.corridor %></p>
+            <p class="text-xs text-slate-400 mt-1"><%= [ rt.distance_label, (rt.suggested_days ? "#{rt.suggested_days} days" : nil) ].compact.join(" · ") %></p>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  </section>
+<% end %>

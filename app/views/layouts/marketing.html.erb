@@ -93,6 +93,7 @@
   </head>
 
   <body class="bg-slate-950 text-slate-100 antialiased min-h-full flex flex-col">
+    <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-amber-500 focus:text-slate-950 focus:font-semibold">Skip to content</a>
     <%= render "layouts/loading_overlay" %>
 
     <%# ── Top nav — `absolute` so it overlays the aurora hero. Same
@@ -101,21 +102,13 @@
       <%= render "layouts/site_nav" %>
     </header>
 
-    <%# ── Flash ────────────────────────────────────────────────── %>
-    <% if notice.present? %>
-      <div class="fixed top-20 inset-x-0 z-40 px-4 flex justify-center pointer-events-none">
-        <div role="status" class="pointer-events-auto rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-100 backdrop-blur px-4 py-2.5 text-sm flex items-start gap-2 shadow-xl">
-          <%= icon :check, class: "w-4 h-4 mt-0.5 shrink-0" %><span><%= notice %></span>
-        </div>
-      </div>
-    <% end %>
-    <% if alert.present? %>
-      <div class="fixed top-20 inset-x-0 z-40 px-4 flex justify-center pointer-events-none">
-        <div role="alert" class="pointer-events-auto rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-100 backdrop-blur px-4 py-2.5 text-sm shadow-xl"><%= alert %></div>
-      </div>
-    <% end %>
+    <%# ── Flash → the shared #toast-stack (same look/behaviour as in-app) ── %>
+    <div id="toast-stack" data-controller="toasts" data-action="toast@window->toasts#show"
+         class="fixed z-[60] bottom-6 inset-x-4 sm:inset-x-auto sm:right-6 flex flex-col gap-2 pointer-events-none" aria-live="polite">
+      <%= render "layouts/flash" %>
+    </div>
 
-    <main class="flex-1"><%= yield %></main>
+    <main id="main" class="flex-1"><%= yield %></main>
 
     <%# ── Footer ───────────────────────────────────────────────── %>
     <footer class="mt-16 border-t border-slate-800/80 bg-slate-950">
@@ -144,6 +137,7 @@
           <h3 class="text-[11px] font-semibold uppercase tracking-widest text-slate-400 mb-3">Read</h3>
           <ul class="space-y-2 text-sm">
             <li><%= link_to "Road trip guides", road_trips_path, class: "text-slate-300 hover:text-amber-300" %></li>
+            <li><%= link_to "Travel trivia quizzes", quizzes_path, class: "text-slate-300 hover:text-amber-300" %></li>
             <li><%= link_to "Blog",     blog_index_path, class: "text-slate-300 hover:text-amber-300" %></li>
             <li><%= link_to "About",    about_path,      class: "text-slate-300 hover:text-amber-300" %></li>
             <li><%= link_to "Privacy",  privacy_path,    class: "text-slate-300 hover:text-amber-300" %></li>
@@ -153,6 +147,7 @@
         <div>
           <h3 class="text-[11px] font-semibold uppercase tracking-widest text-slate-400 mb-3">Get it on your phone</h3>
           <p class="text-sm text-slate-400">Add to your home screen — works offline once you've visited each page.</p>
+          <p class="mt-3 text-sm"><%= link_to "Contact us", contact_path, class: "text-slate-300 hover:text-amber-300" %> <span class="text-slate-600">·</span> <a href="<%= blog_feed_path %>" class="text-slate-300 hover:text-amber-300">RSS</a></p>
           <p class="mt-3 text-xs text-slate-400">© <%= Date.current.year %> Wanderply. Made for road trips.</p>
         </div>
       </div>
