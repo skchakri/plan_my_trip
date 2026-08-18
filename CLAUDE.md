@@ -374,6 +374,25 @@ Fail2Ban rule in `config/initializers/rack_attack.rb` also auto-bans any IP for
 1h after 20 login POSTs in 10 min. The localhost safelist always wins over
 blocklists, so you can't lock yourself out locally.
 
+## Blog, RSS & IndexNow
+
+Posts are Markdown files in `app/views/blog/posts/*.md` (front matter: title,
+excerpt, author, published_on, cover, reading_minutes, tag — YAML-style quotes
+are stripped) imported into the `blog_posts` table by `BlogImporter` (run by
+`db:seed`, idempotent by slug; `BlogImporter.call(force: true)` overwrites).
+Deploys only seed when a migration ran, so after adding posts run
+`kamal app exec 'bin/rails runner "BlogImporter.call"'`. Every post ends with
+the `blog/_cta` partial (wizard + guides + trivia links) — posts are SEO landing
+pages, so never remove it. `GET /blog/feed.xml` is an RSS 2.0 feed (30 latest,
+absolute links) advertised via `<link rel=alternate>` in the marketing layout.
+
+**IndexNow** (`app/services/index_now.rb`): when a `BlogPost` / `RoadTrip` is
+saved in a published state, `IndexNowPingJob` pushes its URL to Bing / DDG /
+Yandex. Enabled only in production with `INDEXNOW_KEY` set at
+`/admin/app_settings` (`IndexNow.ensure_key!` generates one); the key file is
+served at `/<key>.txt`. `rake seo:indexnow_all` submits every public URL. Google
+ignores IndexNow — it needs Search Console + `/sitemap.xml`.
+
 ## Cost control (`BuildQuota`)
 
 Every trip build fans out paid AI calls (`trip_structure.v1` + one

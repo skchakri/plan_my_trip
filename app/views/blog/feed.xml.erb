@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Wanderply Blog</title>
+    <link><%= blog_index_url %></link>
+    <description>Road-trip itineraries, national park guides, packing lists, and how Wanderply plans and narrates the drive.</description>
+    <language>en-us</language>
+    <lastBuildDate><%= (@posts.first&.updated_at || Time.current).utc.rfc2822 %></lastBuildDate>
+    <atom:link href="<%= blog_feed_url %>" rel="self" type="application/rss+xml"/>
+    <% @posts.each do |post| %>
+    <item>
+      <title><%= post.title %></title>
+      <link><%= blog_url(post.slug) %></link>
+      <guid isPermaLink="true"><%= blog_url(post.slug) %></guid>
+      <% if post.published_at %><pubDate><%= post.published_at.utc.rfc2822 %></pubDate><% end %>
+      <% if post.author.present? %><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/"><%= post.author %></dc:creator><% end %>
+      <% Array(post.tags).each do |t| %><category><%= t %></category><% end %>
+      <% if post.excerpt.present? %><description><%= post.excerpt %></description><% end %>
+      <% if post.cover.present? %><enclosure url="<%= post.cover %>" type="image/jpeg" length="0"/><% end %>
+      <content:encoded><![CDATA[<%= raw render_markdown(post.body).to_str.gsub(%r{(href|src)="/}, %(\\1="#{canonical_base_url}/)).gsub("]]>", "]]]]><![CDATA[>") %>]]></content:encoded>
+    </item>
+    <% end %>
+  </channel>
+</rss>

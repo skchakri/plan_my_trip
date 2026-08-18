@@ -240,6 +240,12 @@ Rails.application.routes.draw do
   get  "about", to: "pages#about", as: :about
   get  "privacy", to: "pages#privacy", as: :privacy
   get  "blog",  to: "blog#index", as: :blog_index
+  # RSS feed — declared before blog/:slug so "feed.xml" isn't read as a slug.
+  # Free syndication surface (readers, aggregators, Zapier/IFTTT → socials).
+  get  "blog/feed.xml", to: "blog#feed", as: :blog_feed, defaults: { format: :xml }
+  # IndexNow key file (Bing / DuckDuckGo / Yandex instant indexing). Only a
+  # 32-hex key matches, so it can't shadow any real page.
+  get  ":key.txt", to: "pages#indexnow_key", as: :indexnow_key, constraints: { key: /[a-f0-9]{32}/ }
   get  "blog/:slug", to: "blog#show", as: :blog, constraints: { slug: %r{[^/]+} }
 
   root "pages#landing"

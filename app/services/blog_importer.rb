@@ -52,7 +52,8 @@ class BlogImporter
     text.each_line.with_object({}) do |line, acc|
       key, _, value = line.partition(":")
       next if key.blank?
-      acc[key.strip] = value.strip
+      # Tolerate YAML-style quoting ("title: \"Foo: bar\"") — strip one matching pair.
+      acc[key.strip] = value.strip.sub(/\A(["'])(.*)\1\z/m, '\2')
     end
   end
 

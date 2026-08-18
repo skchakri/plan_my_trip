@@ -21,8 +21,12 @@ class BlogPost < ApplicationRecord
 
   before_validation :generate_slug, if: -> { slug.blank? && title.present? }
   before_validation :backfill_reading_minutes
+  # Instant-index on publish/edit of a public post (no-op unless INDEXNOW_KEY is set).
+  after_commit :ping_index_now, on: %i[create update], if: :published?
 
   def to_param = slug
+
+  def public_url = Rails.application.routes.url_helpers.blog_url(slug, host: IndexNow::HOST, protocol: "https")
 
   def published?
     status == "published" && published_at.present? && published_at <= Time.current
@@ -51,5 +55,9 @@ class BlogPost < ApplicationRecord
 
   def backfill_reading_minutes
     self[:reading_minutes] = estimated_reading_minutes if self[:reading_minutes].blank? && body.present?
+  end
+
+  def ping_index_now
+    IndexNowPingJob.perform_later([ public_url ])
   end
 end

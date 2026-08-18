@@ -16,11 +16,15 @@ class RoadTrip < ApplicationRecord
   validates :status, inclusion: { in: STATUSES }
 
   scope :published, -> { kept.where(status: "published") }
+  # Instant-index on publish/edit of a public guide (no-op unless INDEXNOW_KEY is set).
+  after_commit :ping_index_now, on: %i[create update], if: :published?
   scope :ordered,   -> { order(:position, :title) }
 
   before_validation :generate_slug, if: -> { slug.blank? && origin.present? && destination.present? }
 
   def to_param = slug
+
+  def public_url = Rails.application.routes.url_helpers.road_trip_url(slug, host: IndexNow::HOST, protocol: "https")
 
   def published? = status == "published"
 
@@ -36,5 +40,9 @@ class RoadTrip < ApplicationRecord
 
   def generate_slug
     self.slug = "#{origin}-to-#{destination}".parameterize
+  end
+
+  def ping_index_now
+    IndexNowPingJob.perform_later([ public_url ])
   end
 end

@@ -56,6 +56,9 @@ class AppSetting < ApplicationRecord
     Definition.new(key: "GOOGLE_SITE_VERIFICATION", label: "Google Search Console verification", category: "Search & SEO", secret: false,
       description: "Verify wanderply.com in Google Search Console with the HTML-tag method: create the property, choose the \"HTML tag\" method, and paste ONLY the content token here (the part inside content=\"…\", not the whole tag). It renders a <meta name=\"google-site-verification\"> on every public page. Then hit Verify in GSC and submit /sitemap.xml. Blank → no tag rendered.", placeholder: "e.g. AbC123…xyz"),
 
+    Definition.new(key: "INDEXNOW_KEY", label: "IndexNow key", category: "Search & SEO", secret: false,
+      description: "Enables instant indexing pings to Bing / DuckDuckGo / Yandex whenever a blog post or road-trip guide is published (IndexNow protocol). Any 32-character hex string; the key file is served automatically at /<key>.txt. `rake seo:indexnow_all` submits every public URL at once. Blank → pings are skipped. Google ignores IndexNow — verify Search Console instead.", placeholder: "32 hex chars"),
+
     # ── Usage limits ──
     Definition.new(key: "TRIP_BUILD_DAILY_LIMIT", label: "Trip builds per account per day", category: "Usage limits", secret: false,
       description: "Max AI-built plans one account can start in a rolling 24h (BuildQuota). Each build costs real AI spend, so this is the account-side companion to the Rack::Attack IP throttles. Admins are exempt. 0 or blank disables the cap.", placeholder: nil, default: BuildQuota::DAILY_DEFAULT),

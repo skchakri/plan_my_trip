@@ -4,6 +4,7 @@
     <title><%= content_for(:title) || "Wanderply · trips your crew will remember" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
     <meta name="theme-color" content="#0a0e1a">
+    <link rel="alternate" type="application/rss+xml" title="Wanderply Blog" href="<%= blog_feed_url %>">
     <% seo_title       = content_for(:title).presence || "Wanderply · trips your crew will remember" %>
     <% seo_description = content_for(:description).presence || "Day-by-day itineraries, drive-time games, podcast-style narration, and an offline PWA — Wanderply turns a road trip into a story." %>
     <% seo_image       = content_for(:og_image).presence || default_og_image_url %>

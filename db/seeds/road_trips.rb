@@ -153,7 +153,7 @@ road_trips = [
     origin: "Seattle", destination: "Portland",
     title: "Seattle to Portland Road Trip",
     tagline: "175 miles down I-5 — but the volcanoes, waterfalls, and coffee stops are the whole point.",
-    hero_image_url: "https://images.unsplash.com/photo-1541457523724-8567cf5a67f0?w=1600&q=80",
+    hero_image_url: "https://images.unsplash.com/photo-1454496522488-7a8e488e8606?w=1600&q=80",
     distance_label: "~175 miles", drive_time_label: "~3 hours (direct)", suggested_days: 2,
     best_season: "Summer & early fall (clear volcano views, dry trails)",
     transport_mode: "own_car",

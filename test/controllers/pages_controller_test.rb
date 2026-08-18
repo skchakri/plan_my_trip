@@ -57,4 +57,18 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
       assert_includes response.body, quiz_url(key), "#{key} must be in the sitemap to be indexable"
     end
   end
+
+  test "indexnow key file 404s when no key is configured and serves it when set" do
+    get "/#{"a" * 32}.txt"
+    assert_response :not_found
+
+    AppSetting.set("INDEXNOW_KEY", "b" * 32)
+    get "/#{"a" * 32}.txt"
+    assert_response :not_found
+    get "/#{"b" * 32}.txt"
+    assert_response :success
+    assert_equal "b" * 32, response.body
+  ensure
+    AppSetting.set("INDEXNOW_KEY", nil)
+  end
 end

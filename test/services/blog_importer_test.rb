@@ -16,4 +16,11 @@ class BlogImporterTest < ActiveSupport::TestCase
     assert_empty BlogImporter.call
     assert_equal count, BlogPost.count
   end
+
+  test "strips YAML-style quotes around front-matter values" do
+    BlogImporter.call
+    post = BlogPost.find_by!(slug: "yellowstone-3-day-itinerary-first-timers")
+    assert post.title.start_with?("Yellowstone in 3 days:"), post.title
+    refute post.title.start_with?('"')
+  end
 end

@@ -15,6 +15,7 @@
     "image"    => @post.cover,
     "author"   => (@post.author.present? ? { "@type" => "Person", "name" => @post.author } : nil),
     "datePublished" => @post.published_on&.iso8601,
+    "dateModified"  => @post.updated_at&.utc&.iso8601,
     "publisher" => organization_ld,
     "mainEntityOfPage" => blog_url(@post.slug)
   }.compact.to_json) %>
@@ -53,6 +54,8 @@
     <%= render_markdown(@post.body) %>
   </article>
 </section>
+
+<%= render "blog/cta" %>
 
 <% if @related.any? %>
   <section class="border-t border-slate-800/70 bg-slate-950/60">
