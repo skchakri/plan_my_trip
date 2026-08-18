@@ -64,7 +64,12 @@ export default class extends Controller {
     // Skip the interests-input prefill-from-name path so it doesn't
     // double-up our chips. Mark this row's interests controller as
     // already-prefilled before we add chips manually.
-    const interestsHost = row.querySelector('[data-controller~="interests-input"]')
+    // The wizard row IS the interests-input host (data-controller sits on
+    // .traveler-row itself), and querySelector never matches its own root —
+    // so check the row first, then fall back to a nested host.
+    const interestsHost = row.matches('[data-controller~="interests-input"]')
+      ? row
+      : row.querySelector('[data-controller~="interests-input"]')
     const chipNameAttr = interestsHost?.dataset.interestsInputNameValue
     const chipsContainer = row.querySelector('[data-interests-input-target="chips"]')
     const newInputEl = row.querySelector('[data-interests-input-target="newInput"]')

@@ -1,7 +1,7 @@
 # Builds the trip's drive-by RouteLandmarks AFTER the plan is already viewable.
-# RouteLandmarksBuilder runs on the slow web-search provider (claude_cli /
-# perplexity) and used to run INLINE in Trips::Assembler — dominating the build
-# wall-clock (~3 min) even though landmarks only feed the Drive Co-Pilot and the
+# RouteLandmarksBuilder makes its own AI call (route_landmarks.v1, Anthropic —
+# the prod container has no Claude CLI, so never point it at claude_cli) and
+# used to run INLINE in Trips::Assembler — dominating the build wall-clock (~3 min) even though landmarks only feed the Drive Co-Pilot and the
 # road-trip-stats page, both of which degrade gracefully while empty. Pulling it
 # here lets the build return the plan fast; the landmarks stream in within a
 # minute or two and a Turbo refresh morphs them onto any open trip page.

@@ -2,8 +2,8 @@
 slug: place_description.v1
 name: Place description (shared-catalog body)
 description: Writes a 2-3 sentence sensory description for a Place in the shared catalog. Used to backfill rows whose image_source is wikipedia-but-no-extract or for entirely AI-described places (motels, cafes, trailheads).
-provider: claude_cli
-model: claude-sonnet-4-6
+provider: anthropic
+model: claude-haiku-4-5-20251001
 kind: text
 max_tokens: 512
 temperature:

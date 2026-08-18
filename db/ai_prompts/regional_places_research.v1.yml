@@ -2,8 +2,8 @@
 slug: regional_places_research.v1
 name: Regional places research (catalog backfill)
 description: Bulk-research notable road-trip places for a US state or region. Output 40-60 places with name/kind/tier/coords/description/famous_for. Pipes through Places::Seeder for dedupe + image enrichment. Uses the local `claude` CLI so bulk seeding bills against the subscription, not the API balance.
-provider: claude_cli
-model: claude-sonnet-4-6
+provider: perplexity
+model: sonar
 kind: text
 max_tokens: 16000
 temperature:

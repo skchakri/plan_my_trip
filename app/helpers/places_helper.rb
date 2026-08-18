@@ -36,13 +36,17 @@ module PlacesHelper
     rank   = item.respond_to?(:rank)   ? item.rank   : nil
     rating = item.respond_to?(:rating) ? item.rating : nil
     real   = item.respond_to?(:has_real_rating?) && item.has_real_rating?
+    # Only show stars backed by real community ratings. The derived editor
+    # score (3.0–5.0 from the ranker) looked like a mediocre "★3.1" on
+    # world-famous places — the #rank + tier badge already carry that signal.
+    rating = nil unless real
     return "".html_safe unless rank || rating
 
     rank_html = if rank
       %(<span class="font-semibold tabular-nums">##{rank}</span>)
     end
     rating_html = if rating
-      stroke = real ? "text-amber-300" : "text-slate-400"
+      stroke = "text-amber-300"
       %(<span class="inline-flex items-center gap-0.5 #{stroke}">) +
         icon(:star, class: "w-3 h-3 fill-current") +
         %(<span class="tabular-nums font-medium">#{format("%.1f", rating)}</span>) +

@@ -50,6 +50,8 @@ class DestinationHighlights
   CACHE_TTL = 30.days
   MAX_RESULTS = 18
   MIN_BEFORE_FALLBACK = 5
+  # Worker cap for the per-name Wikipedia enrichment / place seeding fan-out.
+  PARALLELISM = 6
   # Allowed tag values must match what the prompt instructs Claude to emit.
   # Any unknown tag is silently dropped to keep the chips list clean.
   ALLOWED_TAGS = %w[
@@ -96,23 +98,25 @@ class DestinationHighlights
   end
 
   def fetch_highlights
+    # The three tiers are independent network trees, so they run
+    # concurrently — a cold destination used to spend ~40s walking them one
+    # HTTP call at a time (Wikivoyage → N Wikipedia summaries → the LLM →
+    # N more summaries → N place seedings), on top of the ~20s of AI. Each
+    # tier still rescues to [] on its own, so a slow/failed tier just
+    # contributes nothing, exactly as before.
+    open_data_future = async { open_data_highlights }
+    llm_future       = async { claude_research_highlights }
+
     # 1. Catalog hits — Places the community has already vetted near this
     #    destination. These lead the list because they carry social proof
     #    (usage_count) and reuse images we've already loaded.
     catalog = catalog_highlights
     seen_names = catalog.map { |h| h.name.to_s.downcase }.to_set
 
-    # 2. Big cities (Paris, Vegas, Tokyo, NYC) delegate to district sub-pages,
-    #    so the main Wikivoyage page has few real {{see}} listings. Junk-filter
-    #    the WV pull first, then top up from Wikipedia's "Tourist attractions
-    #    in X" category if the WV list is thin.
-    wv = wikivoyage_see_names.reject { |n| junk_name?(n) }
-    names = wv.size >= MIN_BEFORE_FALLBACK ? wv : (wv + wikipedia_category_attractions).reject { |n| junk_name?(n) }
-    names = names.uniq.first(MAX_RESULTS)
-    open_data = names.map { |n| enrich_with_wikipedia(n) }.compact
-
     # 3. Claude's curated, vibe-aware list — richer summaries + tags.
-    llm = claude_research_highlights
+    llm = Array(llm_future.value)
+    # 2. Open-data tier (Wikivoyage / Wikipedia category, see below).
+    open_data = Array(open_data_future.value)
 
     merged = catalog.dup
     llm.each do |h|
@@ -141,7 +145,9 @@ class DestinationHighlights
   # the next call for this destination the row comes back through
   # catalog_highlights instead of the LLM tier.
   def persist_new_highlights!(highlights)
-    highlights.map do |h|
+    # Each seeding does its own DB upsert + up to ~4 Wikimedia image lookups,
+    # so fan them out (order preserved by parallel_map).
+    parallel_map(highlights, max: PARALLELISM, fallback: ->(h) { h }) do |h|
       next h if h.place_id.present?
       next h unless h.latitude && h.longitude
 
@@ -171,6 +177,73 @@ class DestinationHighlights
         community_rating_count: place.community_rating_count.to_i
       )
     end
+  end
+
+  # Big cities (Paris, Vegas, Tokyo, NYC) delegate to district sub-pages,
+  # so the main Wikivoyage page has few real {{see}} listings. Junk-filter
+  # the WV pull first, then top up from Wikipedia's "Tourist attractions
+  # in X" category if the WV list is thin. Every surviving name is then
+  # enriched from the Wikipedia summary endpoint — concurrently.
+  def open_data_highlights
+    wv = wikivoyage_see_names.reject { |n| junk_name?(n) }
+    names = wv.size >= MIN_BEFORE_FALLBACK ? wv : (wv + wikipedia_category_attractions).reject { |n| junk_name?(n) }
+    names = names.uniq.first(MAX_RESULTS)
+    parallel_map(names, max: PARALLELISM) { |n| enrich_with_wikipedia(n) }.compact
+  rescue StandardError => e
+    Rails.logger.warn("[DestinationHighlights] open_data #{@destination}: #{e.class}: #{e.message}")
+    []
+  end
+
+  # --- concurrency helpers -------------------------------------------------
+  #
+  # Plain threads (no extra dependency): every unit runs inside
+  # Rails.application.executor.wrap so it gets its own AR connection and
+  # autoloading works, and every unit rescues so one bad lookup can never
+  # take the tier down. Bounded by PARALLELISM so we stay polite to
+  # Wikipedia / Wikimedia (they ask for a UA + modest concurrency, not 1 rps).
+
+  # Fire-and-collect: returns a Thread whose #value joins it. The block's
+  # exceptions surface as nil (and a warn) rather than propagating.
+  def async(&block)
+    Thread.new do
+      Rails.application.executor.wrap { block.call }
+    rescue StandardError => e
+      Rails.logger.warn("[DestinationHighlights] async #{@destination}: #{e.class}: #{e.message}")
+      nil
+    end
+  end
+
+  # Order-preserving parallel map with at most `max` workers. A failing
+  # item maps to `fallback.(item)` (nil by default) instead of raising.
+  def parallel_map(items, max:, fallback: nil, &block)
+    items = Array(items)
+    return [] if items.empty?
+    return items.map { |i| safe_call(i, fallback, &block) } if items.size == 1 || max <= 1
+
+    results = Array.new(items.size)
+    queue = Queue.new
+    items.each_with_index { |item, idx| queue << [ item, idx ] }
+    workers = [ max, items.size ].min.times.map do
+      Thread.new do
+        Rails.application.executor.wrap do
+          loop do
+            item, idx = queue.pop(true)
+            results[idx] = safe_call(item, fallback, &block)
+          rescue ThreadError
+            break # queue drained
+          end
+        end
+      end
+    end
+    workers.each(&:join)
+    results
+  end
+
+  def safe_call(item, fallback)
+    yield(item)
+  rescue StandardError => e
+    Rails.logger.warn("[DestinationHighlights] #{@destination}: #{e.class}: #{e.message}")
+    fallback ? fallback.call(item) : nil
   end
 
   # Pulls Place rows near the destination coords (when known) and turns
@@ -241,11 +314,12 @@ class DestinationHighlights
     items = result.json
     return [] unless items.is_a?(Array)
 
-    items.first(MAX_RESULTS).filter_map do |item|
+    items = items.first(MAX_RESULTS).select { |item| item.is_a?(Hash) }
+    items = items.reject { |item| item["name"].to_s.strip.blank? || junk_name?(item["name"].to_s.strip) }
+    wikis = parallel_map(items, max: PARALLELISM) { |item| enrich_with_wikipedia(item["name"].to_s.strip) }
+    items.each_with_index.map do |item, idx|
       name = item["name"].to_s.strip
-      next if name.blank? || junk_name?(name)
-
-      wiki = enrich_with_wikipedia(name)
+      wiki = wikis[idx]
       llm_lat = numeric_or_nil(item["latitude"])
       llm_lng = numeric_or_nil(item["longitude"])
       Highlight.new(

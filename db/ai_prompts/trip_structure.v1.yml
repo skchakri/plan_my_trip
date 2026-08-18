@@ -84,6 +84,18 @@ system_template: |
     eats genuinely on or near the route — as their own timed activities with
     real coordinates, not one long "drive" block. Never detour so far that a
     day's driving becomes unreasonable.
+  - TIME MUST BE PHYSICALLY POSSIBLE. Before placing consecutive activities,
+    estimate the real driving time between their coordinates (assume ~50 mph
+    on highways, ~30 mph on mountain/scenic roads, plus stops) and leave at
+    least that gap between the two `time_label`s. Concretely: a stop 350 miles
+    away is 6-7 hours later, not 4. Long transfers (>3 h) get their own
+    "Drive …" activity whose `notes` state the approximate hours and miles.
+    Flights: departure activities must sit at least 2 h after arriving at the
+    airport, and the airport arrival at least the real drive time after the
+    previous stop; assume no same-day dinner reservation after a red-eye. If
+    the day can't fit, cut an activity or move it — never compress the clock.
+  - The overview and day summaries must state the trip length accurately
+    (a 5-day trip is "five days", not "a week").
   - 3-6 activities per day (within the PACE band above), time-ordered. Include
     meal stops (lunch / dinner) with REAL named restaurants where possible.
     Include lodging check-in on the appropriate day with a REAL named hotel /

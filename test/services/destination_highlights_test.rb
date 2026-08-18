@@ -41,3 +41,28 @@ class DestinationHighlightsTest < ActiveSupport::TestCase
     assert_includes names, "San Francisco/Golden Gate"
   end
 end
+
+class DestinationHighlightsConcurrencyTest < ActiveSupport::TestCase
+  setup do
+    @service = DestinationHighlights.new("San Francisco")
+  end
+
+  test "parallel_map preserves order and maps failures to the fallback" do
+    out = @service.send(:parallel_map, [ 1, 2, 3, 4, 5 ], max: 3, fallback: ->(i) { "fb-#{i}" }) do |i|
+      raise "boom" if i == 3
+      sleep(0.01 * (5 - i)) # later items finish first
+      i * 10
+    end
+    assert_equal [ 10, 20, "fb-3", 40, 50 ], out
+  end
+
+  test "parallel_map returns nil for failures without a fallback and [] for empty" do
+    assert_equal [], @service.send(:parallel_map, [], max: 4) { |i| i }
+    assert_equal [ 1, nil ], @service.send(:parallel_map, [ 1, 2 ], max: 4) { |i| i == 2 ? raise("x") : i }
+  end
+
+  test "async returns a thread whose value is nil on failure" do
+    assert_equal 42, @service.send(:async) { 42 }.value
+    assert_nil @service.send(:async) { raise "nope" }.value
+  end
+end

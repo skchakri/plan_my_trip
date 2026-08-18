@@ -2,8 +2,8 @@
 slug: landmark_narration.v1
 name: Landmark narration (Drive Co-Pilot)
 description: Two- to three-sentence spoken narration for a single named landmark. Used to seed the global RouteLandmark catalog and to backfill narrations for known marquee stops.
-provider: claude_cli
-model: claude-sonnet-4-6
+provider: anthropic
+model: claude-haiku-4-5-20251001
 kind: text
 max_tokens: 512
 temperature:

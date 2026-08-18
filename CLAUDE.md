@@ -287,10 +287,11 @@ reseed** to change a prompt in code; the `/admin/ai_prompts` UI is for live,
 no-redeploy tweaks (which a reseed on the same slug will overwrite). `Ai::Caller`
 logs every call to the `AiCall` model (viewable at `/admin/ai_calls`).
 
-- `claude_cli` (current default for `nearby_ideas.v1`) — uses the operator's
-  Claude subscription via the local CLI with agentic web search. Best
-  instruction-following, but **slow (minutes)** and unfit for the live web
-  path at scale. Good for seeding.
+- `claude_cli` — uses the operator's Claude subscription via the local CLI
+  with agentic web search. Best instruction-following, but **slow (minutes)**
+  and — critically — **the CLI is not installed in the production container**,
+  so any prompt left on `claude_cli` fails instantly in prod ("claude CLI not
+  installed"). It's a dev/seeding-only provider; no shipped prompt should use it.
 - `perplexity` (`Ai::PerplexityProvider`, needs `PERPLEXITY_API_KEY`) — Sonar
   models answer from a fresh web search in **one fast API call** with
   citations. Flip `nearby_ideas.v1` to `provider: perplexity, model: sonar`
@@ -332,8 +333,9 @@ the `build_args` jsonb so `POST /trips/:id/rebuild` can replay the exact build
 (it dispatches `BuildDayTripJob` for day trips, else `BuildTripJob`). `trip_structure.v1` + `destination_brief.v1`
 now run on the **Anthropic API** (no web search needed; ~2 min for a 3-day plan
 vs many minutes on claude_cli, and it's off-request anyway). Discovery prompts
-that need fresh web data (`destination_highlights_research`, `route_landmarks`,
-`nearby_ideas`) stay on `claude_cli`/`perplexity`. Swap any of these per-prompt
+that need fresh web data (`destination_highlights_research`, `nearby_ideas`,
+`regional_places_research`) run on `perplexity`; `route_landmarks.v1` (stable
+general knowledge, strict JSON) runs on Anthropic. Swap any of these per-prompt
 in `/admin/ai_prompts`.
 
 The **highlights step (3 of 4) also lazy-loads**: `wizard/highlights.html.erb`

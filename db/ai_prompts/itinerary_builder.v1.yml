@@ -2,7 +2,7 @@
 slug: itinerary_builder.v1
 name: Itinerary markdown body
 description: Generates the markdown body saved on Trip#body (overview + per-day sections + tips). Complementary to trip_structure.v1 which produces the structured records.
-provider: claude_cli
+provider: anthropic
 model: claude-sonnet-4-6
 kind: text
 max_tokens: 4096

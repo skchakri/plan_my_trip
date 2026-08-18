@@ -84,7 +84,9 @@ export default class extends Controller {
           <div style="font-weight:600">${this._escape(p.name)}</div>
           ${p.category ? `<div style="color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;margin-top:2px">${this._escape(p.category)}</div>` : ""}
         </div>`
-      m.bindPopup(popupHtml)
+      // Pad the auto-pan so a hover popup on a marker near the top edge
+      // clears the zoom control instead of rendering clipped behind it.
+      m.bindPopup(popupHtml, { autoPanPadding: [ 48, 72 ] })
       m.on("click", () => this._focusCard(p.slug))
       this._markers[p.slug] = m
     })

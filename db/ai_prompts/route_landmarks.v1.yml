@@ -2,7 +2,7 @@
 slug: route_landmarks.v1
 name: Route landmarks (drive-by narration points)
 description: Generates 10-20 narratable points along the driving corridor between origin/destination and itinerary stops — historic markers, scenic overlooks, geological features, ghost towns, etc. Each carries a 30s narration the Drive Co-Pilot will speak when the user is within ~3 mi.
-provider: claude_cli
+provider: anthropic
 model: claude-sonnet-4-6
 kind: text
 max_tokens: 4096

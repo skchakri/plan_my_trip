@@ -19,14 +19,19 @@ class Person < ApplicationRecord
       .each_with_object({}) do |p, acc|
       key = p.name.to_s.downcase.strip
       next if key.blank?
-      acc[key] = Array(p.interests)
+      interests = Array(p.interests).map { |i| i.to_s.strip }.reject(&:blank?)
+      # Latest NON-EMPTY list wins: a newer row saved without interests
+      # (e.g. the wizard was submitted before chips loaded) must not wipe
+      # what we already know about this person.
+      acc[key] = interests if interests.any? || !acc.key?(key)
     end
   end
 
   # Returns [{ name:, age:, interests: }, ...] — one entry per unique
   # traveler name across all kept trips owned by `user`. Most recent row
   # per name wins, so its age + interests become the pre-fill when the
-  # user clicks a suggestion card in the wizard.
+  # user clicks a suggestion card in the wizard — except that an empty
+  # interests list never overrides a remembered one.
   def self.known_travelers_for(user)
     return [] unless user
     by_name = {}
@@ -37,7 +42,14 @@ class Person < ApplicationRecord
         name = p.name.to_s.strip
         key = name.downcase
         next if key.blank?
-        by_name[key] = { name: name, age: p.age, interests: Array(p.interests) }
+        interests = Array(p.interests).map { |i| i.to_s.strip }.reject(&:blank?)
+        prev = by_name[key]
+        by_name[key] = {
+          name: name,
+          age: p.age.presence || prev&.dig(:age),
+          # Keep the most recent non-empty interests (see known_interests_for).
+          interests: interests.any? ? interests : Array(prev&.dig(:interests))
+        }
       end
     by_name.values.sort_by { |h| h[:name].downcase }
   end
