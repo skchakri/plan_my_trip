@@ -178,6 +178,12 @@ Rails.application.routes.draw do
         post :resolve
       end
     end
+    resources :contact_messages, only: [ :index, :show, :destroy ] do
+      member do
+        post :reply
+        post :spam
+      end
+    end
     resources :users, only: [ :index, :show, :edit, :update ]
     resources :trivia, only: [ :index, :show ], constraints: { id: /[^\/]+/ } do
       collection { post :generate_riddles }
@@ -240,7 +246,7 @@ Rails.application.routes.draw do
   # Marketing site
   get  "about", to: "pages#about", as: :about
   get  "privacy", to: "pages#privacy", as: :privacy
-  # Public contact form (guests + members). Mails admins; nothing stored.
+  # Public contact form (guests + members). Stored as ContactMessage + mailed to admins.
   get  "contact", to: "contacts#new",    as: :contact
   post "contact", to: "contacts#create"
   get  "blog",  to: "blog#index", as: :blog_index

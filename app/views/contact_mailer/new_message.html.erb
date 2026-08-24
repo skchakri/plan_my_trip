@@ -1,3 +1,4 @@
 <p><strong>New message from the wanderply.com contact form</strong></p>
-<p>From: <%= @message[:name].presence || "(no name)" %> &lt;<%= mail_to @message[:email] %>&gt;</p>
-<blockquote style="white-space:pre-wrap;border-left:3px solid #f59e0b;padding-left:12px;color:#334155"><%= @message[:body] %></blockquote>
+<p>From: <%= @message.name.presence || "(no name)" %> &lt;<%= mail_to @message.email %>&gt;</p>
+<blockquote style="white-space:pre-wrap;border-left:3px solid #f59e0b;padding-left:12px;color:#334155"><%= @message.body %></blockquote>
+<p><%= link_to "Reply in the admin inbox", admin_contact_message_url(@message) %></p>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_18_215110) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_24_180000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -229,6 +229,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_18_215110) do
     t.index ["activity_id"], name: "index_comments_on_activity_id"
     t.index ["author_id"], name: "index_comments_on_author_id"
     t.index ["discarded_at"], name: "index_comments_on_discarded_at"
+  end
+
+  create_table "contact_messages", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.text "body", null: false
+    t.datetime "created_at", null: false
+    t.string "email", null: false
+    t.string "ip"
+    t.string "name", limit: 120
+    t.datetime "read_at"
+    t.datetime "replied_at"
+    t.text "reply_body"
+    t.boolean "spam", default: false, null: false
+    t.string "spam_reason"
+    t.datetime "updated_at", null: false
+    t.string "user_agent"
+    t.uuid "user_id"
+    t.index ["created_at"], name: "index_contact_messages_on_created_at"
+    t.index ["spam", "read_at"], name: "index_contact_messages_on_spam_and_read_at"
+    t.index ["user_id"], name: "index_contact_messages_on_user_id"
   end
 
   create_table "countries", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -730,6 +749,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_18_215110) do
   add_foreign_key "checklist_items", "trips"
   add_foreign_key "comments", "activities"
   add_foreign_key "comments", "users", column: "author_id"
+  add_foreign_key "contact_messages", "users"
   add_foreign_key "draft_trips", "users"
   add_foreign_key "expenses", "people", column: "paid_by_id", on_delete: :nullify
   add_foreign_key "expenses", "trips"

@@ -1,0 +1,62 @@
+<% content_for :title, "Messages" %>
+
+<div class="flex items-center justify-between mb-4">
+  <h1 class="font-display text-2xl font-semibold">Contact messages</h1>
+  <%= form_with url: admin_contact_messages_path, method: :get, class: "flex items-center gap-2" do %>
+    <input type="hidden" name="filter" value="<%= @filter %>">
+    <input type="search" name="q" value="<%= params[:q] %>" placeholder="Search name, email, text…" aria-label="Search messages"
+           class="rounded-lg bg-slate-900 border border-slate-700 px-3 py-1.5 text-sm text-slate-100 w-64 focus:border-amber-500 focus:ring-1 focus:ring-amber-500">
+    <button type="submit" class="px-3 py-1.5 rounded-lg border border-slate-700 text-sm text-slate-300 hover:bg-white/5">Search</button>
+  <% end %>
+</div>
+
+<div class="flex items-center gap-2 mb-4 text-xs flex-wrap">
+  <% Admin::ContactMessagesController::FILTERS.each do |f| %>
+    <%= link_to admin_contact_messages_path(filter: f, q: params[:q]),
+          class: "px-2.5 py-1 rounded-full border #{@filter == f ? 'bg-white/10 text-white border-slate-600' : 'text-slate-400 border-slate-700 hover:bg-white/5'}" do %>
+      <%= f.capitalize %> <span class="text-slate-400">(<%= @counts[f] %>)</span>
+    <% end %>
+  <% end %>
+</div>
+
+<% if @messages.empty? %>
+  <div class="rounded-xl border border-dashed border-slate-700 bg-slate-900/30 p-12 text-center text-slate-400">No messages here.</div>
+<% else %>
+  <div class="rounded-xl border border-slate-800 overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead class="bg-slate-900/60 text-[10px] uppercase tracking-widest text-slate-400">
+        <tr>
+          <th class="text-left px-3 py-2">From</th>
+          <th class="text-left px-3 py-2">Message</th>
+          <th class="text-left px-3 py-2">Status</th>
+          <th class="text-left px-3 py-2">Received</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-800/60">
+        <% @messages.each do |m| %>
+          <tr class="hover:bg-slate-900/40 <%= 'bg-amber-500/5' if !m.read? && !m.spam? %>">
+            <td class="px-3 py-2 whitespace-nowrap">
+              <span class="<%= m.read? ? 'text-slate-300' : 'text-white font-semibold' %>"><%= m.name.presence || "(no name)" %></span>
+              <div class="text-xs text-slate-400"><%= m.email %></div>
+            </td>
+            <td class="px-3 py-2 max-w-xl">
+              <%= link_to truncate(m.body, length: 110), admin_contact_message_path(m), class: "text-amber-300 hover:text-amber-200" %>
+            </td>
+            <td class="px-3 py-2 whitespace-nowrap">
+              <% if m.spam? %>
+                <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-semibold uppercase" title="<%= m.spam_reason %>">Spam</span>
+              <% elsif m.replied? %>
+                <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold uppercase">Replied</span>
+              <% elsif m.read? %>
+                <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-700 text-slate-300 font-semibold uppercase">Read</span>
+              <% else %>
+                <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-semibold uppercase">New</span>
+              <% end %>
+            </td>
+            <td class="px-3 py-2 text-slate-400 text-xs whitespace-nowrap"><%= time_ago_in_words(m.created_at) %> ago</td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>

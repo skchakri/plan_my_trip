@@ -1,5 +1,7 @@
 New message from the wanderply.com contact form
 
-From: <%= @message[:name].presence || "(no name)" %> <<%= @message[:email] %>>
+From: <%= @message.name.presence || "(no name)" %> <<%= @message.email %>>
 
-<%= @message[:body] %>
+<%= @message.body %>
+
+Reply in the admin inbox: <%= admin_contact_message_url(@message) %>

@@ -1,0 +1,8 @@
+<%= @body %>
+
+--
+<%= @admin.display_name %>, Wanderply
+https://wanderply.com
+
+You wrote:
+<%= @message.body.lines.map { |l| "> #{l}" }.join %>

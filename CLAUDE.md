@@ -411,9 +411,13 @@ ignores IndexNow — it needs Search Console + `/sitemap.xml`.
   `signed_up` (flash `:track_event` beacon in `layouts/_flash`), `wizard_step_viewed`,
   `trip_build_started`, `trip_built` (once per trip via localStorage),
   `quiz_completed`, `sample_narration_played`. All no-op without PostHog.
-- **Contact** (`/contact`, `ContactsController` + `ContactMessage` form object +
-  `ContactMailer` → all admins, honeypot + Rack::Attack 5/h/IP). No inbound mail
-  exists for wanderply.com, so never link a `mailto:@wanderply.com`.
+- **Contact** (`/contact`, `ContactsController` → persisted `ContactMessage`
+  row (spam included, flagged by `ContactMessage.spam_reason_for`: honeypot,
+  Cyrillic/CJK boilerplate, link stuffing, price-list bait) + `ContactMailer`
+  → all admins for non-spam only; Rack::Attack 5/h/IP). Admin inbox at
+  `/admin/contact_messages` (unread badge in the admin nav, filters, search,
+  reply-by-email from noreply with the admin as Reply-To, spam toggle, delete).
+  No inbound mail exists for wanderply.com, so never link a `mailto:@wanderply.com`.
 - **Referral credits** (`ReferralCredit`): saving someone's shared trip
   (`PublicTripsController#copy`) mints one credit per (sharer, saver) pair; both
   get +1 monthly build in `BuildQuota#monthly_limit` (cap `MAX_PER_USER`=10).

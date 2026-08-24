@@ -1,0 +1,69 @@
+<% content_for :title, "Message from #{@message.display_name}" %>
+
+<%= link_to admin_contact_messages_path, class: "inline-flex items-center gap-1 text-sm text-slate-400 hover:text-amber-300 mb-4" do %>
+  ← All messages
+<% end %>
+
+<div class="flex items-start justify-between gap-3 mb-1">
+  <h1 class="font-display text-2xl font-semibold min-w-0"><%= @message.name.presence || "(no name)" %></h1>
+  <% if @message.spam? %>
+    <span class="text-[10px] px-2 py-1 rounded-full bg-rose-500/20 text-rose-300 font-semibold uppercase">Spam · <%= @message.spam_reason %></span>
+  <% elsif @message.replied? %>
+    <span class="text-[10px] px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold uppercase">Replied</span>
+  <% end %>
+</div>
+<p class="text-sm text-slate-400 mb-6">
+  <%= mail_to @message.email, @message.email, class: "text-slate-200 hover:text-amber-300" %>
+  · received <%= @message.created_at.strftime("%b %-d, %Y %-l:%M %p") %>
+  <% if @message.user %> · signed-in user <%= link_to @message.user.display_name, admin_user_path(@message.user), class: "text-amber-300" %><% end %>
+  <% if @message.ip.present? %> · IP <span class="font-mono"><%= @message.ip %></span><% end %>
+</p>
+
+<div class="grid lg:grid-cols-5 gap-6">
+  <div class="lg:col-span-3 space-y-3">
+    <div class="rounded-xl border border-slate-700 bg-slate-900/60 px-4 py-3">
+      <div class="flex items-center justify-between mb-1">
+        <span class="text-xs font-semibold text-slate-300"><%= @message.display_name %></span>
+        <span class="text-[11px] text-slate-400"><%= @message.created_at.strftime("%b %-d, %-l:%M %p") %></span>
+      </div>
+      <div class="text-slate-200 text-sm leading-relaxed"><%= simple_format(@message.body) %></div>
+    </div>
+    <% if @message.replied? %>
+      <div class="rounded-xl border border-emerald-500/30 bg-emerald-500/5 px-4 py-3">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-xs font-semibold text-emerald-300">Your reply</span>
+          <span class="text-[11px] text-slate-400"><%= @message.replied_at.strftime("%b %-d, %-l:%M %p") %></span>
+        </div>
+        <div class="text-slate-200 text-sm leading-relaxed"><%= simple_format(@message.reply_body) %></div>
+      </div>
+    <% end %>
+    <% if @message.user_agent.present? %>
+      <p class="text-[11px] text-slate-500 font-mono break-all"><%= @message.user_agent %></p>
+    <% end %>
+  </div>
+
+  <div class="lg:col-span-2">
+    <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-4 sticky top-20">
+      <p class="text-xs uppercase tracking-widest text-slate-400 font-semibold mb-2">Reply by email</p>
+      <p class="text-xs text-slate-400 mb-3">Sent from noreply@wanderply.com with your address as Reply-To, so their answer lands in your inbox.</p>
+      <%= form_with url: reply_admin_contact_message_path(@message), method: :post, class: "space-y-3" do |f| %>
+        <%= f.text_area "reply[body]", rows: 8, "aria-label": "Reply body",
+              class: "w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm text-slate-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500" %>
+        <%= f.submit "Send reply", class: "w-full px-4 py-2 rounded-lg bg-amber-500 text-slate-950 text-sm font-semibold hover:bg-amber-400 cursor-pointer" %>
+      <% end %>
+
+      <div class="flex gap-2 mt-3">
+        <% if @message.spam? %>
+          <%= button_to "Not spam", spam_admin_contact_message_path(@message, flag: "false"),
+                class: "flex-1 px-3 py-2 rounded-lg border border-slate-700 text-slate-300 text-sm hover:bg-white/5" %>
+        <% else %>
+          <%= button_to "Mark spam", spam_admin_contact_message_path(@message),
+                class: "flex-1 px-3 py-2 rounded-lg border border-slate-700 text-slate-300 text-sm hover:bg-white/5" %>
+        <% end %>
+        <%= button_to "Delete", admin_contact_message_path(@message), method: :delete,
+              form: { data: { turbo_confirm: "Delete this message permanently?" } },
+              class: "flex-1 px-3 py-2 rounded-lg border border-rose-500/40 text-rose-300 text-sm hover:bg-rose-500/10" %>
+      </div>
+    </div>
+  </div>
+</div>
